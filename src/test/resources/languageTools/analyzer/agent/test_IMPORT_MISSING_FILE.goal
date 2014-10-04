@@ -1,0 +1,13 @@
+#import "missingfile.mod2g".
+
+main module{
+	program {
+		if true then print("hello").
+	}
+}
+
+
+	
+	
+
+

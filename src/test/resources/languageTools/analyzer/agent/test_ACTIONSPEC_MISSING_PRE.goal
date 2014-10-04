@@ -1,0 +1,13 @@
+main module {
+	beliefs{
+		condition.
+	}
+	program{
+		if bel(condition) then action.
+	}
+	actionspec{
+		action {
+			pre {} post {}
+		}
+	}
+}

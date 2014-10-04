@@ -1,0 +1,14 @@
+main module {
+	knowledge{
+		p :- q.
+		r.
+	}
+	program{
+		if bel(p, s), goal(t) then action.
+	}
+	actionspec{
+		action {
+			pre { true } post { true }
+		}
+	}
+}

@@ -1,0 +1,5 @@
+main module{
+	program {
+		if bel(belief) then delete(belief) + exit-module + insert(belief).
+	}
+}

@@ -1,0 +1,25 @@
+init module {
+	actionspec{
+		skip(#) {
+			pre{ true } post{ true }
+		}
+	}
+}
+
+main module{
+	program {
+		if true then mod(a).
+	}
+}
+
+module mod(a) {
+	program{
+		if true then skip(a).
+	}
+}
+
+
+	
+	
+
+

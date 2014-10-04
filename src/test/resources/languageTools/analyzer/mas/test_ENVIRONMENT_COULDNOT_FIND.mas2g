@@ -1,0 +1,11 @@
+environment{
+	env = "dummy.jar".
+	init = [key=value].
+}
+agentfiles{
+	"template.goal".
+}
+
+launchpolicy{
+	launch template.
+}

@@ -1,0 +1,13 @@
+#import "existingfile.goal".
+
+main module{
+	program {
+		if true then print("hello").
+	}
+}
+
+
+	
+	
+
+

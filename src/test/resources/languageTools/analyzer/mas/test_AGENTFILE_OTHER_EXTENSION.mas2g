@@ -1,0 +1,7 @@
+agentfiles{
+	"template.txt".
+}
+
+launchpolicy{
+	launch template.
+}

@@ -1,0 +1,19 @@
+main module {
+	program{
+		if bel(condition(X)) then action(X).
+	}
+	actionspec{
+		action(X) {
+			pre { check(X) } post { check(X) }
+		}
+		action(X) {
+			pre { check(X) } post { condition(X) }
+		}
+	}
+}
+
+module action(X) {
+	program{
+		if bel(condition(X)) then action(X).
+	}
+}

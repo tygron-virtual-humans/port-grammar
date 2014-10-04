@@ -1,0 +1,9 @@
+main module {
+	beliefs{
+		belief.
+	}
+	program{
+		if bel(belief) then.
+		if bel(belief) then print("hello").
+	}
+}

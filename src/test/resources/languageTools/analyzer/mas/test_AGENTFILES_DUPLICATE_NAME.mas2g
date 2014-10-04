@@ -1,0 +1,8 @@
+agentfiles{
+	"template.goal".
+	"template.goal".
+}
+
+launchpolicy{
+	launch template.
+}

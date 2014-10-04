@@ -1,0 +1,12 @@
+environment{
+	env = "dummy_environment.jar".
+	init = [key=].
+}
+
+agentfiles{
+	"template.goal".
+}
+
+launchpolicy{
+	when entity@env do launch template.
+}

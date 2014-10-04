@@ -1,0 +1,8 @@
+agentfiles{
+	"template.goal" [name = empty].
+}
+
+launchpolicy{
+	launch * : empty.
+	launch empty.
+}

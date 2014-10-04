@@ -1,0 +1,17 @@
+init module {
+	goals{
+		invalid :- goal.
+	}
+}
+
+main module{
+	program {
+		if true then print("hello").
+	}
+}
+
+
+	
+	
+
+

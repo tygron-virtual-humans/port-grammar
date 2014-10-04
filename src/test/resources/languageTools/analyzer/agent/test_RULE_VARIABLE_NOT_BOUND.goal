@@ -1,0 +1,8 @@
+main module {
+	knowledge{
+		condition.
+	}
+	program{
+		if bel(condition) then print(X).
+	}
+}

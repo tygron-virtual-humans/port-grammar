@@ -1,0 +1,10 @@
+environment{
+	init = [key=value].
+}
+agentfiles{
+	"template.goal".
+}
+
+launchpolicy{
+	launch template.
+}

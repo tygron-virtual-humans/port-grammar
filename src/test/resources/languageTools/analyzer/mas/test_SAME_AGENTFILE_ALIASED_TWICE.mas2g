@@ -1,0 +1,9 @@
+agentfiles{
+	"template.goal" [name = empty1].
+	"template.goal" [name = empty2].
+}
+
+launchpolicy{
+	launch empty1.
+	launch empty2.
+}

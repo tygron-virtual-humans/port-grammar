@@ -1,0 +1,56 @@
+Changes v0.2:
+
+Grammar Changes:
+- Renamed GOALParser.g4 to GOAL.g4 (required relabeling of 'GOAL' mental state operator token to 'GOAL_OP').
+- Added test2g grammar Test.g4, which uses import of GOAL.g4 grammar and now avoids duplication of grammar rules.
+- Moved token definitions from Test.g4 to GOALLexer.g4. GOAL.g4 and Test.g4 now both use GOALLexer.g4 for token definitions.
+- Imports of KR files is not supported in this version.
+- Only module declarations now require that parameters are variables; every where else it is now also allowed to use terms
+  other than variables as parameters of actions, modules, and macros.
+- Parsing of KR fragments assumes (as before) that brackets need to be balanced and an opening bracket is now used to trigger
+  parsing of KR fragments (with only one exception, i.e., a bracket that follows a 'not' operator).
+- Minor change to no longer allow action and module names to start with underscores (with little or no impact in practice I guess)
+- Goals in the goal base now are queries (and no longer Updates); they need to be, however, the type of queries that can be
+  also converted to updates, i.e., it should be possible to transform them into updates (as it must be possible to update a
+  goal base with a goal).
+- Implemented check to verify that a goal (which are now DBFs) can also be used as a query.
+- Introduced a new rule in the Prolog parser for possibly empty disjuncts using term1100 instead of term1000 on line 652 in Prolog.g
+  which is used when parsing queries (fix for TRAC #532).
+
+Backwards Incompatible Grammar Changes:
+- Selector now uses KR parameters (PARLIST token) for variables and constants instead of identifiers (ID token, which is still
+  used for, e.g., GOAL actions and modules). Selector expressions with KR variables now need to be surrounded with brackets. The
+  grammar now requires, for example, to write (X).send(message) instead of X.send(message).
+- Selector 'this' no longer allowed in combination with send action; only 'self', 'all', 'allother' and terms are allowed.
+ 
+Tool:
+- added and modified (compared to GOAL svn version 7959) MAS warnings and errors
+- created an analyzer that:
+  - outputs all errors and warnings found during parsing and validating an agent program or MAS.
+  - outputs generated lexer tokens upon request
+  - outputs program generated during validation upon request
+- Improved source code positions for KR expressions.
+  
+Tests:
+- added unit tests (using Short, Self Contained, Correct (Compilable), Examples http://sscce.org/).
+
+Upcoming v0.3:
+- Use logger for reporting messages (in Validators and Analyzer.java).
+- Allow multiple actions with same signature but different pre/post-conditions. The idea is to introduce OR operator
+  that allows to combine multiple actions like + operator, but only performs first that is applicable.
+- Reintroduce imports of KR files at start of module, directly after module declaration.
+- Create ontology of an agent or MAS upon request (e.g., when -ontology option is selected).
+- Add statistics output about the number of rules, mental state operators, built-in actions, action specifications,
+  modules, and predicate definitions that are used in the agent or MAS upon request (e.g., when the -statistics
+  option is selected).
+- Refine token definition of PARLIST into rules that recognize individual parameters in a comma-separated list.
+    
+To Do:
+- Check all UT3 student solutions.
+
+Issues:
+- filename reference in launch rule component in  MAS2G grammar is IDentifier, which is more restrictive than file names
+  allowed on file system; thus, some file names that are OK in the agentfiles section are not allowed in launch rule section. 
+- log action does not have KR content as argument but is listed in grammar as action with such a KR argument.
+- Lots of duplicate code in AgentValidator and ModuleValidator 
+- Comments in grammar still use Prolog specific tokens (e.g.,'%' to start line comment)

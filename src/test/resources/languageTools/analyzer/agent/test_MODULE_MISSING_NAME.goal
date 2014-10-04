@@ -1,0 +1,15 @@
+main module{
+	program{
+		if true then print("hello").
+	}
+}
+
+module {
+	program {
+		if true then print("hello").
+	}
+}
+	
+	
+
+

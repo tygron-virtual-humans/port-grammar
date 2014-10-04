@@ -1,0 +1,7 @@
+agentfiles{
+	"template.goal" [name = empty1, name = empty2, language = swiprolog].
+}
+
+launchpolicy{
+	launch empty1.
+}

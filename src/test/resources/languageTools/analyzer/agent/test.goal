@@ -1,0 +1,21 @@
+main module {
+	knowledge{
+		above(a,b).
+		on(a,b).
+		clear(X) :- not(on(_, X)).
+	}
+	program{
+		if (_Agent).bel(above(B,Y); B=Y) then mod(a).
+	}
+	actionspec{
+		move(X,Y) {
+			pre { clear(X), clear(Y), on(X,Z) } post { }
+		}
+	}
+}
+
+module mod(X) {
+	program{
+		if (X).bel(on(a,b)), (Y).bel(on(a,b)) then move(X,table).
+	}
+}

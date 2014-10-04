@@ -1,0 +1,37 @@
+main module {
+	knowledge{
+		condition(a).
+		condition(a,b).
+	}
+	program{
+		#define macro1(X,Y,Z) bel(condition(X,Y,Z)).
+		#define macro2(A,B,C) bel(condition(A,B)), goal(want(C)).
+		
+		if bel(condition(X)), macro1(X,Y,Z) then {
+			if bel(condition(X)) then action1(X).
+			if true, macro3(D) then action3(D).
+		}
+		if bel(condition(V,W)) then mod1(V,W).
+		if bel(condition(R,S)) then mod2(R).
+	}
+	actionspec{
+		action1(X) {
+			pre { condition(X) } post { true }
+		}
+		action2 {
+			pre { true } post { true }
+		}
+	}
+}
+
+module mod1(X,Y) {
+	program {
+		if bel(condition(X)) then print(X).
+	}
+}
+
+module mod3(Z) {
+	program {
+		if true then log(bb).
+	}
+}

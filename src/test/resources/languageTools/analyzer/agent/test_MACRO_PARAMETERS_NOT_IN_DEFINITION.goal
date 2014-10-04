@@ -1,0 +1,10 @@
+main module {
+	beliefs{
+		condition(1).
+	}
+	program{
+		#define macro(X,Y,Z) bel(condition(X)).
+		
+		if bel(condition(X)), macro(X,Y,Z) then print(X).
+	}
+}

@@ -1,0 +1,11 @@
+main module {
+	beliefs{
+		belief.
+	}
+	program{
+		if bel(belief) then send(belief).
+		if bel(belief) then some.send(belief).
+		if bel(belief) then someother.send(belief).
+		if bel(belief) then this.send(belief).
+	}
+}

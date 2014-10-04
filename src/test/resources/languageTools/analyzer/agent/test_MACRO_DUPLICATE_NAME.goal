@@ -1,0 +1,8 @@
+main module {
+	program{
+		#define macro(X,Y,Z) bel(condition(X,Y,Z)).
+		#define macro(A,B,C) bel(condition(A,B)), goal(want(C)).
+		
+		if bel(condition(X)) then insert(condition(X)).
+	}
+}

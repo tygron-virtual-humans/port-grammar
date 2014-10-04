@@ -1,0 +1,7 @@
+agentfiles{
+	"template.goal" [name = empty, language = pddl].
+}
+
+launchpolicy{
+	launch empty.
+}

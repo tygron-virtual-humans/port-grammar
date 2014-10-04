@@ -1,0 +1,5 @@
+init module {
+	program{
+		if true then print("hello").
+	}
+}

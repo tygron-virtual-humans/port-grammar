@@ -1,0 +1,12 @@
+main module{
+	program {
+		if true then (_).send(hello).
+		listall _ <- true do print("hello").
+	}
+}
+
+
+	
+	
+
+

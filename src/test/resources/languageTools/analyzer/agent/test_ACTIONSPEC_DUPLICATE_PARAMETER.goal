@@ -1,0 +1,16 @@
+main module {
+	program {
+		if true then duplicate(a,b).
+	}
+	actionspec{
+		duplicate(X, X) {
+			pre { true } post { true }
+		}
+	}
+}
+
+
+	
+	
+
+

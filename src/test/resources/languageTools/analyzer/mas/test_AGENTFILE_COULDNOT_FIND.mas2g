@@ -1,0 +1,7 @@
+agentfiles{
+	"cannotfindthis.goal".
+}
+
+launchpolicy{
+	launch cannotfindthis.
+}

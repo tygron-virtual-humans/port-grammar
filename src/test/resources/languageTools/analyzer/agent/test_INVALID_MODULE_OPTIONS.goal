@@ -1,0 +1,11 @@
+init module[exit=never] {
+	program {
+		if true then print("Hello there").
+	}
+}
+
+main module[focus=none, exit=sometimes]{
+	program {
+		if true then log(bb).
+	}
+}

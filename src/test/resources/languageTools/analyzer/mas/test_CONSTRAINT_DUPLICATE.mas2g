@@ -1,0 +1,12 @@
+environment{
+	env = "dummy_environment.jar".
+	init = [key=value].
+}
+
+agentfiles{
+	"template.goal" [name = empty].
+}
+
+launchpolicy{
+	when [name=bot,type=required,max=1,type=connect]@env do launch * : empty.
+}

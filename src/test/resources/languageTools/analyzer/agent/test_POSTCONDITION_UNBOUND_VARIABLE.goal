@@ -1,0 +1,20 @@
+main module{
+	knowledge{
+		condition(a,b).
+	}
+	program {
+		if bel(effect(A, Y, Z, B)) then unbound("hello",a).
+	}
+	actionspec{
+		unbound(X,Y) {
+			pre { condition(X, Z) }
+			post { effect(A, Y, Z, B) }
+		}
+	}
+}
+
+
+	
+	
+
+

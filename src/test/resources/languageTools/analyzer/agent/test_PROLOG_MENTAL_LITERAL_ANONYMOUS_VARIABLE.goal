@@ -1,0 +1,14 @@
+main module{
+	knowledge{
+		cannotuse(_).
+	}
+	program {
+		if a-goal(cannotuse(_)), goal-a(cannotuse(_)) then print("hello").
+	}
+}
+
+
+	
+	
+
+
