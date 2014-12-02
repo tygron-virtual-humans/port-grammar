@@ -26,9 +26,6 @@ parser grammar GOAL;
 
 options{ tokenVocab=GOALLexer; }
 
-@header{
-package languageTools.parser;
-}
 
 // Modules
 
