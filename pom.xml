@@ -82,6 +82,7 @@
 						<configuration>
 							<listener>false</listener>
 							<visitor>true</visitor>
+							<libDirectory>${basedir}/src/main/antlr4/languageTools/parser/</libDirectory>
 							<!-- <outputDirectory>${project.build.directory}\generated-sources\antlr4\languageTools\parser</outputDirectory> -->
 							<package>languageTools.parser</package>
 						</configuration>
