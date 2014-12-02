@@ -26,9 +26,6 @@ grammar MAS2G;
 
 tokens{ HIDDEN }
 
-@header{
-package languageTools.parser;
-}
 
 mas
 	: environment?

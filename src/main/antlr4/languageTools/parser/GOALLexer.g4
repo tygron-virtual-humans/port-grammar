@@ -21,9 +21,6 @@
  */
 lexer grammar GOALLexer;
 
-@header{
-package languageTools.parser;
-}
 
 @members {
 	boolean stayInDefault = false;
