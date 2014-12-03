@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<name>GOAL Grammar Tools</name>
-	<groupId>com.github.goalhub</groupId>
+	<groupId>com.github.goalhub.grammar</groupId>
 	<artifactId>languageTools</artifactId>
 	<url>https://github.com/goalhub/grammar</url>
 	<version>1.0.0</version>
@@ -36,13 +36,13 @@
 		<dependency>
 			<groupId>com.github.goalhub.krTools</groupId>
 			<artifactId>krInterface</artifactId>
-			<version>0.2</version>
+			<version>1.0.2</version>
 		</dependency>
 
 		<dependency>
 			<groupId>com.github.goalhub.krTools</groupId>
 			<artifactId>krFactory</artifactId>
-			<version>1.0.0</version>
+			<version>1.0.2</version>
 		</dependency>
 
 		<dependency>
