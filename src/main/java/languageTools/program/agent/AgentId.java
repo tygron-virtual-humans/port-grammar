@@ -29,8 +29,6 @@ public class AgentId {
 	 * 
 	 * @param name
 	 *            unique name of the agent
-	 * @deprecated you should not use this, as agent names always should match
-	 *             the messaging name.
 	 */
 	public AgentId(String name) {
 		this.name = name;
