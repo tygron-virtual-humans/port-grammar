@@ -17,6 +17,7 @@
 
 package languageTools.program.agent.msg;
 
+import java.io.Serializable;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -28,7 +29,11 @@ import languageTools.program.agent.AgentId;
  * A message consists of a sender, a receiver, a {@link SentenceMood} of the
  * message, and the content.
  */
-public class Message {
+public class Message implements Serializable {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1776221600909495302L;
 	/**
 	 * The name of the agent that sends this message.
 	 */
@@ -73,8 +78,8 @@ public class Message {
 	 * @param mood
 	 *            The mood of this message.
 	 */
-	private Message(AgentId sender, Set<AgentId> receivers,
-			Update content, SentenceMood mood) {
+	private Message(AgentId sender, Set<AgentId> receivers, Update content,
+			SentenceMood mood) {
 		this.sender = sender;
 		this.receivers = receivers;
 		this.content = content;
@@ -267,8 +272,7 @@ public class Message {
 	 */
 	@Override
 	public Message clone() {
-		return new Message(this.sender, this.receivers, this.content,
-				this.mood);
+		return new Message(this.sender, this.receivers, this.content, this.mood);
 	}
 
 }
