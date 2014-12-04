@@ -1,17 +1,17 @@
 package languageTools.errors;
 
 import java.io.File;
+import java.io.Serializable;
 
 import krTools.parser.SourceInfo;
+import languageTools.parser.InputStreamPosition;
 
 import org.antlr.v4.runtime.tree.TerminalNode;
 
-import languageTools.parser.InputStreamPosition;
+public abstract class Message implements Serializable {
 
-public abstract class Message {
-	
 	private SourceInfo source = null;
-	
+
 	public interface ValidatorMessageType {
 		public String toReadableString(String... args);
 	}
@@ -28,11 +28,13 @@ public abstract class Message {
 	/**
 	 * Collects details about the exact position in the input stream from an
 	 * ANTLR TerminalNode object.
-	 *  
-	 * @param context The ANTLR TerminalNode object
+	 * 
+	 * @param context
+	 *            The ANTLR TerminalNode object
 	 * @return An {@link #InputStreamPosition} object
 	 */
-	public Message(ValidatorMessageType type, TerminalNode context, File file, String... args) {
+	public Message(ValidatorMessageType type, TerminalNode context, File file,
+			String... args) {
 		this.type = type;
 		this.source = new InputStreamPosition(context.getSymbol(),
 				context.getSymbol(), file);
@@ -107,7 +109,8 @@ public abstract class Message {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		// TODO: How to map getSource() to int??? Replace 17 with that expression!
+		// TODO: How to map getSource() to int??? Replace 17 with that
+		// expression!
 		result = prime * result + ((getSource() == null) ? 0 : 17);
 		result = prime * result + ((type == null) ? 0 : type.hashCode());
 		return result;
