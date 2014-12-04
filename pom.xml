@@ -6,7 +6,7 @@
 	<groupId>com.github.goalhub.grammar</groupId>
 	<artifactId>languageTools</artifactId>
 	<url>https://github.com/goalhub/grammar</url>
-	<version>1.0.1</version>
+	<version>1.0.2</version>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -102,26 +102,42 @@
 					<target>1.7</target>
 				</configuration>
 			</plugin>
-			
+
 			<plugin>
-			    <groupId>org.codehaus.mojo</groupId>
-			    <version>1.9.1</version>
-			    <artifactId>build-helper-maven-plugin</artifactId>
-			    <executions>
-			        <execution>
-			            <id>add-source</id>
-			            <phase>generate-sources</phase>
-			            <goals>
-			                <goal>add-source</goal>
-			            </goals>
-			            <configuration>
-			                <sources>
-			                    <source>${project.build.directory}/generated-sources/antlr4/</source>
-			                </sources>
-			            </configuration>
-			        </execution>
-			    </executions>
-			 </plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+				<version>2.4</version>
+				<executions>
+					<execution>
+						<id>attach-sources</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>jar-no-fork</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<version>1.9.1</version>
+				<artifactId>build-helper-maven-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>add-source</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>add-source</goal>
+						</goals>
+						<configuration>
+							<sources>
+								<source>${project.build.directory}/generated-sources/antlr4/</source>
+							</sources>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 
 			<!-- how to prevent creation of jar file and use assembly plugin (only?) 
 				to include all required dependencies -->
