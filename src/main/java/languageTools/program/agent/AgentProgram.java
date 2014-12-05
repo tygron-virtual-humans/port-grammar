@@ -21,9 +21,12 @@ package languageTools.program.agent;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 
 import krTools.KRInterface;
+import krTools.language.DatabaseFormula;
+import krTools.language.Query;
 import krTools.parser.SourceInfo;
 import languageTools.analyzer.agent.AgentValidator;
 import languageTools.parser.GOAL;
@@ -41,7 +44,6 @@ import languageTools.program.Program;
  * @author Koen Hindriks
  */
 public class AgentProgram extends Program {
-	
 	/**
 	 * An agent program is a set of modules, either imported or defined in the
 	 * agent program file itself.
@@ -234,5 +236,49 @@ public class AgentProgram extends Program {
 
 		return str.toString();
 	}
-
+	
+	/**
+	 * @return All knowledge specified in all modules.
+	 */
+	public List<DatabaseFormula> getAllKnowledge() {
+		List<DatabaseFormula> knowledge = new LinkedList<>();
+		for( Module module : modules ){
+			knowledge.addAll(module.getKnowledge());
+		}
+		return knowledge;
+	}
+	
+	/**
+	 * @return All beliefs specified in all modules.
+	 */
+	public List<DatabaseFormula> getAllBeliefs() {
+		List<DatabaseFormula> beliefs = new LinkedList<>();
+		for( Module module : modules ){
+			beliefs.addAll(module.getBeliefs());
+		}
+		return beliefs;
+	}
+	
+	/**
+	 * @return All goals specified in all modules.
+	 */
+	public List<Query> getAllGoals() {
+		List<Query> goals = new LinkedList<>();
+		for( Module module : modules ){
+			goals.addAll(module.getGoals());
+		}
+		return goals;
+	}
+	
+	/**
+	 * @return All action specifications in the entire program, including the
+	 *         ones in the modules.
+	 */
+	public List<ActionSpecification> getAllActionSpecs() {
+		List<ActionSpecification> specs = new LinkedList<>();
+		for( Module module : modules ){
+			specs.addAll(module.getActionSpecifications());
+		}
+		return specs;
+	}
 }
