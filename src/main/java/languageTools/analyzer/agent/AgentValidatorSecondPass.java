@@ -155,8 +155,7 @@ public class AgentValidatorSecondPass {
 		for (File moduleFile : program.getImportedModules()) {
 			try {
 				ModuleValidator validator = new ModuleValidator(moduleFile.getCanonicalPath());
-				// TODO: ad hoc setting of KR
-				validator.setKRInterface(KRFactory.getDefaultInterface());
+				validator.setKRInterface(program.getKRInterface());
 				validator.validate();
 				Module module = validator.getProgram(); 
 				modules.add(module);
@@ -178,9 +177,6 @@ public class AgentValidatorSecondPass {
 				firstPass.getErrors().addAll(validator.getErrors());
 				firstPass.getWarnings().addAll(validator.getWarnings());
 			} catch (IOException e) {
-				// TODO: use logger.
-				System.out.println(e.getMessage());
-			} catch (KRInitFailedException e) {
 				// TODO: use logger.
 				System.out.println(e.getMessage());
 			}
