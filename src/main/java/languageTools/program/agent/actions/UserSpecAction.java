@@ -1,16 +1,16 @@
 /**
  * The GOAL Grammar Tools. Copyright (C) 2014 Koen Hindriks.
- * 
+ *
  * This program is free software: you can redistribute it and/or modify it under
  * the terms of the GNU General Public License as published by the Free Software
  * Foundation, either version 3 of the License, or (at your option) any later
  * version.
- * 
+ *
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -59,14 +59,15 @@ public class UserSpecAction extends Action<Term> {
 	 */
 	private final Query precondition;
 	/**
-	 * The post-condition of the action, i.e., an update representing the effects of the action.
+	 * The post-condition of the action, i.e., an update representing the
+	 * effects of the action.
 	 */
 	private final Update postcondition;
 
 	/**
 	 * Creates a {@link UserSpecAction} with name, parameter list, and sets flag
 	 * whether action should be sent to external environment or not.
-	 * 
+	 *
 	 * @param name
 	 *            The name of the action.
 	 * @param parameters
@@ -77,10 +78,10 @@ public class UserSpecAction extends Action<Term> {
 	 *            be sent to environment; {@code false} indicates that action
 	 *            should not be sent to environment.
 	 */
-	public UserSpecAction(String name, List<Term> parameters, boolean external, 
+	public UserSpecAction(String name, List<Term> parameters, boolean external,
 			Query precondition, Update postcondition, SourceInfo info) {
 		super(name, info);
-		
+
 		for (Term parameter : parameters) {
 			addParameter(parameter);
 		}
@@ -88,33 +89,36 @@ public class UserSpecAction extends Action<Term> {
 		this.precondition = precondition;
 		this.postcondition = postcondition;
 	}
-	
+
 	/**
-	 * @return {@code true} if this is an external action, i.e., one that should be sent to environment.
+	 * @return {@code true} if this is an external action, i.e., one that should
+	 *         be sent to environment.
 	 */
 	public boolean getExernal() {
-		return external;
+		return this.external;
 	}
 
 	/**
-	 * @return A {@link MentalStateCondition} of the form "bel(precondition)" that
-	 * 			represents the precondition of this action.
+	 * @return A {@link MentalStateCondition} of the form "bel(precondition)"
+	 *         that represents the precondition of this action.
 	 */
 	@Override
 	public MentalStateCondition getPrecondition() {
 		// Create mental state condition of the form "self.bel(precondition)".
 		List<MentalFormula> formulalist = new ArrayList<MentalFormula>();
-		formulalist.add(new BelLiteral(true, new Selector(SelectorType.SELF), precondition, precondition.getSourceInfo()));
+		formulalist.add(new BelLiteral(true, new Selector(SelectorType.SELF),
+				this.precondition, this.precondition.getSourceInfo()));
 		return new MentalStateCondition(formulalist);
 	}
-	
+
 	/**
-	 * @return An {@link Update} that represents the effect of this {@link UserSpecAction}.
+	 * @return An {@link Update} that represents the effect of this
+	 *         {@link UserSpecAction}.
 	 */
 	public Update getPostcondition() {
-		return postcondition;
+		return this.postcondition;
 	}
-	
+
 	/**
 	 * Variables in the precondition of a user-specified action are bound.
 	 */
@@ -136,7 +140,8 @@ public class UserSpecAction extends Action<Term> {
 		Query precondition = this.precondition.applySubst(substitution);
 		Update postcondition = this.postcondition.applySubst(substitution);
 
-		return new UserSpecAction(getName(), parameters, external, precondition, postcondition, getSourceInfo());
+		return new UserSpecAction(getName(), parameters, this.external,
+				precondition, postcondition, getSourceInfo());
 	}
 
 }

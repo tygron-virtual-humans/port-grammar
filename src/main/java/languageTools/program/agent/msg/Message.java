@@ -1,16 +1,16 @@
 /**
  * The GOAL Grammar Tools. Copyright (C) 2014 Koen Hindriks.
- * 
+ *
  * This program is free software: you can redistribute it and/or modify it under
  * the terms of the GNU General Public License as published by the Free Software
  * Foundation, either version 3 of the License, or (at your option) any later
  * version.
- * 
+ *
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -31,7 +31,7 @@ import languageTools.program.agent.AgentId;
  */
 public class Message implements Serializable {
 	/**
-	 * 
+	 *
 	 */
 	private static final long serialVersionUID = 1776221600909495302L;
 	/**
@@ -55,7 +55,7 @@ public class Message implements Serializable {
 	/**
 	 * Creates a {@link Message} with content and mood. Sender and receiver
 	 * cannot be established at compile time and are determined at runtime.
-	 * 
+	 *
 	 * @param content
 	 *            The content of this message.
 	 * @param mood
@@ -68,7 +68,7 @@ public class Message implements Serializable {
 
 	/**
 	 * Creates a {@link Message} with sender, receiver, content and mood.
-	 * 
+	 *
 	 * @param sender
 	 *            The name of the sender of this message.
 	 * @param receiver
@@ -88,16 +88,16 @@ public class Message implements Serializable {
 
 	/**
 	 * Returns the name of the agent who sends this {@link Message}.
-	 * 
+	 *
 	 * @return The name of the sender of this message.
 	 */
 	public AgentId getSender() {
-		return sender;
+		return this.sender;
 	}
 
 	/**
 	 * Sets the name of the agent who sends this {@link Message}.
-	 * 
+	 *
 	 * @param sender
 	 *            A {@link String} representing the name of the sender of this
 	 *            message.
@@ -108,16 +108,16 @@ public class Message implements Serializable {
 
 	/**
 	 * Returns the name of the agent who should receive this {@link Message}.
-	 * 
+	 *
 	 * @return The name of the receiver of this message.
 	 */
 	public Set<AgentId> getReceivers() {
-		return receivers;
+		return this.receivers;
 	}
 
 	/**
 	 * Sets the names of agents who should receive this {@link Message}.
-	 * 
+	 *
 	 * @param receivers
 	 *            The set of names of receivers of this message.
 	 */
@@ -126,15 +126,15 @@ public class Message implements Serializable {
 	}
 
 	/**
-	 * 
+	 *
 	 * @return
 	 */
 	public SentenceMood getMood() {
-		return mood;
+		return this.mood;
 	}
 
 	/**
-	 * 
+	 *
 	 * @param mood
 	 */
 	public void setMood(SentenceMood mood) {
@@ -142,15 +142,15 @@ public class Message implements Serializable {
 	}
 
 	/**
-	 * 
+	 *
 	 * @return
 	 */
 	public Update getContent() {
-		return content;
+		return this.content;
 	}
 
 	/**
-	 * 
+	 *
 	 * @param content
 	 */
 	public void setContent(Update content) {
@@ -159,7 +159,7 @@ public class Message implements Serializable {
 
 	/**
 	 * Returns the (free) variables that occur in the content of this message.
-	 * 
+	 *
 	 * @return The (free) variables that occur in the content of the message.
 	 */
 	public Set<Var> getFreeVar() {
@@ -169,7 +169,7 @@ public class Message implements Serializable {
 	/**
 	 * A message is considered to be closed if its content is closed, or if it
 	 * is an interrogative (and variables are allowed in the message content).
-	 * 
+	 *
 	 * @return {@code true} if the content of the message does not have any free
 	 *         variables, or the message is an interrogative; {@code false}
 	 *         otherwise.
@@ -188,7 +188,7 @@ public class Message implements Serializable {
 	 * wrapped inside "imp(...)", whereas in the latter case it is wrapped
 	 * inside "int(...)".
 	 * </p>
-	 * 
+	 *
 	 * @return a {@link String} representing that the message has been sent.
 	 */
 	public String toString(boolean sent, AgentId receiverName) {
@@ -204,7 +204,7 @@ public class Message implements Serializable {
 	@Override
 	public String toString() {
 		// Construct string from content and mood.
-		switch (mood) {
+		switch (this.mood) {
 		case IMPERATIVE:
 			return "imp(" + getContent() + ")";
 		case INTERROGATIVE:
@@ -218,11 +218,14 @@ public class Message implements Serializable {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((content == null) ? 0 : content.hashCode());
-		result = prime * result + ((mood == null) ? 0 : mood.hashCode());
 		result = prime * result
-				+ ((receivers == null) ? 0 : receivers.hashCode());
-		result = prime * result + ((sender == null) ? 0 : sender.hashCode());
+				+ ((this.content == null) ? 0 : this.content.hashCode());
+		result = prime * result
+				+ ((this.mood == null) ? 0 : this.mood.hashCode());
+		result = prime * result
+				+ ((this.receivers == null) ? 0 : this.receivers.hashCode());
+		result = prime * result
+				+ ((this.sender == null) ? 0 : this.sender.hashCode());
 		return result;
 	}
 
@@ -238,28 +241,28 @@ public class Message implements Serializable {
 			return false;
 		}
 		Message other = (Message) obj;
-		if (content == null) {
+		if (this.content == null) {
 			if (other.content != null) {
 				return false;
 			}
-		} else if (!content.equals(other.content)) {
+		} else if (!this.content.equals(other.content)) {
 			return false;
 		}
-		if (mood != other.mood) {
+		if (this.mood != other.mood) {
 			return false;
 		}
-		if (receivers == null) {
+		if (this.receivers == null) {
 			if (other.receivers != null) {
 				return false;
 			}
-		} else if (!receivers.equals(other.receivers)) {
+		} else if (!this.receivers.equals(other.receivers)) {
 			return false;
 		}
-		if (sender == null) {
+		if (this.sender == null) {
 			if (other.sender != null) {
 				return false;
 			}
-		} else if (!sender.equals(other.sender)) {
+		} else if (!this.sender.equals(other.sender)) {
 			return false;
 		}
 		return true;
@@ -267,7 +270,7 @@ public class Message implements Serializable {
 
 	/**
 	 * Returns a copy of this message.
-	 * 
+	 *
 	 * @return A copy of this message.
 	 */
 	@Override

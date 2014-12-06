@@ -1,16 +1,16 @@
 /**
  * The GOAL Grammar Tools. Copyright (C) 2014 Koen Hindriks.
- * 
+ *
  * This program is free software: you can redistribute it and/or modify it under
  * the terms of the GNU General Public License as published by the Free Software
  * Foundation, either version 3 of the License, or (at your option) any later
  * version.
- * 
+ *
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -43,17 +43,17 @@ public class MentalStateCondition {
 	 * {@link MentalFormula}s. Mental formulas are used here to be able to
 	 * define an MSC in terms of both {@link MentalLiteral}s as well as
 	 * {@link Macro}s. So {@link #formulas} stores the <i>original</i>
-	 * definition of this {@link MentalStateCondition} but should only be used if
-	 * this original definition is needed for presentation purposes. For al
+	 * definition of this {@link MentalStateCondition} but should only be used
+	 * if this original definition is needed for presentation purposes. For al
 	 * other purposes, use {@link #literals}.
 	 */
 	private final List<MentalFormula> formulas;
 
 	/**
-	 * Creates a {@link MentalStateCondition} from a list of {@link MentalFormula}.
-	 * Mental state conditions occur as conditions in the rules of a GOAL
-	 * program but are also used for other purposes.
-	 * 
+	 * Creates a {@link MentalStateCondition} from a list of
+	 * {@link MentalFormula}. Mental state conditions occur as conditions in the
+	 * rules of a GOAL program but are also used for other purposes.
+	 *
 	 * @param formulas
 	 *            The formulas from which the mental state condition is created.
 	 * @param source
@@ -65,9 +65,10 @@ public class MentalStateCondition {
 	}
 
 	/**
-	 * Returns the sub-{@link MentalFormula}s of this {@link MentalStateCondition},
-	 * where a sub-formula may be a {@link Macro} or a {@link MentalLiteral}.
-	 * 
+	 * Returns the sub-{@link MentalFormula}s of this
+	 * {@link MentalStateCondition}, where a sub-formula may be a {@link Macro}
+	 * or a {@link MentalLiteral}.
+	 *
 	 * @return A {@link List} of the sub-formulas of this mental state
 	 *         condition.
 	 */
@@ -76,7 +77,7 @@ public class MentalStateCondition {
 	}
 
 	/**
-	 * 
+	 *
 	 */
 	public Set<Var> getFreeVar() {
 		Set<Var> freeVar = new LinkedHashSet<Var>();
@@ -88,7 +89,7 @@ public class MentalStateCondition {
 
 	/**
 	 * Applies a given substitution to this {@link MentalStateCondition}.
-	 * 
+	 *
 	 * @param subst
 	 *            The substitution that is applied to the mental state
 	 *            condition.
@@ -113,12 +114,12 @@ public class MentalStateCondition {
 			str.append("true");
 		} else {
 			// Process macros
-			while(formulas.hasNext()) {
+			while (formulas.hasNext()) {
 				str.append(formulas.next());
 				str.append((formulas.hasNext() ? ", " : ""));
 			}
 		}
-		
+
 		return str.toString();
 	}
 

@@ -10,6 +10,10 @@ import org.antlr.v4.runtime.tree.TerminalNode;
 
 public abstract class Message implements Serializable {
 
+	/**
+	 *
+	 */
+	private static final long serialVersionUID = 6396169798566643352L;
 	private SourceInfo source = null;
 
 	public interface ValidatorMessageType {
@@ -28,7 +32,7 @@ public abstract class Message implements Serializable {
 	/**
 	 * Collects details about the exact position in the input stream from an
 	 * ANTLR TerminalNode object.
-	 * 
+	 *
 	 * @param context
 	 *            The ANTLR TerminalNode object
 	 * @return An {@link #InputStreamPosition} object
@@ -62,9 +66,9 @@ public abstract class Message implements Serializable {
 	}
 
 	public String toShortString() {
-		final String[] shortargs = new String[args.length];
-		for (int i = 0; i < args.length; i++) {
-			final String arg = args[i];
+		final String[] shortargs = new String[this.args.length];
+		for (int i = 0; i < this.args.length; i++) {
+			final String arg = this.args[i];
 			if (arg.length() > 1500) {
 				shortargs[i] = arg.substring(0, 1500) + "...";
 			} else {
@@ -112,7 +116,8 @@ public abstract class Message implements Serializable {
 		// TODO: How to map getSource() to int??? Replace 17 with that
 		// expression!
 		result = prime * result + ((getSource() == null) ? 0 : 17);
-		result = prime * result + ((type == null) ? 0 : type.hashCode());
+		result = prime * result
+				+ ((this.type == null) ? 0 : this.type.hashCode());
 		return result;
 	}
 

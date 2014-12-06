@@ -1,16 +1,16 @@
 /**
  * The GOAL Grammar Tools. Copyright (C) 2014 Koen Hindriks.
- * 
+ *
  * This program is free software: you can redistribute it and/or modify it under
  * the terms of the GNU General Public License as published by the Free Software
  * Foundation, either version 3 of the License, or (at your option) any later
  * version.
- * 
+ *
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -54,7 +54,7 @@ public class ListallDoRule extends Rule {
 
 	/**
 	 * Creates a new {@link ListallDoRule}.
-	 * 
+	 *
 	 * @param condition
 	 *            The condition of the rule.
 	 * @param variable
@@ -63,7 +63,8 @@ public class ListallDoRule extends Rule {
 	 * @param action
 	 *            The result of executing the new rule.
 	 */
-	public ListallDoRule(MentalStateCondition condition, Var variable, ActionCombo action) {
+	public ListallDoRule(MentalStateCondition condition, Var variable,
+			ActionCombo action) {
 		super(condition, action);
 
 		this.variable = variable;
@@ -89,36 +90,35 @@ public class ListallDoRule extends Rule {
 
 	@Override
 	public String toString() {
-		return "<listall-rule: " + "<variable: " + variable + ">, " + super.toString() + ">";
+		return "<listall-rule: " + "<variable: " + this.variable + ">, "
+				+ super.toString() + ">";
 	}
-	
+
 	/**
 	 * Pretty print possibly incomplete rule for error reporting.
-	 * 
+	 *
 	 * @return String with listall-do rule.
 	 */
+	@Override
 	public String prettyPrint() {
 		String variable = "<missing variable>";
 		if (this.variable != null) {
-			variable = this.variable.toString(); 
+			variable = this.variable.toString();
 		}
-		
+
 		String condition = "<missing condition>";
 		if (getCondition() != null) {
 			condition = getCondition().toString();
 		}
-		
+
 		String actions = "<missing actions>";
 		if (getAction() != null) {
 			actions = getAction().toString();
 		}
-		
-		return AgentProgram.getTokenName(GOAL.LISTALL) + " "
-				+ variable
-				+ AgentProgram.getTokenName(GOAL.RTLARROW)
-				+ condition + " "
-				+ AgentProgram.getTokenName(GOAL.DO) + " "
-				+ actions;
+
+		return AgentProgram.getTokenName(GOAL.LISTALL) + " " + variable
+		+ AgentProgram.getTokenName(GOAL.RTLARROW) + condition + " "
+		+ AgentProgram.getTokenName(GOAL.DO) + " " + actions;
 	}
 
 }

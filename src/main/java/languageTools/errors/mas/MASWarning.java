@@ -20,7 +20,8 @@ public enum MASWarning implements ValidatorWarningType {
 	 */
 	AGENTFILE_DUPLICATE_KEY,
 	/**
-	 * Same name for agent should not be used more than once (naming the same file twice is OK though!).
+	 * Same name for agent should not be used more than once (naming the same
+	 * file twice is OK though!).
 	 */
 	AGENTFILES_DUPLICATE_NAME,
 	/**
@@ -40,15 +41,18 @@ public enum MASWarning implements ValidatorWarningType {
 	 */
 	LAUNCH_NO_RULES,
 	/**
-	 * When environment is specified, launchpolicy section should have conditional rules to connect agents to it. 
+	 * When environment is specified, launchpolicy section should have
+	 * conditional rules to connect agents to it.
 	 */
 	LAUNCH_NO_CONDITIONAL_RULES,
 	/**
-	 * References to agent files in launch rules need to be present in agentfiles section.
+	 * References to agent files in launch rules need to be present in
+	 * agentfiles section.
 	 */
 	AGENTFILE_NONEXISTANT_REFERENCE,
 	/**
-	 * Any type of entity constraint should be specified only once in a launch rule.
+	 * Any type of entity constraint should be specified only once in a launch
+	 * rule.
 	 */
 	CONSTRAINT_DUPLICATE;
 

@@ -1,16 +1,16 @@
 /**
  * The GOAL Grammar Tools. Copyright (C) 2014 Koen Hindriks.
- * 
+ *
  * This program is free software: you can redistribute it and/or modify it under
  * the terms of the GNU General Public License as published by the Free Software
  * Foundation, either version 3 of the License, or (at your option) any later
  * version.
- * 
+ *
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -22,23 +22,25 @@ import java.util.Map;
 import java.util.Set;
 
 public class SymbolTable implements Scope {
-	
-	private Map<String, Symbol> symbols = new HashMap<String, Symbol>();
-	private String scopeName = "global";
+
+	private final Map<String, Symbol> symbols = new HashMap<String, Symbol>();
+	private final String scopeName = "global";
 	private SymbolTable enclosingScope = null;
-	
+
 	/**
 	 * Creates global scope.
 	 */
 	public SymbolTable() {
-		
+
 	}
-	
+
 	/**
 	 * Creates new scope. Use {@link #getNewScope(String)} to create new scope.
-	 * 
-	 * @param name Name of the new scope (refer to program element).
-	 * @param scope Previous scope.
+	 *
+	 * @param name
+	 *            Name of the new scope (refer to program element).
+	 * @param scope
+	 *            Previous scope.
 	 */
 	private SymbolTable(String name, SymbolTable scope) {
 		this.enclosingScope = scope;
@@ -46,7 +48,7 @@ public class SymbolTable implements Scope {
 
 	@Override
 	public String getScopeName() {
-		return scopeName;
+		return this.scopeName;
 	}
 
 	/**
@@ -54,12 +56,12 @@ public class SymbolTable implements Scope {
 	 */
 	@Override
 	public Scope getEnclosingScope() {
-		return enclosingScope;
+		return this.enclosingScope;
 	}
-	
+
 	/**
 	 * Creates a new scope, with a reference to this scope.
-	 * 
+	 *
 	 * @return New symbol table that defines new scope.
 	 */
 	@Override
@@ -69,33 +71,33 @@ public class SymbolTable implements Scope {
 
 	@Override
 	public boolean define(Symbol sym) {
-		if (symbols.containsKey(sym.getName())) {
+		if (this.symbols.containsKey(sym.getName())) {
 			return false;
 		}
-		symbols.put(sym.getName(), sym);
+		this.symbols.put(sym.getName(), sym);
 		return true;
 	}
 
 	@Override
 	public Symbol resolve(String name) {
-		if (symbols.containsKey(name)) {
-			return symbols.get(name);
-		} else if (enclosingScope != null) {
+		if (this.symbols.containsKey(name)) {
+			return this.symbols.get(name);
+		} else if (this.enclosingScope != null) {
 			return getEnclosingScope().resolve(name);
 		}
 		return null;
 	}
-	
+
 	/**
 	 * @return Names defined in this {@link SymbolTable}.
 	 */
 	public Set<String> getNames() {
-		return symbols.keySet();
+		return this.symbols.keySet();
 	}
-	
+
 	@Override
 	public String toString() {
-		return getScopeName()+":" +symbols;
+		return getScopeName() + ":" + this.symbols;
 	}
 
 }

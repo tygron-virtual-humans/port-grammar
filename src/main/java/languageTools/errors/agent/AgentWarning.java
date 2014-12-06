@@ -24,11 +24,12 @@ public enum AgentWarning implements ValidatorWarningType {
 	 */
 	ACTION_NEVER_USED,
 	/**
-	 * There should be a matching belief for every goal (to support automated removal of goal when achieved) 
+	 * There should be a matching belief for every goal (to support automated
+	 * removal of goal when achieved)
 	 */
 	GOAL_DOES_NOT_MATCH_BELIEF,
 	/**
-	 * It should be possible to perform an action. 
+	 * It should be possible to perform an action.
 	 */
 	EXITMODULE_CANNOT_REACH,
 	/**
@@ -66,7 +67,7 @@ public enum AgentWarning implements ValidatorWarningType {
 	/**
 	 * Modules should be used.
 	 */
-	MODULE_NEVER_USED; 
+	MODULE_NEVER_USED;
 
 	private static final ResourceBundle BUNDLE = ResourceBundle
 			.getBundle("languageTools.messages.AgentWarningMessages");

@@ -1,16 +1,16 @@
 /**
  * The GOAL Grammar Tools. Copyright (C) 2014 Koen Hindriks.
- * 
+ *
  * This program is free software: you can redistribute it and/or modify it under
  * the terms of the GNU General Public License as published by the Free Software
  * Foundation, either version 3 of the License, or (at your option) any later
  * version.
- * 
+ *
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -50,15 +50,16 @@ public class UserSpecOrModuleCall extends Action<Term> {
 	 * <li>{@link #toString()}</li>
 	 * </ul>
 	 * </p>
-	 * 
+	 *
 	 * @param name
 	 *            The name of the action.
 	 * @param parameters
 	 *            The parameters of the action.
 	 */
-	public UserSpecOrModuleCall(String name, List<Term> parameters, SourceInfo info) {
+	public UserSpecOrModuleCall(String name, List<Term> parameters,
+			SourceInfo info) {
 		super(name, info);
-		
+
 		for (Term parameter : parameters) {
 			addParameter(parameter);
 		}

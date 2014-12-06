@@ -8,20 +8,27 @@ import krTools.parser.SourceInfo;
 
 public class ParserError extends Message {
 
+	/**
+	 *
+	 */
+	private static final long serialVersionUID = -4097859122421338841L;
+
 	public interface SyntaxErrorType extends ValidatorMessageType {
 	}
-	
+
 	private static final ResourceBundle BUNDLE = ResourceBundle
 			.getBundle("languageTools.messages.ParserErrorMessages");
-		
+
 	/**
-	 * Syntax errors to distinguish lexer (token recognition errors) from parser errors.
-	 * 
+	 * Syntax errors to distinguish lexer (token recognition errors) from parser
+	 * errors.
+	 *
 	 * @author Koen Hindriks
 	 */
 	public enum SyntaxError implements SyntaxErrorType {
 		/**
-		 * Any error received from a parser that parsed embedded language fragments.
+		 * Any error received from a parser that parsed embedded language
+		 * fragments.
 		 */
 		EMBEDDED_LANGUAGE_ERROR,
 		/**
@@ -29,7 +36,7 @@ public class ParserError extends Message {
 		 */
 		FATAL,
 		/**
-		 * It should be possible to read the program file. 
+		 * It should be possible to read the program file.
 		 */
 		FILE_COULDNOT_OPEN,
 		/**
@@ -47,13 +54,8 @@ public class ParserError extends Message {
 		/**
 		 * All parser errors.
 		 */
-		NOVIABLEALTERNATIVE,
-		INPUTMISMATCH,
-		FAILEDPREDICATE,
-		UNWANTEDTOKEN,
-		MISSINGTOKEN,
-		UNEXPECTEDINPUT;
-		
+		NOVIABLEALTERNATIVE, INPUTMISMATCH, FAILEDPREDICATE, UNWANTEDTOKEN, MISSINGTOKEN, UNEXPECTEDINPUT;
+
 		@Override
 		public String toReadableString(String... args) {
 			try {

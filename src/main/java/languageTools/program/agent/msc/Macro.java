@@ -1,16 +1,16 @@
 /**
  * The GOAL Grammar Tools. Copyright (C) 2014 Koen Hindriks.
- * 
+ *
  * This program is free software: you can redistribute it and/or modify it under
  * the terms of the GNU General Public License as published by the Free Software
  * Foundation, either version 3 of the License, or (at your option) any later
  * version.
- * 
+ *
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -48,26 +48,28 @@ public class Macro implements MentalFormula {
 	 */
 	private MentalStateCondition definition;
 	/**
-	 * Source info object for this macro. 
+	 * Source info object for this macro.
 	 */
 	private final SourceInfo info;
 
 	/**
 	 * Creates a new macro definition.
-	 * 
+	 *
 	 * @param name
 	 *            The name/label of the macro
 	 * @param parameters
 	 *            The parameters of the macro (can be the empty list but not
 	 *            null).
 	 * @param definition
-	 *            The {@link MentalStateCondition} the macro is a shorthand for. If
-	 *            null, this macro reference still needs to be resolved. See
+	 *            The {@link MentalStateCondition} the macro is a shorthand for.
+	 *            If null, this macro reference still needs to be resolved. See
 	 *            {@link RuleValidator#doValidate} of Should only be null for
 	 *            macro instances.
-	 * @param info Source info about this object.
+	 * @param info
+	 *            Source info about this object.
 	 */
-	public Macro(String name, List<Term> parameters, MentalStateCondition definition, SourceInfo info) {
+	public Macro(String name, List<Term> parameters,
+			MentalStateCondition definition, SourceInfo info) {
 		super();
 
 		this.name = name;
@@ -78,7 +80,7 @@ public class Macro implements MentalFormula {
 
 	/**
 	 * The name of this {@link Macro}.
-	 * 
+	 *
 	 * @return The name of this macro.
 	 */
 	public String getName() {
@@ -87,7 +89,7 @@ public class Macro implements MentalFormula {
 
 	/**
 	 * Returns the parameters of this {@link Macro}.
-	 * 
+	 *
 	 * @return The list of parameters of this macro.
 	 */
 	public List<Term> getParameters() {
@@ -96,40 +98,40 @@ public class Macro implements MentalFormula {
 
 	/**
 	 * Returns the definition of this {@link Macro}.
-	 * 
+	 *
 	 * @return The definition of this macro.
 	 */
 	public MentalStateCondition getDefinition() {
 		return this.definition;
 	}
-	
+
 	/**
 	 * Set the definition of this {@link Macro}.
-	 * 
-	 * @param The definition to be used for this macro.
+	 *
+	 * @param The
+	 *            definition to be used for this macro.
 	 */
 	public void setDefinition(MentalStateCondition definition) {
 		this.definition = definition;
-	}	
-	
+	}
+
 	@Override
 	public SourceInfo getSourceInfo() {
-		return info;
+		return this.info;
 	}
 
 	/**
-	 * Different from other situations where substitutions are applied,
-	 * applying a substitution to a macro means applying it only to the
-	 * parameters of the macro and not to any other variables that may
-	 * occur in the macro's definition.
-	 * 
-	 * There are two issues here:
-	 * 1. The variables hidden (not part of the macro's parameters) should
-	 * 		not be instantiated by the substitution;
-	 * 2. Any (new) variables introduced by applying the substitution should
-	 * 		not be identical to any of the hidden variables (which would otherwise
-	 * 		become 'visible' again).
-	 * 
+	 * Different from other situations where substitutions are applied, applying
+	 * a substitution to a macro means applying it only to the parameters of the
+	 * macro and not to any other variables that may occur in the macro's
+	 * definition.
+	 *
+	 * There are two issues here: 1. The variables hidden (not part of the
+	 * macro's parameters) should not be instantiated by the substitution; 2.
+	 * Any (new) variables introduced by applying the substitution should not be
+	 * identical to any of the hidden variables (which would otherwise become
+	 * 'visible' again).
+	 *
 	 * TODO (See also {@link Module})
 	 */
 	@Override
@@ -138,9 +140,10 @@ public class Macro implements MentalFormula {
 		for (Term term : this.parameters) {
 			parameters.add(term.applySubst(substitution));
 		}
-		MentalStateCondition definition = this.definition.applySubst(substitution);
+		MentalStateCondition definition = this.definition
+				.applySubst(substitution);
 
-		return new Macro(name, parameters, definition, info);
+		return new Macro(this.name, parameters, definition, this.info);
 	}
 
 	@Override
@@ -185,45 +188,50 @@ public class Macro implements MentalFormula {
 	public String toString() {
 		StringBuilder str = new StringBuilder();
 
-		str.append(name);
-		
-		if (!parameters.isEmpty()) {
+		str.append(this.name);
+
+		if (!this.parameters.isEmpty()) {
 			str.append("(");
-			Iterator<Term> pars = parameters.iterator();
+			Iterator<Term> pars = this.parameters.iterator();
 			while (pars.hasNext()) {
 				str.append(pars.next());
 				str.append(pars.hasNext() ? ", " : "");
 			}
 			str.append(")");
 		}
-		
+
 		return str.toString();
 	}
-	
+
 	/**
 	 * Builds a string representation of this {@link Macro}.
-	 * 
-	 * @param linePrefix A prefix used to indent parts of a program, e.g., a single space or tab.
-	 * @param indent A unit to increase indentation with, e.g., a single space or tab.
+	 *
+	 * @param linePrefix
+	 *            A prefix used to indent parts of a program, e.g., a single
+	 *            space or tab.
+	 * @param indent
+	 *            A unit to increase indentation with, e.g., a single space or
+	 *            tab.
 	 * @return A string-representation of this macro.
 	 */
 	public String toString(String linePrefix, String indent) {
 		StringBuilder str = new StringBuilder();
-		
+
 		str.append(linePrefix + "<macro: " + this);
-		
-		str.append(", " + definition + ">");
-		
+
+		str.append(", " + this.definition + ">");
+
 		return str.toString();
 	}
 
 	/**
 	 * Gets a string representing the signature of this {@link Macro}.
-	 * 
+	 *
 	 * @return A string of the format {macro name}/{number of parameters}
 	 */
 	public String getSignature() {
-		return name.concat("/").concat(String.valueOf(this.getParameters().size()));
+		return this.name.concat("/").concat(
+				String.valueOf(this.getParameters().size()));
 	}
 
 }

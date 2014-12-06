@@ -11,46 +11,47 @@ import org.antlr.v4.runtime.atn.ATN;
 
 /**
  * Redirects {@link LexerNoViableAltException}s to {@link Validator}.
- * 
+ *
  * See: {@link Validator#syntaxError()} and {@link Validator#parseFile()}.
- * 
+ *
  * @author Koen Hindriks
  *
  * @param <L>
  */
 public abstract class MyLexer<L extends Lexer> extends Lexer {
-	
-	private L lexer;
+
+	private final L lexer;
 
 	public MyLexer(CharStream input, ANTLRErrorListener errorlistener) {
 		super(input);
-		lexer = getNewLexer(input);
-		lexer.removeErrorListeners();
-		lexer.addErrorListener(errorlistener);
+		this.lexer = getNewLexer(input);
+		this.lexer.removeErrorListeners();
+		this.lexer.addErrorListener(errorlistener);
 	}
-	
+
 	protected abstract L getNewLexer(CharStream input);
-	
+
 	@Override
 	public Token nextToken() {
-		return lexer.nextToken();
+		return this.lexer.nextToken();
 	}
-	
-//	@Override public void notifyListeners(LexerNoViableAltException e) in implementation of this class.
+
+	// @Override public void notifyListeners(LexerNoViableAltException e) in
+	// implementation of this class.
 
 	@Override
 	public String[] getRuleNames() {
-		return lexer.getRuleNames();
+		return this.lexer.getRuleNames();
 	}
 
 	@Override
 	public String getGrammarFileName() {
-		return lexer.getGrammarFileName();
+		return this.lexer.getGrammarFileName();
 	}
 
 	@Override
 	public ATN getATN() {
-		return lexer.getATN();
+		return this.lexer.getATN();
 	}
 
 }

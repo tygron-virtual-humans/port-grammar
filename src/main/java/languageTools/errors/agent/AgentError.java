@@ -8,11 +8,13 @@ import languageTools.errors.ValidatorError.ValidatorErrorType;
 
 public enum AgentError implements ValidatorErrorType {
 	/**
-	 * Action parameters in an action specification should not contain duplicates.
+	 * Action parameters in an action specification should not contain
+	 * duplicates.
 	 */
 	ACTIONSPEC_DUPLICATE_PARAMETER,
 	/**
-	 * The same action signature should not be defined twice (either as module or action).
+	 * The same action signature should not be defined twice (either as module
+	 * or action).
 	 */
 	ACTION_LABEL_ALREADY_DEFINED,
 	/**
@@ -21,7 +23,7 @@ public enum AgentError implements ValidatorErrorType {
 	 */
 	ACTIONSPEC_UNBOUND_VARIABLE,
 	/**
-	 * A user-defined action that is used in a rule should be specified.  
+	 * A user-defined action that is used in a rule should be specified.
 	 */
 	ACTION_USED_NEVER_DEFINED,
 	/**
@@ -29,7 +31,8 @@ public enum AgentError implements ValidatorErrorType {
 	 */
 	GOAL_UNINSTANTIATED_VARIABLE,
 	/**
-	 * A goal should be a query but it should also be possibl to convert it into an update.
+	 * A goal should be a query but it should also be possibl to convert it into
+	 * an update.
 	 */
 	GOALSECTION_NOT_AN_UPDATE,
 	/**
@@ -37,15 +40,18 @@ public enum AgentError implements ValidatorErrorType {
 	 */
 	IMPORT_MISSING_FILE,
 	/**
-	 * An expression in a knowledge representation language that is queried should be defined. 
+	 * An expression in a knowledge representation language that is queried
+	 * should be defined.
 	 */
 	KR_BELIEF_QUERIED_NEVER_DEFINED,
 	/**
-	 * An expression in a knowledge representation language that is queried should be defined. 
+	 * An expression in a knowledge representation language that is queried
+	 * should be defined.
 	 */
 	KR_GOAL_QUERIED_NEVER_DEFINED,
 	/**
-	 * A parameter must be a variable recognized by the KR interface language that is used.
+	 * A parameter must be a variable recognized by the KR interface language
+	 * that is used.
 	 */
 	KR_SAYS_PARAMETER_INVALID,
 	/**
@@ -77,7 +83,7 @@ public enum AgentError implements ValidatorErrorType {
 	 */
 	MODULE_MISSING_PROGRAM_SECTION,
 	/**
-	 * Module parameters should be variables. 
+	 * Module parameters should be variables.
 	 */
 	PARAMETER_NOT_A_VARIABLE,
 	/**
@@ -85,13 +91,13 @@ public enum AgentError implements ValidatorErrorType {
 	 */
 	PROGRAM_NO_MAIN_NOR_EVENT,
 	/**
-	 * Variables in postcondition of an action specification should be bound by variables
-	 * that occur in the action parameters or the precondition. 
+	 * Variables in postcondition of an action specification should be bound by
+	 * variables that occur in the action parameters or the precondition.
 	 */
 	POSTCONDITION_UNBOUND_VARIABLE,
 	/**
-	 * Action or module parameters should not be an anonymous variable.
-	 * (This is a KR specific constraint that is checked in the agent validator.)
+	 * Action or module parameters should not be an anonymous variable. (This is
+	 * a KR specific constraint that is checked in the agent validator.)
 	 */
 	PROLOG_ANONYMOUS_VARIABLE,
 	/**
@@ -99,7 +105,8 @@ public enum AgentError implements ValidatorErrorType {
 	 */
 	PROLOG_LISTALL_ANONYMOUS_VARIABLE,
 	/**
-	 * Mental literals of type a-goal and goal-a should not contain Prolog anonymous variables.
+	 * Mental literals of type a-goal and goal-a should not contain Prolog
+	 * anonymous variables.
 	 */
 	PROLOG_MENTAL_LITERAL_ANONYMOUS_VARIABLE,
 	/**
@@ -111,11 +118,12 @@ public enum AgentError implements ValidatorErrorType {
 	 */
 	RULE_MISSING_CONDITION,
 	/**
-	 * Variables in the head (action calls) of a rule should be bound by the body (condition) of the rule.
+	 * Variables in the head (action calls) of a rule should be bound by the
+	 * body (condition) of the rule.
 	 */
 	RULE_VARIABLE_NOT_BOUND,
 	/**
-	 * Variables used in a selector should be bound. 
+	 * Variables used in a selector should be bound.
 	 */
 	SELECTOR_VAR_NOT_BOUND,
 	/**

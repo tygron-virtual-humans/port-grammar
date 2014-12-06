@@ -2,12 +2,16 @@ package languageTools.errors;
 
 import krTools.parser.SourceInfo;
 
-
 /**
- * 
+ *
  *
  */
 public class ValidatorWarning extends Message {
+
+	/**
+	 *
+	 */
+	private static final long serialVersionUID = 852843283922639179L;
 
 	public interface ValidatorWarningType extends ValidatorMessageType {
 	}

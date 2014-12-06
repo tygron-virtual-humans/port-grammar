@@ -17,21 +17,21 @@ public abstract class MyErrorStrategy extends DefaultErrorStrategy {
 	public void reportNoViableAlternative(Parser parser, NoViableAltException e)
 			throws RecognitionException {
 		parser.notifyErrorListeners(e.getOffendingToken(),
-				getExpectationTxt((Parser)e.getRecognizer()),
+				getExpectationTxt((Parser) e.getRecognizer()),
 				getException("NoViableAlternative", parser));
 	}
 
 	@Override
 	public void reportInputMismatch(Parser parser, InputMismatchException e) {
 		parser.notifyErrorListeners(e.getOffendingToken(),
-				getExpectationTxt((Parser)e.getRecognizer()),
+				getExpectationTxt((Parser) e.getRecognizer()),
 				getException("InputMismatch", parser));
 	}
 
 	@Override
 	public void reportFailedPredicate(Parser parser, FailedPredicateException e) {
 		parser.notifyErrorListeners(e.getOffendingToken(),
-				getExpectationTxt((Parser)e.getRecognizer()),
+				getExpectationTxt((Parser) e.getRecognizer()),
 				getException("FailedPredicate", parser));
 	}
 
@@ -54,7 +54,7 @@ public abstract class MyErrorStrategy extends DefaultErrorStrategy {
 	 * {@link #beginErrorCondition} to enter error recovery mode, followed by
 	 * calling {@link Parser#notifyErrorListeners}.
 	 * </p>
-	 * 
+	 *
 	 * <p>
 	 * The method has been modified to report more readable error messages.
 	 * </p>
@@ -71,7 +71,8 @@ public abstract class MyErrorStrategy extends DefaultErrorStrategy {
 		beginErrorCondition(parser);
 
 		Token t = parser.getCurrentToken();
-		parser.notifyErrorListeners(t, getExpectationTxt(parser), getException("UnwantedToken", parser));
+		parser.notifyErrorListeners(t, getExpectationTxt(parser),
+				getException("UnwantedToken", parser));
 	}
 
 	/**
@@ -105,12 +106,13 @@ public abstract class MyErrorStrategy extends DefaultErrorStrategy {
 		beginErrorCondition(parser);
 
 		Token t = parser.getCurrentToken();
-		parser.notifyErrorListeners(t, getExpectationTxt(parser), getException("MissingToken", parser));
+		parser.notifyErrorListeners(t, getExpectationTxt(parser),
+				getException("MissingToken", parser));
 	}
 
 	/**
 	 * Used to control display of token in an error message.
-	 * 
+	 *
 	 * During development it may be useful to use t.toString() (which, for
 	 * CommonToken, dumps everything about the token).
 	 */
@@ -119,7 +121,7 @@ public abstract class MyErrorStrategy extends DefaultErrorStrategy {
 		if (t == null) {
 			return "????";
 		}
-		
+
 		// Default is to use token name from list in parser
 		String s = getSymbolText(t);
 		if (s == null) {
@@ -127,9 +129,9 @@ public abstract class MyErrorStrategy extends DefaultErrorStrategy {
 		} else {
 			s = escapeWSAndQuote(s.toLowerCase());
 		}
-		
+
 		// Handle specific cases to produce more readable output
-		String prettyprint = prettyPrintToken(t); 
+		String prettyprint = prettyPrintToken(t);
 		s = (prettyprint != null ? prettyprint : s);
 
 		return s;
@@ -138,69 +140,80 @@ public abstract class MyErrorStrategy extends DefaultErrorStrategy {
 	/**
 	 * This is the default implementation which simply prints the token symbol
 	 * as it occurs in the (lexer) grammar.
-	 * 
-	 * <p>Overwrite this method to improve standard output.</p>
-	 * 
-	 * @param t Token to print
+	 *
+	 * <p>
+	 * Overwrite this method to improve standard output.
+	 * </p>
+	 *
+	 * @param t
+	 *            Token to print
 	 * @return Token symbol text as it occurs in (lexer) grammar
 	 */
 	protected String prettyPrintToken(Token t) {
 		return prettyPrintToken(getSymbolType(t));
 	}
-	
+
 	/**
-	 * This is the default implementation which simply returns the token symbol type.
-	 * 
-	 * <p>Overwrite this method to improve standard output.</p>
-	 * 
-	 * @param type Type of token to print
+	 * This is the default implementation which simply returns the token symbol
+	 * type.
+	 *
+	 * <p>
+	 * Overwrite this method to improve standard output.
+	 * </p>
+	 *
+	 * @param type
+	 *            Type of token to print
 	 * @return Token symbol text as it occurs in (lexer) grammar
 	 */
 	protected String prettyPrintToken(int type) {
 		return Integer.toString(type);
 	}
-	
+
 	/**
-	 * This is the default implementation which simply prints the rule name
-	 * as it occurs in the (parser) grammar.
-	 * 
-	 * <p>Overwrite this method to improve standard output.</p>
-	 * 
-	 * @param ruleIndex Index of parser rule
+	 * This is the default implementation which simply prints the rule name as
+	 * it occurs in the (parser) grammar.
+	 *
+	 * <p>
+	 * Overwrite this method to improve standard output.
+	 * </p>
+	 *
+	 * @param ruleIndex
+	 *            Index of parser rule
 	 * @return Rule name text as it occurs in (parser) grammar
 	 */
 	protected String prettyPrintRuleContext(int ruleIndex) {
 		return Integer.toString(ruleIndex);
 	}
-	
+
 	/**
-	 * Need to delegate this to classes that extend this class
-	 * because establishing error type for lexer is token-based...
-	 * 
+	 * Need to delegate this to classes that extend this class because
+	 * establishing error type for lexer is token-based...
+	 *
 	 * @param token
 	 * @return
 	 */
 	public abstract SyntaxError getLexerErrorType(Token token);
-	
+
 	/**
 	 * Helper method for reporting multiple expected alternatives
-	 * 
-	 * @param tokens Set of expected tokens
+	 *
+	 * @param tokens
+	 *            Set of expected tokens
 	 * @return String representation of token set
 	 */
 	private String getExpectationTxt(Parser parser) {
 		String str;
-		
+
 		IntervalSet tokens = getExpectedTokens(parser);
 		if (tokens.size() < 5) { // list all expected tokens if less than 5
 			int size = tokens.toList().size();
 			str = (size > 1 ? "either " : "");
-		
-			for (int i=0; i<size; i++) {
+
+			for (int i = 0; i < size; i++) {
 				int type = tokens.toList().get(i);
 				str += prettyPrintToken(type);
-				str += (i < size-2 ? ", " : "");
-				str += (i == size-2 ? " or " : "");
+				str += (i < size - 2 ? ", " : "");
+				str += (i == size - 2 ? " or " : "");
 			}
 		} else { // otherwise output parser rule context
 			str = prettyPrintRuleContext(parser.getRuleContext().getRuleIndex());
@@ -208,17 +221,19 @@ public abstract class MyErrorStrategy extends DefaultErrorStrategy {
 
 		return str;
 	}
-	
+
 	/**
-	 * We use a general RecognitionException with a particular text to signal to the error strategy
-	 * what type of issue we found.
-	 * 
-	 * @param text Label to indicate error type
+	 * We use a general RecognitionException with a particular text to signal to
+	 * the error strategy what type of issue we found.
+	 *
+	 * @param text
+	 *            Label to indicate error type
 	 * @param parser
 	 * @return The recognition exception
 	 */
 	private RecognitionException getException(String text, Parser parser) {
-		return new RecognitionException(text, parser, parser.getInputStream(), parser.getRuleContext());
+		return new RecognitionException(text, parser, parser.getInputStream(),
+				parser.getRuleContext());
 	}
 
 }

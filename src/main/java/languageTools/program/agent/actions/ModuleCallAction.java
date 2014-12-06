@@ -1,16 +1,16 @@
 /**
  * The GOAL Grammar Tools. Copyright (C) 2014 Koen Hindriks.
- * 
+ *
  * This program is free software: you can redistribute it and/or modify it under
  * the terms of the GNU General Public License as published by the Free Software
  * Foundation, either version 3 of the License, or (at your option) any later
  * version.
- * 
+ *
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -24,7 +24,10 @@ import krTools.language.Substitution;
 import krTools.language.Term;
 import krTools.parser.SourceInfo;
 import languageTools.program.agent.Module;
+import languageTools.program.agent.Module.FocusMethod;
 import languageTools.program.agent.Module.TYPE;
+import languageTools.program.agent.msc.AGoalLiteral;
+import languageTools.program.agent.msc.GoalLiteral;
 import languageTools.program.agent.rules.Rule;
 
 /**
@@ -78,7 +81,7 @@ public class ModuleCallAction extends Action<Term> {
 	/**
 	 * Creates a new {@link ModuleCallAction}, which will focus the agent's
 	 * attention to a certain module when executed.
-	 * 
+	 *
 	 * @param targetModule
 	 *            The name of the {@link Module} the agent that executes this
 	 *            action will focus on.
@@ -87,7 +90,7 @@ public class ModuleCallAction extends Action<Term> {
 		super(targetModule.getName(), info);
 
 		this.targetModule = targetModule;
-		
+
 		for (Term term : targetModule.getParameters()) {
 			addParameter(term);
 		}
@@ -96,7 +99,7 @@ public class ModuleCallAction extends Action<Term> {
 	/**
 	 * Returns the module that should be entered when executing this focus
 	 * action.
-	 * 
+	 *
 	 * @return The {@link Module} that will be entered when executing this
 	 *         action.
 	 */
@@ -111,11 +114,11 @@ public class ModuleCallAction extends Action<Term> {
 	 * substitution is passed on to module itself via
 	 * {@link #run(RunState, Substitution)}.
 	 * </p>
-	 * 
+	 *
 	 * @return Instantiated focus action, where free variables in parameters
 	 *         have been substituted with terms from the substitution.
-	 *         
-	 * TODO: check
+	 * 
+	 *         TODO: check
 	 */
 	@Override
 	public Action<Term> applySubst(Substitution substitution) {
@@ -128,31 +131,33 @@ public class ModuleCallAction extends Action<Term> {
 		}
 
 		// Create new focus action with instantiated parameters.
-		ModuleCallAction focus = new ModuleCallAction(getTarget(), getSourceInfo());
+		ModuleCallAction focus = new ModuleCallAction(getTarget(),
+				getSourceInfo());
 		// Store substitution for later reference when we call the target
 		// module.
 		// TODO: focus.substitutionToPassOnToModule = substitution;
 
 		return focus;
 	}
-	
+
 	/**
-	 * String with name and parameters of module called, or, in case of anonymous module, list of rules in that module.
+	 * String with name and parameters of module called, or, in case of
+	 * anonymous module, list of rules in that module.
 	 */
 	@Override
-	public String toString() {		
+	public String toString() {
 		if (getTarget().getType() != TYPE.ANONYMOUS) {
 			return super.toString();
 		} else {
 			StringBuilder str = new StringBuilder();
 			str.append("{\n");
-			
+
 			for (Rule rule : getTarget().getRules()) {
 				str.append(rule.toString() + "\n");
 			}
-			
+
 			str.append("}\n");
-		
+
 			return str.toString();
 		}
 	}

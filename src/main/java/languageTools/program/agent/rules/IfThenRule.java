@@ -1,16 +1,16 @@
 /**
  * The GOAL Grammar Tools. Copyright (C) 2014 Koen Hindriks.
- * 
+ *
  * This program is free software: you can redistribute it and/or modify it under
  * the terms of the GNU General Public License as published by the Free Software
  * Foundation, either version 3 of the License, or (at your option) any later
  * version.
- * 
+ *
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -43,7 +43,7 @@ public class IfThenRule extends Rule {
 
 	/**
 	 * Creates a new {@link IfThenRule} from a condition and a result.
-	 * 
+	 *
 	 * @param condition
 	 *            The condition of the new rule. The result will never happen if
 	 *            this condition is not satisfied.
@@ -72,27 +72,26 @@ public class IfThenRule extends Rule {
 	public String toString() {
 		return "<if-then-rule: " + super.toString() + ">";
 	}
-	
+
 	/**
 	 * Pretty print possibly incomplete rule for error reporting.
-	 * 
+	 *
 	 * @return String with if-then rule.
 	 */
+	@Override
 	public String prettyPrint() {
 		String condition = "<missing condition>";
 		if (getCondition() != null) {
 			condition = getCondition().toString();
 		}
-		
+
 		String actions = "<missing actions>";
 		if (getAction() != null) {
 			actions = getAction().toString();
 		}
-		
-		return AgentProgram.getTokenName(GOAL.IF) + " "
-				+ condition + " "
-				+ AgentProgram.getTokenName(GOAL.THEN) + " "
-				+ actions;
+
+		return AgentProgram.getTokenName(GOAL.IF) + " " + condition + " "
+		+ AgentProgram.getTokenName(GOAL.THEN) + " " + actions;
 	}
 
 }

@@ -1,17 +1,17 @@
 /**
  * GOAL interpreter that facilitates developing and executing GOAL multi-agent
  * programs. Copyright (C) 2011 K.V. Hindriks, W. Pasman
- * 
+ *
  * This program is free software: you can redistribute it and/or modify it under
  * the terms of the GNU General Public License as published by the Free Software
  * Foundation, either version 3 of the License, or (at your option) any later
  * version.
- * 
+ *
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -28,8 +28,9 @@ import org.antlr.v4.runtime.Token;
  * Container that stores a position in a file or stream by means of a line
  * number index and character position on that line.
  */
-public class InputStreamPosition implements SourceInfo, Comparable<InputStreamPosition> {
-	
+public class InputStreamPosition implements SourceInfo,
+		Comparable<InputStreamPosition> {
+
 	/**
 	 * The name or description of the file or other stream this
 	 * {@link InputStreamPosition} points into.
@@ -47,7 +48,7 @@ public class InputStreamPosition implements SourceInfo, Comparable<InputStreamPo
 	/**
 	 * The current (token) startindex of the stream's pointer
 	 */
-	private int startIndex;
+	private final int startIndex;
 	/**
 	 * The current (token) stopindex of the stream's pointer
 	 */
@@ -55,31 +56,32 @@ public class InputStreamPosition implements SourceInfo, Comparable<InputStreamPo
 
 	/**
 	 * TODO
-	 * 
+	 *
 	 * @param start
 	 * @param stop
 	 * @param sourceFile
 	 */
 	public InputStreamPosition(Token start, Token stop, File sourceFile) {
-		this(start.getLine(), start.getCharPositionInLine()+1, start
+		this(start.getLine(), start.getCharPositionInLine() + 1, start
 				.getStartIndex(), stop.getStopIndex(), sourceFile);
 	}
 
 	/**
 	 * TODO
-	 * 
+	 *
 	 * @param token
 	 * @param index
 	 * @param source
 	 */
 	public InputStreamPosition(Token token, int index, File source) {
-		this(token.getLine(), token.getCharPositionInLine()+1, index, token
+		this(token.getLine(), token.getCharPositionInLine() + 1, index, token
 				.getText() == null ? index : index + token.getText().length(),
-				source);
+						source);
 	}
 
 	/**
-	 * TODO 
+	 * TODO
+	 * 
 	 * @param lineNumber
 	 * @param characterPosition
 	 * @param startIndex
@@ -98,13 +100,15 @@ public class InputStreamPosition implements SourceInfo, Comparable<InputStreamPo
 	/**
 	 * @return The source file this input stream position is associated with.
 	 */
+	@Override
 	public File getSource() {
-		return source;
+		return this.source;
 	}
 
 	/**
 	 * @return The line number this marker marks.
 	 */
+	@Override
 	public int getLineNumber() {
 		return this.lineNumber;
 	}
@@ -112,6 +116,7 @@ public class InputStreamPosition implements SourceInfo, Comparable<InputStreamPo
 	/**
 	 * @return The index of the character in its line that this marker marks.
 	 */
+	@Override
 	public int getCharacterPosition() {
 		return this.characterPosition;
 	}
@@ -129,9 +134,10 @@ public class InputStreamPosition implements SourceInfo, Comparable<InputStreamPo
 	public int getStopIndex() {
 		return this.stopIndex;
 	}
-	
+
 	/**
-	 * @param stopIndex The (token) stopindex of the character that this marker marks.
+	 * @param stopIndex
+	 *            The (token) stopindex of the character that this marker marks.
 	 */
 	public void setStopIndex(int stopIndex) {
 		this.stopIndex = stopIndex;
@@ -151,7 +157,7 @@ public class InputStreamPosition implements SourceInfo, Comparable<InputStreamPo
 	 * Determines if this {@link InputStreamPosition} is located after the given
 	 * location. WARNING: the line number is 0-based, while the line number in
 	 * this {@link InputStreamPosition} is 1-based.
-	 * 
+	 *
 	 * @param source
 	 *            The referenced file.
 	 * @param lineNumber
@@ -177,9 +183,9 @@ public class InputStreamPosition implements SourceInfo, Comparable<InputStreamPo
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
 		builder.append("line ");
-		builder.append(lineNumber);
+		builder.append(this.lineNumber);
 		builder.append(", position ");
-		builder.append(characterPosition);
+		builder.append(this.characterPosition);
 		if (this.source != null) {
 			builder.append(" in ");
 			builder.append(this.source.getName());
@@ -189,7 +195,7 @@ public class InputStreamPosition implements SourceInfo, Comparable<InputStreamPo
 
 	@Override
 	public int hashCode() {
-		int hash = (31 * lineNumber) << 16 + characterPosition;
+		int hash = (31 * this.lineNumber) << 16 + this.characterPosition;
 		if (this.source != null) {
 			hash += this.source.hashCode();
 		}
@@ -211,11 +217,11 @@ public class InputStreamPosition implements SourceInfo, Comparable<InputStreamPo
 			return false;
 		}
 
-		if (source == null) {
-			return source == null;
+		if (this.source == null) {
+			return this.source == null;
 		} else {
-			return source.getAbsoluteFile().equals(
-					source.getAbsoluteFile());
+			return this.source.getAbsoluteFile().equals(
+					this.source.getAbsoluteFile());
 		}
 	}
 
@@ -229,14 +235,14 @@ public class InputStreamPosition implements SourceInfo, Comparable<InputStreamPo
 		} else if (this.lineNumber > o.lineNumber) {
 			return 1;
 		} else
-		// then by character position
-		if (this.characterPosition < o.characterPosition) {
-			return -1;
-		} else if (this.characterPosition > o.characterPosition) {
-			return 1;
-		} else {
-			return 0;
-		}
+			// then by character position
+			if (this.characterPosition < o.characterPosition) {
+				return -1;
+			} else if (this.characterPosition > o.characterPosition) {
+				return 1;
+			} else {
+				return 0;
+			}
 	}
 
 	@Override

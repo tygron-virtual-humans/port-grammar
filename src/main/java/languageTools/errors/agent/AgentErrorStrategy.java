@@ -8,11 +8,11 @@ import languageTools.parser.GOALLexer;
 import org.antlr.v4.runtime.Token;
 
 public class AgentErrorStrategy extends MyErrorStrategy {
-	
+
 	@Override
 	protected String prettyPrintToken(Token t) {
 		String txt = prettyPrintToken(getSymbolType(t));
-		switch(t.getType()) {
+		switch (t.getType()) {
 		case GOAL.ID:
 			return txt + " '" + t.getText() + "'";
 		case GOAL.VAR:
@@ -20,7 +20,7 @@ public class AgentErrorStrategy extends MyErrorStrategy {
 		case GOAL.ERROR:
 			return txt + " '" + t.getText() + "'";
 		case GOAL.KR_BLOCK:
-			
+
 		default:
 			return txt;
 		}
@@ -28,7 +28,7 @@ public class AgentErrorStrategy extends MyErrorStrategy {
 
 	@Override
 	protected String prettyPrintToken(int type) {
-		switch(type) {
+		switch (type) {
 		case Token.EOF:
 			return "end of file";
 		case GOAL.ID:
@@ -54,18 +54,26 @@ public class AgentErrorStrategy extends MyErrorStrategy {
 			}
 		}
 	}
-	
+
 	@Override
 	public String prettyPrintRuleContext(int ruleIndex) {
-		switch(ruleIndex) {
-		case GOAL.RULE_actionOperator: return "an action name";
-		case GOAL.RULE_beliefs: return "belief section";
-		case GOAL.RULE_knowledge: return "knowledge section";
-		case GOAL.RULE_mentalStateCondition: return "a mental state condition";
-		case GOAL.RULE_moduleDef: return "module declaration";
-		case GOAL.RULE_programRule: return "rule";
-		case GOAL.RULE_ruleEvaluationOrder: return "a rule evaluation order option";
-		case GOAL.RULE_program: return "a section with rules and macros";
+		switch (ruleIndex) {
+		case GOAL.RULE_actionOperator:
+			return "an action name";
+		case GOAL.RULE_beliefs:
+			return "belief section";
+		case GOAL.RULE_knowledge:
+			return "knowledge section";
+		case GOAL.RULE_mentalStateCondition:
+			return "a mental state condition";
+		case GOAL.RULE_moduleDef:
+			return "module declaration";
+		case GOAL.RULE_programRule:
+			return "rule";
+		case GOAL.RULE_ruleEvaluationOrder:
+			return "a rule evaluation order option";
+		case GOAL.RULE_program:
+			return "a section with rules and macros";
 		default:
 			return GOAL.ruleNames[ruleIndex];
 		}
@@ -74,8 +82,8 @@ public class AgentErrorStrategy extends MyErrorStrategy {
 	@Override
 	public SyntaxError getLexerErrorType(Token token) {
 		SyntaxError type = null;
-		
-		switch(token.getType()) {
+
+		switch (token.getType()) {
 		case GOALLexer.StringLiteral:
 			type = SyntaxError.UNTERMINATEDSTRINGLITERAL;
 			break;
@@ -83,7 +91,7 @@ public class AgentErrorStrategy extends MyErrorStrategy {
 			type = SyntaxError.UNTERMINATEDSINGLEQUOTEDSTRINGLITERAL;
 			break;
 		}
-		
+
 		return type;
 	}
 

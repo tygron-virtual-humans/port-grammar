@@ -12,7 +12,7 @@ public class MASErrorStrategy extends MyErrorStrategy {
 	@Override
 	protected String prettyPrintToken(Token t) {
 		String txt = prettyPrintToken(getSymbolType(t));
-		switch(t.getType()) {
+		switch (t.getType()) {
 		case MAS2GParser.ID:
 			return txt + " '" + t.getText() + "'";
 		case MAS2GParser.FLOAT:
@@ -23,10 +23,10 @@ public class MASErrorStrategy extends MyErrorStrategy {
 			return txt;
 		}
 	}
-	
+
 	@Override
 	protected String prettyPrintToken(int type) {
-		switch(type) {
+		switch (type) {
 		case Token.EOF:
 			return "end of file";
 		case MAS2GParser.ID:
@@ -49,7 +49,7 @@ public class MASErrorStrategy extends MyErrorStrategy {
 
 	@Override
 	protected String prettyPrintRuleContext(int ruleIndex) {
-		switch(ruleIndex) {
+		switch (ruleIndex) {
 		case MAS2GParser.RULE_initExpr:
 			return "initialization expression";
 		default:
@@ -60,8 +60,8 @@ public class MASErrorStrategy extends MyErrorStrategy {
 	@Override
 	public SyntaxError getLexerErrorType(Token token) {
 		SyntaxError type = null;
-		
-		switch(token.getType()) {
+
+		switch (token.getType()) {
 		case MAS2GLexer.StringLiteral:
 			type = SyntaxError.UNTERMINATEDSTRINGLITERAL;
 			break;
@@ -69,7 +69,7 @@ public class MASErrorStrategy extends MyErrorStrategy {
 			type = SyntaxError.UNTERMINATEDSINGLEQUOTEDSTRINGLITERAL;
 			break;
 		}
-		
+
 		return type;
 	}
 

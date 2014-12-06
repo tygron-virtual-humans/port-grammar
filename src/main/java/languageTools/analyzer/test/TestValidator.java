@@ -1,33 +1,26 @@
 /**
  * The GOAL Grammar Tools. Copyright (C) 2014 Koen Hindriks.
- * 
+ *
  * This program is free software: you can redistribute it and/or modify it under
  * the terms of the GNU General Public License as published by the Free Software
  * Foundation, either version 3 of the License, or (at your option) any later
  * version.
- * 
+ *
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
 package languageTools.analyzer.test;
 
-import languageTools.analyzer.Validator;
-import languageTools.errors.agent.AgentErrorStrategy;
-
 import java.io.File;
 
-import org.antlr.v4.runtime.ANTLRErrorListener;
-import org.antlr.v4.runtime.CharStream;
-import org.antlr.v4.runtime.TokenStream;
-import org.antlr.v4.runtime.misc.NotNull;
-import org.antlr.v4.runtime.tree.ParseTree;
-
+import languageTools.analyzer.Validator;
+import languageTools.errors.agent.AgentErrorStrategy;
 import languageTools.parser.InputStreamPosition;
 import languageTools.parser.Test;
 import languageTools.parser.Test.ActionContext;
@@ -68,32 +61,41 @@ import languageTools.parser.Test.TestContext;
 import languageTools.parser.Test.TestSectionContext;
 import languageTools.parser.Test.TimeoutContext;
 import languageTools.parser.Test.UnitTestContext;
-import languageTools.parser.agent.MyGOALLexer;
 import languageTools.parser.TestVisitor;
+import languageTools.parser.agent.MyGOALLexer;
 import languageTools.program.test.AgentTest;
 
+import org.antlr.v4.runtime.ANTLRErrorListener;
+import org.antlr.v4.runtime.CharStream;
+import org.antlr.v4.runtime.TokenStream;
+import org.antlr.v4.runtime.misc.NotNull;
+import org.antlr.v4.runtime.tree.ParseTree;
+
 /**
- * Validates a test file and constructs a test program. 
- * 
+ * Validates a test file and constructs a test program.
+ *
  * @author Koen Hindriks
  */
 @SuppressWarnings("rawtypes")
-public class TestValidator extends Validator<MyGOALLexer, Test, AgentErrorStrategy, AgentTest> implements TestVisitor {
-	
+public class TestValidator extends
+		Validator<MyGOALLexer, Test, AgentErrorStrategy, AgentTest> implements
+		TestVisitor {
+
 	private Test parser;
 	private static AgentErrorStrategy strategy = null;
-	
+
 	/**
 	 * Creates the test validator.
-	 * 
+	 *
 	 * @param source
 	 */
 	public TestValidator(String filename) {
 		super(filename);
 	}
-	
+
 	@Override
-	protected MyGOALLexer getNewLexer(CharStream stream, ANTLRErrorListener errorlistener) {
+	protected MyGOALLexer getNewLexer(CharStream stream,
+			ANTLRErrorListener errorlistener) {
 		return new MyGOALLexer(stream, errorlistener);
 	}
 
@@ -104,7 +106,7 @@ public class TestValidator extends Validator<MyGOALLexer, Test, AgentErrorStrate
 
 	@Override
 	protected ParseTree startParser() {
-		return parser.unitTest();
+		return this.parser.unitTest();
 	}
 
 	@Override
@@ -123,13 +125,16 @@ public class TestValidator extends Validator<MyGOALLexer, Test, AgentErrorStrate
 	/**
 	 * {@inheritDoc}
 	 *
-	 * <p>The default implementation calls {@link ParseTree#accept} on the
-	 * specified tree.</p>
+	 * <p>
+	 * The default implementation calls {@link ParseTree#accept} on the
+	 * specified tree.
+	 * </p>
 	 */
+	@Override
 	@SuppressWarnings("unchecked")
 	public Void visit(@NotNull ParseTree tree) {
 		tree.accept(this);
-		
+
 		return null; // Java says must return something even when Void
 	}
 
@@ -162,7 +167,7 @@ public class TestValidator extends Validator<MyGOALLexer, Test, AgentErrorStrate
 		// TODO Auto-generated method stub
 		return null;
 	}
-	
+
 	@Override
 	public Object visitActionSpecs(ActionSpecsContext ctx) {
 		// TODO Auto-generated method stub
@@ -352,7 +357,7 @@ public class TestValidator extends Validator<MyGOALLexer, Test, AgentErrorStrate
 	@Override
 	protected void secondPass(ParseTree tree) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override

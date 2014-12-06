@@ -1,16 +1,16 @@
 /**
  * The GOAL Grammar Tools. Copyright (C) 2014 Koen Hindriks.
- * 
+ *
  * This program is free software: you can redistribute it and/or modify it under
  * the terms of the GNU General Public License as published by the Free Software
  * Foundation, either version 3 of the License, or (at your option) any later
  * version.
- * 
+ *
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -26,7 +26,7 @@ import languageTools.program.agent.selector.Selector;
 
 /**
  * {@inheritDoc}
- * 
+ *
  * Parent class for all actions that *only* modify the {@link MentalState} of an
  * agent and do *not* have external side effects outside the multi-agent system
  * itself.
@@ -50,13 +50,14 @@ import languageTools.program.agent.selector.Selector;
 public abstract class MentalAction extends Action<Update> {
 
 	/**
-	 * The selector indicating on which mental model this action should be executed.
+	 * The selector indicating on which mental model this action should be
+	 * executed.
 	 */
-	private Selector selector;
+	private final Selector selector;
 
 	/**
 	 * Creates a new {@link MentalAction}.
-	 * 
+	 *
 	 * @param selector
 	 *            The selector indicating on which mental model(s) this action
 	 *            should be executed.
@@ -68,26 +69,26 @@ public abstract class MentalAction extends Action<Update> {
 
 	/**
 	 * Returns the {@link Selector} for this {@link MentalAction}.
-	 * 
+	 *
 	 * @return The selector for this action.
 	 */
 	public Selector getSelector() {
-		return selector;
+		return this.selector;
 	}
-	
+
 	/**
 	 * Variables in selector also count as free variables of mental action.
 	 */
 	@Override
 	public Set<Var> getFreeVar() {
-		Set<Var> vars = selector.getFreeVar();
+		Set<Var> vars = this.selector.getFreeVar();
 		vars.addAll(super.getFreeVar());
 		return vars;
 	}
-	
+
 	@Override
 	public String toString() {
-		return selector.toPrefixString() + super.toString();
+		return this.selector.toPrefixString() + super.toString();
 	}
 
 	@Override
@@ -95,24 +96,29 @@ public abstract class MentalAction extends Action<Update> {
 		final int prime = 31;
 		int result = super.hashCode();
 		result = prime * result
-				+ ((selector == null) ? 0 : selector.hashCode());
+				+ ((this.selector == null) ? 0 : this.selector.hashCode());
 		return result;
 	}
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
+		if (this == obj) {
 			return true;
-		if (!super.equals(obj))
+		}
+		if (!super.equals(obj)) {
 			return false;
-		if (getClass() != obj.getClass())
+		}
+		if (getClass() != obj.getClass()) {
 			return false;
+		}
 		MentalAction other = (MentalAction) obj;
-		if (selector == null) {
-			if (other.selector != null)
+		if (this.selector == null) {
+			if (other.selector != null) {
 				return false;
-		} else if (!selector.equals(other.selector))
+			}
+		} else if (!this.selector.equals(other.selector)) {
 			return false;
+		}
 		return true;
 	}
 
