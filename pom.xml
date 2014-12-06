@@ -18,11 +18,6 @@
 			<id>goalhub-mvn-repo</id>
 			<url>https://raw.github.com/goalhub/mvn-repo/master</url>
 		</repository>
-
-		<repository>
-			<id>eishub-mvn-repo</id>
-			<url>https://raw.github.com/eishub/mvn-repo/master</url>
-		</repository>
 	</repositories>
 
 	<dependencies>
