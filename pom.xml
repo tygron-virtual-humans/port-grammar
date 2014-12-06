@@ -27,13 +27,7 @@
 			<version>${antlr.version}</version>
 			<type>jar</type>
 		</dependency>
-
-		<dependency>
-			<groupId>com.github.goalhub.krTools</groupId>
-			<artifactId>krInterface</artifactId>
-			<version>1.0.2</version>
-		</dependency>
-
+		
 		<dependency>
 			<groupId>com.github.goalhub.krTools</groupId>
 			<artifactId>krFactory</artifactId>
