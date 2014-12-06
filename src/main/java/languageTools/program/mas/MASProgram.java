@@ -26,7 +26,6 @@ import java.util.Map;
 import krTools.KRInterface;
 import krTools.parser.SourceInfo;
 import languageTools.program.Program;
-import eis.iilang.Parameter;
 
 /**
  * A MAS program consists of:
@@ -41,7 +40,6 @@ import eis.iilang.Parameter;
  * </ul>
  */
 public class MASProgram extends Program {
-
 	/**
 	 * The environment interface file.
 	 */
@@ -49,8 +47,7 @@ public class MASProgram extends Program {
 	/**
 	 * The environment initialization parameters.
 	 */
-	private Map<String, Parameter> parameters = new HashMap<String, Parameter>();
-	
+	private Map<String, Object> parameters = new HashMap<String, Object>();
 	/**
 	 * The agent file references.
 	 */
@@ -59,7 +56,6 @@ public class MASProgram extends Program {
 	 * Knowledge representation technology associated with agent file.
 	 */
 	private Map<File, KRInterface> agentFile2krInterface = new HashMap<File, KRInterface>();
-	
 	/**
 	 * An ordered list of launch rules.
 	 */
@@ -100,17 +96,24 @@ public class MASProgram extends Program {
 	/**
 	 * @return The environment initialization parameters.
 	 */
-	public Map<String, Parameter> getInitParameters() {
+	public Map<String, Object> getInitParameters() {
 		return parameters;
+	}
+	
+	/**
+	 * Clears all currently set init parameters
+	 */
+	public void resetInitParameters() {
+		parameters.clear();
 	}
 	
 	/**
 	 * Adds a key-value pair to the map of environment initialization parameters.
 	 * 
 	 * @param key The key of the parameter.
-	 * @param value The value of the initialization parameter (an EIS language parameter).
+	 * @param value The value of the initialization parameter.
 	 */
-	public void addInitParameter(String key, eis.iilang.Parameter value) {
+	public void addInitParameter(String key, Object value) {
 		parameters.put(key, value);
 	}
 	
@@ -214,5 +217,4 @@ public class MASProgram extends Program {
 		
 		return str.toString();
 	}
-
 }

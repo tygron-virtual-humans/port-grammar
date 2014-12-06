@@ -40,11 +40,6 @@ import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.apache.commons.io.FilenameUtils;
 
-import eis.iilang.Function;
-import eis.iilang.Identifier;
-import eis.iilang.Numeral;
-import eis.iilang.Parameter;
-import eis.iilang.ParameterList;
 import goalhub.krTools.KRFactory;
 import languageTools.parser.InputStreamPosition;
 import languageTools.parser.MAS2GParser;
@@ -234,7 +229,7 @@ public class MASValidator extends Validator<MyMAS2GLexer, MAS2GParser,
 		}
 
 		// Get parameter value
-		eis.iilang.Parameter value = visitInitExpr(ctx.initExpr());
+		Object value = visitInitExpr(ctx.initExpr());
 		
 		// If value equals null, we did not recognize a valid initialization parameter
 		if (value == null && ctx.initExpr() != null) {
@@ -253,7 +248,7 @@ public class MASValidator extends Validator<MyMAS2GLexer, MAS2GParser,
 	 * @return {@code null} if no valid parameter was recognized. 
 	 */
 	@Override
-	public eis.iilang.Parameter visitInitExpr(InitExprContext ctx) {
+	public Object visitInitExpr(InitExprContext ctx) {
 		if (ctx != null) { 
 			if (ctx.constant() != null) {
 				return visitConstant(ctx.constant());
@@ -270,30 +265,27 @@ public class MASValidator extends Validator<MyMAS2GLexer, MAS2GParser,
 	}
 	
 	@Override
-	public eis.iilang.Parameter visitConstant(ConstantContext ctx) {
-		
+	public Object visitConstant(ConstantContext ctx) {
 		if (ctx.ID() != null) {
-			return new Identifier(ctx.ID().getText());
+			return ctx.ID().getText();
 		}
 		if (ctx.FLOAT() != null) {
-			return new Numeral(Double.parseDouble(ctx.FLOAT().getText()));
+			return Double.parseDouble(ctx.FLOAT().getText());
 		}
 		if (ctx.INT() != null) {
-			return new Numeral(Integer.parseInt(ctx.INT().getText()));
+			return Integer.parseInt(ctx.INT().getText());
 		}
 		if (ctx.string() != null) {
 			// TODO: what is the logic here?
-			//String text = ctx.DOUBLESTRING().getText();
-			//String[] parts = text.split("(?<!\\\\)\"", 0);
-			//text = parts[1].replace("\\\"", "\"");
-			return new Identifier(visitString(ctx.string()));
+			String text = ctx.string().getText();
+			String[] parts = text.split("(?<!\\\\)\"", 0);
+			return parts[1].replace("\\\"", "\"");
 		}
 		if (ctx.SingleQuotedStringLiteral() != null) {
 			// TODO: what is the logic here?
 			String text = ctx.SingleQuotedStringLiteral().getText();
 			String[] parts = text.split("(?<!\\\\)'", 0);
-			text = parts[1].replace("\\'", "'");
-			return new Identifier(text);
+			return parts[1].replace("\\'", "'");
 		}
 		
 		// We did not recognize a valid initialization parameter.
@@ -303,32 +295,32 @@ public class MASValidator extends Validator<MyMAS2GLexer, MAS2GParser,
 	}
 	
 	@Override
-	public eis.iilang.Parameter visitFunction(FunctionContext ctx) {		
+	public Object visitFunction(FunctionContext ctx) {		
 		// Get function name
 		String name = ctx.ID().getText();
 		
 		// Get function parameters
 		int nrOfPars = ctx.initExpr().size();
-		eis.iilang.Parameter[] parameters = new Parameter[nrOfPars];
+		Object[] parameters = new Object[nrOfPars];
 		for (int i=0; i<nrOfPars; i++) {
 			parameters[i] = visitInitExpr(ctx.initExpr(i));
 		}
 		
-		return new Function(name, parameters);
+		return new AbstractMap.SimpleEntry<String,Object[]>(name, parameters);
 	}
 	
 	@Override
-	public eis.iilang.Parameter visitList(ListContext ctx) {
+	public Object visitList(ListContext ctx) {
 		boolean problem = false;
 		
-		List<Parameter> list = new ArrayList<Parameter>();
+		List<Object> list = new ArrayList<Object>(ctx.initExpr().size());
 		for (InitExprContext expr : ctx.initExpr()) {
 			if (expr == null) { problem=true; continue; }
 			list.add(visitInitExpr(expr));
 		}
 		
 		if (!problem) {
-			return new ParameterList(list);
+			return list;
 		} else {
 			return null;
 		}

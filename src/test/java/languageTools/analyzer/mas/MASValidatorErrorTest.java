@@ -30,8 +30,6 @@ import languageTools.program.mas.MASProgram;
 
 import org.junit.Test;
 
-import eis.iilang.Parameter;
-
 public class MASValidatorErrorTest {
 	
 	List<Message> syntaxerrors;
@@ -70,7 +68,7 @@ public class MASValidatorErrorTest {
 		assertTrue(warnings.isEmpty());
 		
 		assertEquals(null, program.getEnvironmentfile());
-		assertEquals(new HashMap<String, Parameter>(), program.getInitParameters());
+		assertEquals(new HashMap<String, Object>(), program.getInitParameters());
 	}
 	
 	@Test
@@ -89,7 +87,7 @@ public class MASValidatorErrorTest {
 		assertTrue(warnings.isEmpty());
 		
 		assertEquals(null, program.getEnvironmentfile());
-		assertEquals(new HashMap<String, Parameter>(), program.getInitParameters());
+		assertEquals(new HashMap<String, Object>(), program.getInitParameters());
 	}
 	
 	@Test
@@ -109,7 +107,7 @@ public class MASValidatorErrorTest {
 		// MAS should produce no warnings
 		assertTrue(warnings.isEmpty());
 
-		assertEquals(new HashMap<String, Parameter>(), program.getInitParameters());
+		assertEquals(new HashMap<String, Object>(), program.getInitParameters());
 	}
 	
 	@Test

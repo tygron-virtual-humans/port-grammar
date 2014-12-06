@@ -31,6 +31,7 @@ import krTools.parser.SourceInfo;
 import languageTools.analyzer.agent.AgentValidator;
 import languageTools.parser.GOAL;
 import languageTools.program.Program;
+import languageTools.program.agent.msc.Macro;
 
 /**
  * <p>A GOAL agent program.</p>
@@ -271,13 +272,23 @@ public class AgentProgram extends Program {
 	}
 	
 	/**
-	 * @return All action specifications in the entire program, including the
-	 *         ones in the modules.
+	 * @return All action specifications in all modules.
 	 */
 	public List<ActionSpecification> getAllActionSpecs() {
 		List<ActionSpecification> specs = new LinkedList<>();
 		for( Module module : modules ){
 			specs.addAll(module.getActionSpecifications());
+		}
+		return specs;
+	}
+	
+	/**
+	 * @return All macros in all modules.
+	 */
+	public List<Macro> getAllMacros() {
+		List<Macro> specs = new LinkedList<>();
+		for( Module module : modules ){
+			specs.addAll(module.getMacros());
 		}
 		return specs;
 	}

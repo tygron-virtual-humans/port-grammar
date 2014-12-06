@@ -32,7 +32,6 @@ import languageTools.symbolTable.mas.MASSymbol;
 
 import org.junit.Test;
 
-import eis.iilang.Parameter;
 import goalhub.krTools.KRFactory;
 
 public class MASValidatorWarningTest {
@@ -97,7 +96,7 @@ public class MASValidatorWarningTest {
 		assertEquals(MASWarning.ENVIRONMENT_NO_REFERENCE, warnings.get(0).getType());
 		
 		assertEquals(null, program.getEnvironmentfile());
-		assertEquals(new HashMap<String, Parameter>(), program.getInitParameters());
+		assertEquals(new HashMap<String, Object>(), program.getInitParameters());
 	}
 	
 	@Test
@@ -116,7 +115,7 @@ public class MASValidatorWarningTest {
 		assertEquals(MASWarning.ENVIRONMENT_NO_REFERENCE, warnings.get(0).getType());
 		
 		assertEquals(null, program.getEnvironmentfile());
-		assertEquals(new HashMap<String, Parameter>(), program.getInitParameters());
+		assertEquals(new HashMap<String, Object>(), program.getInitParameters());
 	}
 	
 	@Test
@@ -136,7 +135,7 @@ public class MASValidatorWarningTest {
 		
 		assertEquals(new File("src/test/resources/languageTools/analyzer/mas/dummy_environment.jar"),
 				program.getEnvironmentfile());
-		assertEquals("value1", ((eis.iilang.Identifier) program.getInitParameters().get("key")).getValue());
+		assertEquals("value1", program.getInitParameters().get("key"));
 	}
 	
 	@Test

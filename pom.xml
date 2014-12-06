@@ -6,7 +6,7 @@
 	<groupId>com.github.goalhub.grammar</groupId>
 	<artifactId>languageTools</artifactId>
 	<url>https://github.com/goalhub/grammar</url>
-	<version>1.0.5</version>
+	<version>1.0.6</version>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -44,13 +44,7 @@
 			<artifactId>krFactory</artifactId>
 			<version>1.0.4</version>
 		</dependency>
-
-		<dependency>
-			<groupId>eishub</groupId>
-			<artifactId>eis</artifactId>
-			<version>0.4</version>
-		</dependency>
-
+		
 		<dependency>
 			<groupId>commons-io</groupId>
 			<artifactId>commons-io</artifactId>

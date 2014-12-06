@@ -31,7 +31,6 @@ import languageTools.symbolTable.mas.MASSymbol;
 
 import org.junit.Test;
 
-import eis.iilang.Parameter;
 import goalhub.krTools.KRFactory;
 
 public class MASSyntaxErrorTest {
@@ -75,7 +74,7 @@ public class MASSyntaxErrorTest {
 		
 		assertEquals(new File("src/test/resources/languageTools/analyzer/mas/dummy_environment.jar"),
 				program.getEnvironmentfile());
-		assertEquals(new HashMap<String, Parameter>(), program.getInitParameters());
+		assertEquals(new HashMap<String, Object>(), program.getInitParameters());
 	}
 
 	@Test
