@@ -143,7 +143,8 @@ TestVisitor {
 
 	@Override
 	protected Test getNewParser(TokenStream stream) {
-		return new Test(stream);
+		this.parser = new Test(stream);
+		return this.parser;
 	}
 
 	@Override
