@@ -3,15 +3,12 @@ package languageTools.program.test;
 import java.util.ArrayList;
 import java.util.List;
 
-import junit.framework.TestResult;
 import languageTools.program.test.testsection.TestSection;
 
 /**
  * A test program. A test program consists of a list of {@link TestSection}s.
  * These rules are interpreted in sequential order. The rules are fast failing,
  * meaning that the program will stop at the first rule that fails.
- *
- * The results are provided in a {@link TestResult}.
  *
  * @author mpkorstanje
  */

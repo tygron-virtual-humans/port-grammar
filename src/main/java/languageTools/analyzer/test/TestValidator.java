@@ -118,8 +118,8 @@ import org.antlr.v4.runtime.tree.ParseTree;
  */
 @SuppressWarnings("rawtypes")
 public class TestValidator extends
-		Validator<MyGOALLexer, Test, AgentErrorStrategy, UnitTest> implements
-		TestVisitor {
+Validator<MyGOALLexer, Test, AgentErrorStrategy, UnitTest> implements
+TestVisitor {
 	private Test parser;
 	private MASProgram masProgram;
 	private Map<File, AgentProgram> agentPrograms;
@@ -415,13 +415,17 @@ public class TestValidator extends
 		return new TestCollection(id, testSections);
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public TestSection visitTestSection(TestSectionContext ctx) {
-		// TODO: There should be a better way to distinguish between or
-		// branches.
-		ParseTree tree = ctx.getChild(0);
-		return tree.accept(this);
+		if (ctx.doActions() != null) {
+			return visitDoActions(ctx.doActions());
+		} else if (ctx.assertTest() != null) {
+			return visitAssertTest(ctx.assertTest());
+		} else if (ctx.evaluateIn() != null) {
+			return visitEvaluateIn(ctx.evaluateIn());
+		} else {
+			return null;
+		}
 	}
 
 	@Override
