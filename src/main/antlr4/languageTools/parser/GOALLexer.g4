@@ -68,6 +68,7 @@ THEN			: 'then';
 FORALL			: 'forall';
 DO				: 'do';
 LISTALL			: 'listall'		-> pushMode(VAR_PARAMETERS);
+LTRARROW		: '->';
 RTLARROW		: '<-';
 
 // Mental state operators
@@ -115,6 +116,8 @@ ATSTART			: 'atstart';
 // ALWAYS:			'always';
 EVENTUALLY		: 'eventually';
 ATEND			: 'atend';
+UNTIL		    : 'until';
+WHILE			: 'while';
 
 StringLiteral
 	: '"' ('\\"' | ~[\r\n"])* '"'

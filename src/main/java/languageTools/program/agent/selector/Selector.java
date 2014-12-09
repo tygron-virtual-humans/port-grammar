@@ -25,7 +25,6 @@ import java.util.Set;
 import krTools.language.Substitution;
 import krTools.language.Term;
 import krTools.language.Var;
-import languageTools.program.agent.selector.Selector.SelectorType;
 
 /**
  * A {@link Selector} is used for indicating the mental model(s) that a mental
@@ -39,7 +38,6 @@ import languageTools.program.agent.selector.Selector.SelectorType;
  * </p>
  */
 public class Selector {
-
 	/**
 	 * Selector types represent different categories of selector mechanisms that
 	 * can be used to prefix mental atoms and actions.
@@ -77,7 +75,7 @@ public class Selector {
 	/**
 	 * Creates a {@link Selector} using the given parameters and sets type of
 	 * selector to {@link SelectorType#PARAMETERLIST}.
-	 * 
+	 *
 	 * @param parameters
 	 *            List of {@link Term}s.
 	 */
@@ -190,7 +188,7 @@ public class Selector {
 	 *         selector is default selector.
 	 */
 	public String toPrefixString() {
-		return (this.equals(getDefault()) ? "" : this + ".");
+		return (equals(getDefault()) ? "" : this + ".");
 	}
 
 	@Override

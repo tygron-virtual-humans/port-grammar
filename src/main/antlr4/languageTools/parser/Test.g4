@@ -75,9 +75,18 @@ assertTest
 	;
 
 evaluateIn
-	: 'evaluate' '{' testCondition* '}' 'in' doActions
+	: 'evaluate' '{' testCondition* '}' 'in' doActions testBoundary?
 	;
 
 testCondition
-	: ('atstart' | 'always' | 'eventually' | 'atend') mentalStateCondition '.'
+	: testConditionPart ('->' testConditionPart)* '.'
+	;
+testConditionPart
+	: (ATSTART | ALWAYS | NEVER | EVENTUALLY | ATEND) testModule? mentalStateCondition
+	;
+testModule
+    : '[' (declaration | INIT | MAIN | EVENT) ']'
+	;
+testBoundary
+    : (UNTIL | WHILE) mentalStateCondition
 	;

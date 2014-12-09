@@ -87,6 +87,7 @@ programRule
 	: IF mentalStateCondition 'then' ( actions '.' | nestedRules )
 	| FORALL mentalStateCondition 'do' ( actions '.' | nestedRules )
 	| LISTALL VAR '<-' mentalStateCondition 'do' ( actions '.' | nestedRules )
+	| LISTALL mentalStateCondition '->' VAR 'do' ( actions '.' | nestedRules )
 	;
 
 mentalStateCondition
