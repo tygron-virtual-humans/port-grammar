@@ -67,7 +67,7 @@ testSection
 	;
 
 doActions
-	: 'do' actions '.'
+	: 'do' actions
 	;
 
 assertTest
