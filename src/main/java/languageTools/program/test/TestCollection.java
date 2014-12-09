@@ -46,6 +46,10 @@ public class TestCollection {
 		this.id = id;
 	}
 
+	public List<TestSection> getTestSections() {
+		return this.testSections;
+	}
+
 	/**
 	 * Creates a test without any rules.
 	 *

@@ -66,6 +66,10 @@ public class AgentTest {
 		return this.agentName;
 	}
 
+	public TestCollection getTests() {
+		return this.test;
+	}
+
 	@Override
 	public String toString() {
 		return "AgentTest [agentName=" + this.agentName + ", test=" + this.test

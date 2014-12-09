@@ -1,4 +1,4 @@
-package languageTools.program.test.testsection.testconditions;
+package languageTools.program.test.testcondition;
 
 import languageTools.program.agent.msc.MentalStateCondition;
 import languageTools.program.test.testsection.EvaluateIn;

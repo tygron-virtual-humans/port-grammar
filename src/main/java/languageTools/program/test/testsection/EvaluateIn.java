@@ -4,7 +4,7 @@ import java.nio.channels.Channel;
 import java.util.List;
 
 import languageTools.program.agent.AgentProgram;
-import languageTools.program.test.testsection.testconditions.TestCondition;
+import languageTools.program.test.testcondition.TestCondition;
 
 /**
  * Evaluate-in statement. The evaluate-in statement evaluates a list of

@@ -1,4 +1,4 @@
-package languageTools.program.test.testsection.testconditions;
+package languageTools.program.test.testcondition;
 
 import languageTools.program.agent.Module;
 import languageTools.program.agent.msc.MentalStateCondition;
@@ -28,16 +28,15 @@ public class AtEnd extends TestCondition {
 	}
 
 	/**
-	 * @return A textual representation of the module associated with this
-	 *         operator (empty string if none)
+	 * @return An optional module associated with this operator (null if none)
 	 */
-	public String getModuleName() {
-		return (this.module == null) ? "" : ("[" + this.module.getName() + "]");
+	public Module getModule() {
+		return this.module;
 	}
 
 	@Override
 	public String toString() {
-		return "AtEnd [query=" + this.query + ", module=" + getModuleName()
-				+ "]";
+		return "AtEnd [query=" + this.query + ", module="
+				+ getModule().getSignature() + "]";
 	}
 }
