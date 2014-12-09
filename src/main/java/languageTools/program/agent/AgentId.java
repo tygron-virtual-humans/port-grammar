@@ -17,11 +17,12 @@
 
 package languageTools.program.agent;
 
+import java.util.Objects;
+
 /**
  *
  */
 public class AgentId {
-
 	private final String name;
 
 	/**
@@ -41,4 +42,23 @@ public class AgentId {
 		return this.name;
 	}
 
+	@Override
+	public String toString() {
+		return this.name;
+	}
+
+	@Override
+	public int hashCode() {
+		return this.name.hashCode();
+	}
+
+	@Override
+	public boolean equals(Object other) {
+		if (other instanceof AgentId) {
+			String othername = ((AgentId) other).getName();
+			return Objects.equals(this.name, othername);
+		} else {
+			return false;
+		}
+	}
 }
