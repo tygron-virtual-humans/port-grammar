@@ -514,12 +514,12 @@ Validator<MyGOALLexer, GOAL, TestErrorStrategy, AgentProgram> implements
 		// not remove them
 		List<Query> errors = new ArrayList<Query>();
 		for (Query dbf : dbfs) {
-			if (!dbf.isClosed()) {
-				reportError(AgentError.GOAL_UNINSTANTIATED_VARIABLE,
-						dbf.getSourceInfo(), dbf.getFreeVar().toString(),
-						dbf.toString());
-				errors.add(dbf);
-			}
+			/*
+			 * if (!dbf.isClosed()) {
+			 * reportError(AgentError.GOAL_UNINSTANTIATED_VARIABLE,
+			 * dbf.getSourceInfo(), dbf.getFreeVar().toString(),
+			 * dbf.toString()); errors.add(dbf); }
+			 */
 			if (!dbf.isUpdate()) {
 				reportError(AgentError.GOALSECTION_NOT_AN_UPDATE,
 						dbf.getSourceInfo(), dbf.toString());
@@ -994,13 +994,14 @@ Validator<MyGOALLexer, GOAL, TestErrorStrategy, AgentProgram> implements
 						ctx.declarationOrCallWithTerms(),
 						prettyPrintSet(actionParsNotUsed));
 			}
-			Set<Var> postVarNotBound = postcondition.getFreeVar();
-			postVarNotBound.removeAll(action.getFreeVar());
-			postVarNotBound.removeAll(precondition.getFreeVar());
-			if (!postVarNotBound.isEmpty()) {
-				reportError(AgentError.POSTCONDITION_UNBOUND_VARIABLE,
-						ctx.postcondition(), prettyPrintSet(postVarNotBound));
-			}
+			/*
+			 * Set<Var> postVarNotBound = postcondition.getFreeVar();
+			 * postVarNotBound.removeAll(action.getFreeVar());
+			 * postVarNotBound.removeAll(precondition.getFreeVar()); if
+			 * (!postVarNotBound.isEmpty()) {
+			 * reportError(AgentError.POSTCONDITION_UNBOUND_VARIABLE,
+			 * ctx.postcondition(), prettyPrintSet(postVarNotBound)); }
+			 */
 		}
 
 		// Create action specification

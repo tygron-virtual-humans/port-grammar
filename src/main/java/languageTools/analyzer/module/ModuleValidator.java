@@ -437,12 +437,12 @@ public class ModuleValidator extends
 		// not remove them
 		List<Query> errors = new ArrayList<Query>();
 		for (Query dbf : dbfs) {
-			if (!dbf.isClosed()) {
-				reportError(AgentError.GOAL_UNINSTANTIATED_VARIABLE,
-						dbf.getSourceInfo(), dbf.getFreeVar().toString(),
-						dbf.toString());
-				errors.add(dbf);
-			}
+			/*
+			 * if (!dbf.isClosed()) {
+			 * reportError(AgentError.GOAL_UNINSTANTIATED_VARIABLE,
+			 * dbf.getSourceInfo(), dbf.getFreeVar().toString(),
+			 * dbf.toString()); errors.add(dbf); }
+			 */
 			if (!dbf.isUpdate()) {
 				reportError(AgentError.GOALSECTION_NOT_AN_UPDATE,
 						dbf.getSourceInfo(), dbf.toString());
@@ -739,7 +739,7 @@ public class ModuleValidator extends
 	@Override
 	public Action visitAction(ActionContext ctx) {
 		if (ctx.actionOperator() != null) { // Must be action that has KR
-											// content
+			// content
 			// Get selector
 			Selector selector = visitSelector(ctx.selector());
 
@@ -917,13 +917,14 @@ public class ModuleValidator extends
 						ctx.declarationOrCallWithTerms(),
 						prettyPrintSet(actionParsNotUsed));
 			}
-			Set<Var> postVarNotBound = postcondition.getFreeVar();
-			postVarNotBound.removeAll(action.getFreeVar());
-			postVarNotBound.removeAll(precondition.getFreeVar());
-			if (!postVarNotBound.isEmpty()) {
-				reportError(AgentError.POSTCONDITION_UNBOUND_VARIABLE,
-						ctx.postcondition(), prettyPrintSet(postVarNotBound));
-			}
+			/*
+			 * Set<Var> postVarNotBound = postcondition.getFreeVar();
+			 * postVarNotBound.removeAll(action.getFreeVar());
+			 * postVarNotBound.removeAll(precondition.getFreeVar()); if
+			 * (!postVarNotBound.isEmpty()) {
+			 * reportError(AgentError.POSTCONDITION_UNBOUND_VARIABLE,
+			 * ctx.postcondition(), prettyPrintSet(postVarNotBound)); }
+			 */
 		}
 
 		// Create action specification
@@ -1466,7 +1467,7 @@ public class ModuleValidator extends
 	 * Parses a terminal node that should contain the text (name) of a variable.
 	 * In other words, assumes that the text associated with the node represents
 	 * a {@link Var}.
-	 * 
+	 *
 	 * @param node
 	 *            The node that contains the text that is parsed.
 	 * @param startLine
