@@ -948,10 +948,10 @@ Validator<MyGOALLexer, GOAL, TestErrorStrategy, AgentProgram> implements
 	public ActionSpecification visitActionSpec(ActionSpecContext ctx) {
 		boolean problem = false;
 
-		// Get internal/external annotation
-		boolean external = false;
-		if (ctx.EXTERNAL() != null) {
-			external = true;
+		// Get internal/external annotation (external by default)
+		boolean external = true;
+		if (ctx.INTERNAL() != null) {
+			external = false;
 		}
 		// Get action
 		Map.Entry<String, List<Term>> declaration = visitDeclarationOrCallWithTerms(ctx

@@ -29,7 +29,7 @@ import org.antlr.v4.runtime.Token;
  * number index and character position on that line.
  */
 public class InputStreamPosition implements SourceInfo,
-		Comparable<InputStreamPosition> {
+Comparable<InputStreamPosition> {
 
 	/**
 	 * The name or description of the file or other stream this
@@ -76,12 +76,12 @@ public class InputStreamPosition implements SourceInfo,
 	public InputStreamPosition(Token token, int index, File source) {
 		this(token.getLine(), token.getCharPositionInLine() + 1, index, token
 				.getText() == null ? index : index + token.getText().length(),
-						source);
+				source);
 	}
 
 	/**
 	 * TODO
-	 * 
+	 *
 	 * @param lineNumber
 	 * @param characterPosition
 	 * @param startIndex
@@ -235,14 +235,14 @@ public class InputStreamPosition implements SourceInfo,
 		} else if (this.lineNumber > o.lineNumber) {
 			return 1;
 		} else
-			// then by character position
-			if (this.characterPosition < o.characterPosition) {
-				return -1;
-			} else if (this.characterPosition > o.characterPosition) {
-				return 1;
-			} else {
-				return 0;
-			}
+		// then by character position
+		if (this.characterPosition < o.characterPosition) {
+			return -1;
+		} else if (this.characterPosition > o.characterPosition) {
+			return 1;
+		} else {
+			return 0;
+		}
 	}
 
 	@Override

@@ -57,7 +57,7 @@ import languageTools.program.agent.msc.MentalStateCondition;
  * </p>
  */
 public abstract class Action<Parameter extends Expression> implements
-		Expression {
+Expression {
 
 	/**
 	 * The name of the action.

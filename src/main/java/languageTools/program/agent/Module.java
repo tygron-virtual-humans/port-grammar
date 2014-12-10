@@ -601,7 +601,7 @@ public class Module extends Program {
 	/**
 	 * The available options for creating an attention set associated with a
 	 * module.
-	 * 
+	 *
 	 * <p>
 	 * The options are:
 	 * <ul>

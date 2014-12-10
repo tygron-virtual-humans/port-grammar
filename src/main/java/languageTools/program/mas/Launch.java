@@ -64,7 +64,7 @@ public class Launch {
 	 * Creates a given name for agent, derived from either the name of the
 	 * entity the agent is connect to or a given name, and the number of
 	 * applications of the launch instruction.
-	 * 
+	 *
 	 * @param entityName
 	 *            The name of the entity that this agent is connected to, if
 	 *            any. Assumes that entity names are unique.

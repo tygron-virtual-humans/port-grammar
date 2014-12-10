@@ -117,8 +117,8 @@ public class ListallDoRule extends Rule {
 		}
 
 		return AgentProgram.getTokenName(GOAL.LISTALL) + " " + variable
-		+ AgentProgram.getTokenName(GOAL.RTLARROW) + condition + " "
-		+ AgentProgram.getTokenName(GOAL.DO) + " " + actions;
+				+ AgentProgram.getTokenName(GOAL.RTLARROW) + condition + " "
+				+ AgentProgram.getTokenName(GOAL.DO) + " " + actions;
 	}
 
 }

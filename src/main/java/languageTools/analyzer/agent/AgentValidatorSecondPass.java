@@ -135,7 +135,7 @@ public class AgentValidatorSecondPass {
 	 * <p>
 	 * Any validation errors or warnings are reported.
 	 * </p>
-	 * 
+	 *
 	 * @param firstPass
 	 *            The validator object that executed the first pass.
 	 */
@@ -354,9 +354,9 @@ public class AgentValidatorSecondPass {
 
 		// extract relevant sets of database formulas and queries from module
 		this.knowledge.addAll(module.getKnowledge()); // exploits fact that we
-														// don't allow module
-														// declarations within
-														// modules
+		// don't allow module
+		// declarations within
+		// modules
 		this.beliefs.addAll(module.getBeliefs());
 		this.dynamicBeliefs.addAll(getInsertedBeliefs(module));
 		this.beliefQueries.addAll(getBeliefQueries(module));
@@ -425,9 +425,9 @@ public class AgentValidatorSecondPass {
 							resolved.add(new UserSpecAction(action.getName(),
 									instantiated,
 									spec.getAction().getExernal(), pre
-											.applySubst(unifier), post
-											.applySubst(unifier), action
-											.getSourceInfo()));
+									.applySubst(unifier), post
+									.applySubst(unifier), action
+									.getSourceInfo()));
 						} else {
 							this.firstPass.reportError(
 									AgentError.ACTION_USED_NEVER_DEFINED,
@@ -441,11 +441,11 @@ public class AgentValidatorSecondPass {
 							action.getSourceInfo(), action.getSignature());
 				}
 			} else if (action instanceof ModuleCallAction) { // must be
-																// anonymous
-																// module
+				// anonymous
+				// module
 				actionLabelsUsed
-						.addAll(resolveModuleActionRefs(((ModuleCallAction) action)
-								.getTarget()));
+				.addAll(resolveModuleActionRefs(((ModuleCallAction) action)
+						.getTarget()));
 				resolved.add(action);
 			} else {
 				resolved.add(action);
@@ -501,9 +501,9 @@ public class AgentValidatorSecondPass {
 				if (((ModuleCallAction) rule.getAction().getActions().get(0))
 						.getTarget().getType() == TYPE.ANONYMOUS) {
 					macroLabelsUsed
-							.addAll(resolveModuleMacroRefs(((ModuleCallAction) rule
-									.getAction().getActions().get(0))
-									.getTarget()));
+					.addAll(resolveModuleMacroRefs(((ModuleCallAction) rule
+							.getAction().getActions().get(0))
+							.getTarget()));
 				}
 			}
 		}

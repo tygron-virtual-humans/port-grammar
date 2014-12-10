@@ -58,7 +58,7 @@ import org.apache.commons.io.FilenameUtils;
  * program <i>can be run</i>, see also {@link Program#canRun()}.
  */
 public abstract class Validator<L extends MyLexer<?>, P extends Parser, E extends MyErrorStrategy, Q extends Program>
-		implements ANTLRErrorListener {
+implements ANTLRErrorListener {
 
 	/**
 	 * Name of the file that is validated.
@@ -104,7 +104,7 @@ public abstract class Validator<L extends MyLexer<?>, P extends Parser, E extend
 	 * Gets the error strategy.
 	 *
 	 * A validator should need only one instance of this.
-	 * 
+	 *
 	 * @return The error strategy used by this {@link #Validator(String)}.
 	 */
 	protected abstract E getTheErrorStrategy();
@@ -380,7 +380,7 @@ public abstract class Validator<L extends MyLexer<?>, P extends Parser, E extend
 	public SourceInfo getSourceInfo(ParserRuleContext ctx) {
 		InputStreamPosition pos = new InputStreamPosition(ctx.getStart(),
 				ctx.getStop() == null ? ctx.getStart() : ctx.getStop(),
-				this.source);
+						this.source);
 		return pos;
 	}
 
@@ -502,7 +502,7 @@ public abstract class Validator<L extends MyLexer<?>, P extends Parser, E extend
 			type = getTheErrorStrategy().getLexerErrorType(
 					(Token) offendingSymbol);
 		} else { // if nothing else, by default, assume token recognition
-					// problem
+			// problem
 			type = SyntaxError.TOKENRECOGNITIONERROR;
 		}
 
@@ -592,7 +592,7 @@ public abstract class Validator<L extends MyLexer<?>, P extends Parser, E extend
 	public void reportAmbiguity(Parser recognizer, DFA dfa, int startIndex,
 			int stopIndex, boolean exact, BitSet ambigAlts, ATNConfigSet configs) {
 		System.out
-				.println("Found ambiguous readings of file! Please report this finding and send us this file.");
+		.println("Found ambiguous readings of file! Please report this finding and send us this file.");
 	}
 
 	@Override

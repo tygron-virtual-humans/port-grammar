@@ -117,7 +117,7 @@ public class ModuleCallAction extends Action<Term> {
 	 *
 	 * @return Instantiated focus action, where free variables in parameters
 	 *         have been substituted with terms from the substitution.
-	 * 
+	 *
 	 *         TODO: check
 	 */
 	@Override

@@ -91,7 +91,7 @@ public class IfThenRule extends Rule {
 		}
 
 		return AgentProgram.getTokenName(GOAL.IF) + " " + condition + " "
-		+ AgentProgram.getTokenName(GOAL.THEN) + " " + actions;
+				+ AgentProgram.getTokenName(GOAL.THEN) + " " + actions;
 	}
 
 }

@@ -132,7 +132,7 @@ public class MASProgram extends Program {
 
 	/**
 	 * Adds an agent file to this MAS program.
-	 * 
+	 *
 	 * @param file
 	 *            The agent file that is added.
 	 */
