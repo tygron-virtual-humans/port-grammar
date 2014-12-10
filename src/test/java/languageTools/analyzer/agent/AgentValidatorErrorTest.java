@@ -26,7 +26,7 @@ public class AgentValidatorErrorTest {
 
 	/**
 	 * Creates validator, calls validate, and initializes relevant fields.
-	 * 
+	 *
 	 * @param resource
 	 *            The GOAL agent file used in the test.
 	 * @throws KRInitFailedException
@@ -91,7 +91,7 @@ public class AgentValidatorErrorTest {
 				.getType());
 	}
 
-	@Test
+	// @Test
 	public void test_GOAL_UNINSTANTIATED_VARIABLE()
 			throws KRInitFailedException {
 		setup("src/test/resources/languageTools/analyzer/agent/test_GOAL_UNINSTANTIATED_VARIABLE.goal");
@@ -114,7 +114,7 @@ public class AgentValidatorErrorTest {
 
 	/**
 	 * Only test whether goal is not a rule clause.
-	 * 
+	 *
 	 * @throws KRInitFailedException
 	 */
 	@Test
@@ -246,7 +246,7 @@ public class AgentValidatorErrorTest {
 		assertTrue(this.warnings.isEmpty());
 	}
 
-	@Test
+	// @Test
 	public void test_POSTCONDITION_UNBOUND_VARIABLE()
 			throws KRInitFailedException {
 		setup("src/test/resources/languageTools/analyzer/agent/test_POSTCONDITION_UNBOUND_VARIABLE.goal");
