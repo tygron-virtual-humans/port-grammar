@@ -19,7 +19,9 @@ package languageTools.analyzer.test;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.io.StringReader;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -31,6 +33,7 @@ import languageTools.analyzer.mas.MASValidator;
 import languageTools.errors.Message;
 import languageTools.errors.ParserError.SyntaxError;
 import languageTools.errors.agent.AgentErrorStrategy;
+import languageTools.errors.test.TestError;
 import languageTools.parser.GOAL;
 import languageTools.parser.GOALLexer;
 import languageTools.parser.InputStreamPosition;
@@ -194,7 +197,7 @@ TestVisitor {
 		if (ctx == null) {
 			return null;
 		} else if (ctx.masFile() == null) {
-			// reportError("Missing MAS file declaration", ctx);
+			reportError(TestError.MAS_MISSING, ctx);
 			return null;
 		}
 		try {
@@ -210,9 +213,10 @@ TestVisitor {
 				createMas.validate();
 				this.masProgram = createMas.getProgram();
 				if (!this.masProgram.isValid()) {
-					// reportError("MAS file %s is not valid: %s",
-					// ctx.masFile(),
-					// masFile.getPath(), createMas.getErrors());
+					List<Message> masErrors = createMas.getErrors();
+					masErrors.addAll(createMas.getSyntaxErrors());
+					reportError(TestError.MAS_INVALID, ctx.masFile(),
+							masFile.getPath(), masErrors.toString());
 					return null;
 				}
 			}
@@ -226,9 +230,10 @@ TestVisitor {
 				if (agent.isValid()) {
 					this.agentPrograms.put(agentFile, agent);
 				} else {
-					// reportError("Agent file %s is not valid: %s",
-					// ctx.masFile(),
-					// agentFile.getPath(), createAgent.getErrors());
+					List<Message> agentErrors = createAgent.getErrors();
+					agentErrors.addAll(createAgent.getSyntaxErrors());
+					reportError(TestError.AGENT_INVALID, ctx.masFile(),
+							agentFile.getPath(), agentErrors.toString());
 				}
 			}
 
@@ -268,8 +273,11 @@ TestVisitor {
 			// Silently ignores any other unit tests!
 			return unitTests.get(0);
 		} catch (Exception any) {
-			// this.wh.report(new ValidatorError(GOALError.EXTERNAL_OR_UNKNOWN,
-			// this.wh.getPosition(ctx), any.getMessage()));
+			// Convert stack trace to string
+			StringWriter sw = new StringWriter();
+			any.printStackTrace(new PrintWriter(sw));
+			reportError(SyntaxError.FATAL, null,
+					any.getMessage() + "\n" + sw.toString());
 			return null;
 		}
 	}
@@ -277,7 +285,7 @@ TestVisitor {
 	@Override
 	public File visitMasFile(MasFileContext ctx) {
 		if (ctx.MASFILE() == null) {
-			// reportError("Missing MAS file value", ctx);
+			reportError(TestError.MAS_MISSING, ctx);
 			return null;
 		}
 
@@ -286,7 +294,7 @@ TestVisitor {
 				.getParent(), masFileName);
 
 		if (masFile == null) {
-			// reportError("MAS file %s does not exist", ctx, masFileName);
+			reportError(TestError.MAS_INVALID, ctx, masFileName, "no such file");
 			return null;
 		} else {
 			return masFile;
@@ -295,15 +303,11 @@ TestVisitor {
 
 	@Override
 	public Long visitTimeout(TimeoutContext ctx) {
-		if (ctx.FLOAT() == null) {
-			// reportError("Expected a number for timeout",ctx);
-			return null;
-		}
-		String number = ctx.FLOAT().getText();
+		String number = (ctx.FLOAT() == null) ? "" : ctx.FLOAT().getText();
 		try {
 			return Long.parseLong(number) * 1000;
 		} catch (NumberFormatException e) {
-			// reportError("Could not parse %s to number", ctx, number);
+			reportError(TestError.TIMEOUT_INVALID, ctx, number);
 			return null;
 		}
 	}
@@ -319,15 +323,16 @@ TestVisitor {
 			for (AgentTests t : tests) {
 				// Check duplicates
 				if (agentTests.getName().equals(t.getName())) {
-					// reportError("Found duplicate test for agent %s", testCtx,
-					// agentTests.getName());
+					reportError(TestError.TEST_DUPLICATE, testCtx,
+							agentTests.getName(), t.getName());
 					return null;
 				}
 				// Check size matches other tests
 				if (agentTests.size() != t.size()) {
-					// reportError("%s has %s tests while %s has %s", testCtx,
-					// agentTests.getName(), agentTests.size(),
-					// t.getName(), t.size());
+					reportError(TestError.TEST_INVALID_SIZE, testCtx,
+							agentTests.getName(),
+							Integer.toString(agentTests.size()), t.getName(),
+							Integer.toString(t.size()));
 					return null;
 				}
 			}
@@ -339,7 +344,7 @@ TestVisitor {
 	@Override
 	public AgentTests visitAgentTest(AgentTestContext ctx) {
 		if (ctx.ID() == null) {
-			// reportError("Missing agent declaration", ctx);
+			reportError(TestError.TEST_MISSING_AGENT, ctx);
 			return null;
 		}
 
@@ -361,8 +366,8 @@ TestVisitor {
 
 		this.agentProgram = this.agentPrograms.get(agentFile);
 		if (this.agentProgram == null) {
-			// reportError("Agent program %s was invalid", ctx,
-			// agentFile.getPath());
+			reportError(TestError.AGENT_INVALID, ctx, agentFile.getPath(),
+					"not found");
 			return null;
 		}
 
@@ -383,8 +388,7 @@ TestVisitor {
 		}
 
 		if (tests.isEmpty()) {
-			// reportError("Could not find a test program for %s", ctx,
-			// agentName);
+			reportError(TestError.TEST_MISSING, ctx, agentName);
 			return null;
 		}
 
@@ -399,7 +403,7 @@ TestVisitor {
 	@Override
 	public TestCollection visitTest(TestContext ctx) {
 		if (ctx.ID() == null) {
-			// reportError("Missing name for test", ctx);
+			reportError(TestError.TEST_MISSING_NAME, ctx);
 			return null;
 		}
 
@@ -432,7 +436,7 @@ TestVisitor {
 	@Override
 	public DoActionSection visitDoActions(DoActionsContext ctx) {
 		if (ctx == null) {
-			// reportError("Missing action or module call", ctx);
+			reportError(TestError.TEST_MISSING_ACTION, ctx);
 			return null;
 		}
 		ActionCombo combo = visitActions(ctx.actions());
@@ -462,7 +466,7 @@ TestVisitor {
 	@Override
 	public AssertTest visitAssertTest(AssertTestContext ctx) {
 		if (ctx.mentalStateCondition() == null) {
-			// reportError("Missing mental state test", ctx);
+			reportError(TestError.TEST_MISSING_TEST, ctx);
 			return null;
 		}
 
@@ -506,14 +510,14 @@ TestVisitor {
 		for (TestConditionContext subCtx : ctx.testCondition()) {
 			TestCondition query = visitTestCondition(subCtx);
 			if (query == null) {
-				// reportError("Missing or invalid query", subCtx);
+				reportError(TestError.TEST_MISSING_TEST, subCtx);
 			} else {
 				queries.add(query);
 			}
 		}
 
 		if (ctx.doActions() == null) {
-			// reportError("Missing action", ctx);
+			reportError(TestError.TEST_MISSING_ACTION, ctx);
 			return null;
 		}
 		DoActionSection action = visitDoActions(ctx.doActions());
@@ -544,15 +548,14 @@ TestVisitor {
 	@Override
 	public TestCondition visitTestConditionPart(TestConditionPartContext ctx) {
 		if (ctx.mentalStateCondition() == null) {
-			// reportError("Missing mental state test", ctx);
+			reportError(TestError.TEST_MISSING_TEST, ctx);
 			return null;
 		}
 
 		MentalStateCondition condition = visitMentalStateCondition(ctx
 				.mentalStateCondition());
 		if (condition == null) {
-			// reportError("Illegal mental state test",
-			// ctx.mentalStateCondition());
+			reportError(TestError.TEST_INVALID_TEST, ctx.mentalStateCondition());
 			return null;
 		}
 
@@ -566,8 +569,7 @@ TestVisitor {
 				}
 			}
 			if (module == null) {
-				// reportError("Indicated module could not be found",
-				// ctx.testModule());
+				reportError(TestError.TEST_MISSING_MODULE, ctx.testModule());
 			}
 		}
 
@@ -582,7 +584,7 @@ TestVisitor {
 		} else if (ctx.EVENTUALLY() != null) {
 			return new Eventually(condition);
 		} else {
-			// reportError("No valid temporal operator provided", ctx);
+			reportError(TestError.TEST_MISSING_OPERATOR, ctx);
 			return null;
 		}
 	}
@@ -603,15 +605,14 @@ TestVisitor {
 	@Override
 	public TestCondition visitTestBoundary(TestBoundaryContext ctx) {
 		if (ctx.mentalStateCondition() == null) {
-			// reportError("Missing mental state test", ctx);
+			reportError(TestError.TEST_MISSING_TEST, ctx);
 			return null;
 		}
 
 		MentalStateCondition condition = visitMentalStateCondition(ctx
 				.mentalStateCondition());
 		if (condition == null) {
-			// reportError("Illegal mental state test",
-			// ctx.mentalStateCondition());
+			reportError(TestError.TEST_INVALID_TEST, ctx.mentalStateCondition());
 			return null;
 		}
 
@@ -620,7 +621,7 @@ TestVisitor {
 		} else if (ctx.UNTIL() != null) {
 			return new Until(condition);
 		} else {
-			// reportError("No valid temporal operator provided", ctx);
+			reportError(TestError.TEST_MISSING_OPERATOR, ctx);
 			return null;
 		}
 	}

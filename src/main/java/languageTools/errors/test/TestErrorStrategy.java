@@ -1,22 +1,23 @@
-package languageTools.errors.agent;
+package languageTools.errors.test;
 
 import languageTools.errors.MyErrorStrategy;
 import languageTools.errors.ParserError.SyntaxError;
 import languageTools.parser.GOAL;
 import languageTools.parser.GOALLexer;
+import languageTools.parser.Test;
 
 import org.antlr.v4.runtime.Token;
 
-public class AgentErrorStrategy extends MyErrorStrategy {
+public class TestErrorStrategy extends MyErrorStrategy {
 	@Override
 	protected String prettyPrintToken(Token t) {
 		String txt = prettyPrintToken(getSymbolType(t));
 		switch (t.getType()) {
-		case GOAL.ID:
+		case Test.ID:
 			return txt + " '" + t.getText() + "'";
-		case GOAL.VAR:
+		case Test.VAR:
 			return txt + " '" + t.getText() + "'";
-		case GOAL.ERROR:
+		case Test.ERROR:
 			return txt + " '" + t.getText() + "'";
 		default:
 			return txt;
@@ -28,19 +29,19 @@ public class AgentErrorStrategy extends MyErrorStrategy {
 		switch (type) {
 		case Token.EOF:
 			return "end of file";
-		case GOAL.ID:
+		case Test.ID:
 			return "identifier";
-		case GOAL.StringLiteral:
+		case Test.StringLiteral:
 			return "double-quoted string";
-		case GOAL.SingleQuotedStringLiteral:
+		case Test.SingleQuotedStringLiteral:
 			return "single-quoted string";
-		case GOAL.VAR:
+		case Test.VAR:
 			return "parameter";
-		case GOAL.ERROR:
+		case Test.ERROR:
 			return "";
-		case GOAL.KR_BLOCK:
+		case Test.KR_BLOCK:
 			return "KR expression";
-		case GOAL.LINE_COMMENT:
+		case Test.LINE_COMMENT:
 			return "line comment";
 		default:
 			// Do not improve, simply return token symbol as is
@@ -55,24 +56,24 @@ public class AgentErrorStrategy extends MyErrorStrategy {
 	@Override
 	public String prettyPrintRuleContext(int ruleIndex) {
 		switch (ruleIndex) {
-		case GOAL.RULE_actionOperator:
+		case Test.RULE_actionOperator:
 			return "an action name";
-		case GOAL.RULE_beliefs:
+		case Test.RULE_beliefs:
 			return "belief section";
-		case GOAL.RULE_knowledge:
+		case Test.RULE_knowledge:
 			return "knowledge section";
-		case GOAL.RULE_mentalStateCondition:
+		case Test.RULE_mentalStateCondition:
 			return "a mental state condition";
-		case GOAL.RULE_moduleDef:
+		case Test.RULE_moduleDef:
 			return "module declaration";
-		case GOAL.RULE_programRule:
+		case Test.RULE_programRule:
 			return "rule";
-		case GOAL.RULE_ruleEvaluationOrder:
+		case Test.RULE_ruleEvaluationOrder:
 			return "a rule evaluation order option";
-		case GOAL.RULE_program:
+		case Test.RULE_program:
 			return "a section with rules and macros";
 		default:
-			return GOAL.ruleNames[ruleIndex];
+			return Test.ruleNames[ruleIndex];
 		}
 	}
 

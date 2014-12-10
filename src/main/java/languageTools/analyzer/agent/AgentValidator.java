@@ -41,8 +41,8 @@ import krTools.parser.SourceInfo;
 import languageTools.analyzer.Validator;
 import languageTools.errors.ParserError.SyntaxError;
 import languageTools.errors.agent.AgentError;
-import languageTools.errors.agent.AgentErrorStrategy;
 import languageTools.errors.agent.AgentWarning;
+import languageTools.errors.test.TestErrorStrategy;
 import languageTools.parser.GOAL;
 import languageTools.parser.GOAL.ActionContext;
 import languageTools.parser.GOAL.ActionOperatorContext;
@@ -133,11 +133,11 @@ import swiprolog.language.PrologVar;
  */
 @SuppressWarnings("rawtypes")
 public class AgentValidator extends
-		Validator<MyGOALLexer, GOAL, AgentErrorStrategy, AgentProgram>
-		implements GOALVisitor {
+Validator<MyGOALLexer, GOAL, TestErrorStrategy, AgentProgram> implements
+		GOALVisitor {
 
 	private GOAL parser;
-	private static AgentErrorStrategy strategy = null;
+	private static TestErrorStrategy strategy = null;
 
 	/**
 	 * Knowledge representation interface used for parsing the contents of
@@ -172,9 +172,9 @@ public class AgentValidator extends
 	}
 
 	@Override
-	protected AgentErrorStrategy getTheErrorStrategy() {
+	protected TestErrorStrategy getTheErrorStrategy() {
 		if (strategy == null) {
-			strategy = new AgentErrorStrategy();
+			strategy = new TestErrorStrategy();
 		}
 		return strategy;
 	}
@@ -816,7 +816,7 @@ public class AgentValidator extends
 	@Override
 	public Action visitAction(ActionContext ctx) {
 		if (ctx.actionOperator() != null) { // Must be action that has KR
-											// content
+			// content
 			// Get selector
 			Selector selector = visitSelector(ctx.selector());
 
@@ -1543,7 +1543,7 @@ public class AgentValidator extends
 	 * Parses a terminal node that should contain the text (name) of a variable.
 	 * In other words, assumes that the text associated with the node represents
 	 * a {@link Var}.
-	 * 
+	 *
 	 * @param node
 	 *            The node that contains the text that is parsed.
 	 * @param startLine
