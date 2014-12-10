@@ -121,8 +121,8 @@ import org.antlr.v4.runtime.tree.ParseTree;
  */
 @SuppressWarnings("rawtypes")
 public class TestValidator extends
-Validator<MyGOALLexer, Test, AgentErrorStrategy, UnitTest> implements
-TestVisitor {
+		Validator<MyGOALLexer, Test, AgentErrorStrategy, UnitTest> implements
+		TestVisitor {
 	private Test parser;
 	private MASProgram masProgram;
 	private Map<File, AgentProgram> agentPrograms;
@@ -225,6 +225,8 @@ TestVisitor {
 			for (File agentFile : this.masProgram.getAgentFiles()) {
 				AgentValidator createAgent = new AgentValidator(
 						agentFile.getPath());
+				createAgent.setKRInterface(this.masProgram
+						.getKRInterface(agentFile));
 				createAgent.validate();
 				AgentProgram agent = createAgent.getProgram();
 				if (agent.isValid()) {
@@ -454,6 +456,7 @@ TestVisitor {
 			languageTools.parser.GOAL.ActionsContext comboContext = parser
 					.actions();
 			AgentValidator sub = new AgentValidator("inline");
+			sub.setKRInterface(this.agentProgram.getKRInterface());
 			combo = sub.visitActions(comboContext);
 			for (Message err : sub.getErrors()) {
 				reportError((SyntaxError) err.getType(), err.getSource(),
@@ -494,6 +497,7 @@ TestVisitor {
 		languageTools.parser.GOAL.MentalStateConditionContext conditionContext = parser
 				.mentalStateCondition();
 		AgentValidator sub = new AgentValidator("inline");
+		sub.setKRInterface(this.agentProgram.getKRInterface());
 		MentalStateCondition condition = sub
 				.visitMentalStateCondition(conditionContext);
 		for (Message err : sub.getErrors()) {
