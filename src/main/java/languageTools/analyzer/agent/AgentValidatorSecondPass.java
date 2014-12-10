@@ -396,6 +396,7 @@ public class AgentValidatorSecondPass {
 
 		for (Action<?> action : actions.getActions()) {
 			if (action instanceof UserSpecOrModuleCall) {
+				UserSpecOrModuleCall call = (UserSpecOrModuleCall) action;
 				actionLabelsUsed.add(action.getSignature());
 				// resolve reference
 				Symbol symbol = this.actionSymbols.resolve(action
@@ -403,9 +404,8 @@ public class AgentValidatorSecondPass {
 				if (symbol != null) {
 					if (symbol instanceof ModuleSymbol) {
 						Module target = ((ModuleSymbol) symbol).getModule();
-						// TODO: rename vars
-						resolved.add(new ModuleCallAction(target, action
-								.getSourceInfo()));
+						resolved.add(new ModuleCallAction(target, call
+								.getParameters(), action.getSourceInfo()));
 					} else { // must be ActionSymbol
 						ActionSpecification spec = ((ActionSymbol) symbol)
 								.getActionSpecification();
@@ -425,9 +425,9 @@ public class AgentValidatorSecondPass {
 							resolved.add(new UserSpecAction(action.getName(),
 									instantiated,
 									spec.getAction().getExernal(), pre
-									.applySubst(unifier), post
-									.applySubst(unifier), action
-									.getSourceInfo()));
+											.applySubst(unifier), post
+											.applySubst(unifier), action
+											.getSourceInfo()));
 						} else {
 							this.firstPass.reportError(
 									AgentError.ACTION_USED_NEVER_DEFINED,
@@ -440,12 +440,11 @@ public class AgentValidatorSecondPass {
 							AgentError.ACTION_USED_NEVER_DEFINED,
 							action.getSourceInfo(), action.getSignature());
 				}
-			} else if (action instanceof ModuleCallAction) { // must be
-				// anonymous
-				// module
+			} else if (action instanceof ModuleCallAction) {
+				// must be anonymous module
 				actionLabelsUsed
-				.addAll(resolveModuleActionRefs(((ModuleCallAction) action)
-						.getTarget()));
+						.addAll(resolveModuleActionRefs(((ModuleCallAction) action)
+								.getTarget()));
 				resolved.add(action);
 			} else {
 				resolved.add(action);
@@ -501,9 +500,9 @@ public class AgentValidatorSecondPass {
 				if (((ModuleCallAction) rule.getAction().getActions().get(0))
 						.getTarget().getType() == TYPE.ANONYMOUS) {
 					macroLabelsUsed
-					.addAll(resolveModuleMacroRefs(((ModuleCallAction) rule
-							.getAction().getActions().get(0))
-							.getTarget()));
+							.addAll(resolveModuleMacroRefs(((ModuleCallAction) rule
+									.getAction().getActions().get(0))
+									.getTarget()));
 				}
 			}
 		}

@@ -133,8 +133,8 @@ import swiprolog.language.PrologVar;
  */
 @SuppressWarnings("rawtypes")
 public class AgentValidator extends
-Validator<MyGOALLexer, GOAL, TestErrorStrategy, AgentProgram> implements
-		GOALVisitor {
+		Validator<MyGOALLexer, GOAL, TestErrorStrategy, AgentProgram> implements
+GOALVisitor {
 
 	private GOAL parser;
 	private static TestErrorStrategy strategy = null;
@@ -626,7 +626,7 @@ Validator<MyGOALLexer, GOAL, TestErrorStrategy, AgentProgram> implements
 
 			Module module = visitNestedRules(ctx.nestedRules());
 			ModuleCallAction action = new ModuleCallAction(module,
-					getSourceInfo(ctx));
+					new ArrayList<Term>(0), getSourceInfo(ctx));
 			actions = new ActionCombo();
 			actions.addAction(action);
 		}

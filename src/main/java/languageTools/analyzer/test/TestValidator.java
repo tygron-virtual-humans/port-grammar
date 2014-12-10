@@ -27,6 +27,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import krTools.language.Term;
 import languageTools.analyzer.Validator;
 import languageTools.analyzer.agent.AgentValidator;
 import languageTools.analyzer.mas.MASValidator;
@@ -121,8 +122,8 @@ import org.antlr.v4.runtime.tree.ParseTree;
  */
 @SuppressWarnings("rawtypes")
 public class TestValidator extends
-Validator<MyGOALLexer, Test, AgentErrorStrategy, UnitTest> implements
-TestVisitor {
+		Validator<MyGOALLexer, Test, AgentErrorStrategy, UnitTest> implements
+		TestVisitor {
 	private Test parser;
 	private MASProgram masProgram;
 	private Map<File, AgentProgram> agentPrograms;
@@ -852,7 +853,7 @@ TestVisitor {
 		}
 		ActionCombo actions = new ActionCombo();
 		ModuleCallAction mainCall = new ModuleCallAction(main,
-				getSourceInfo(ctx));
+				new ArrayList<Term>(0), getSourceInfo(ctx));
 		actions.addAction(mainCall);
 		return actions;
 	}

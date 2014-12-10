@@ -71,7 +71,6 @@ import languageTools.program.agent.rules.Rule;
  * contain the goals defined in the Module's <code>goals { }</code> section.
  */
 public class ModuleCallAction extends Action<Term> {
-
 	/**
 	 * The module the agent will focus on if this action is executed. Must be
 	 * set with #setTarget
@@ -86,12 +85,11 @@ public class ModuleCallAction extends Action<Term> {
 	 *            The name of the {@link Module} the agent that executes this
 	 *            action will focus on.
 	 */
-	public ModuleCallAction(Module targetModule, SourceInfo info) {
+	public ModuleCallAction(Module targetModule, List<Term> parameters,
+			SourceInfo info) {
 		super(targetModule.getName(), info);
-
 		this.targetModule = targetModule;
-
-		for (Term term : targetModule.getParameters()) {
+		for (Term term : parameters) {
 			addParameter(term);
 		}
 	}
@@ -123,21 +121,13 @@ public class ModuleCallAction extends Action<Term> {
 	@Override
 	public Action<Term> applySubst(Substitution substitution) {
 		List<Term> parameters = new ArrayList<Term>();
-
 		if (getTarget().getType() != TYPE.ANONYMOUS) {
 			for (Term term : getParameters()) {
 				parameters.add(term.applySubst(substitution));
 			}
 		}
-
 		// Create new focus action with instantiated parameters.
-		ModuleCallAction focus = new ModuleCallAction(getTarget(),
-				getSourceInfo());
-		// Store substitution for later reference when we call the target
-		// module.
-		// TODO: focus.substitutionToPassOnToModule = substitution;
-
-		return focus;
+		return new ModuleCallAction(getTarget(), parameters, getSourceInfo());
 	}
 
 	/**
@@ -151,15 +141,11 @@ public class ModuleCallAction extends Action<Term> {
 		} else {
 			StringBuilder str = new StringBuilder();
 			str.append("{\n");
-
 			for (Rule rule : getTarget().getRules()) {
 				str.append(rule.toString() + "\n");
 			}
-
 			str.append("}\n");
-
 			return str.toString();
 		}
 	}
-
 }

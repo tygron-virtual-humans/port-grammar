@@ -549,7 +549,7 @@ GOALVisitor {
 
 			Module module = visitNestedRules(ctx.nestedRules());
 			ModuleCallAction action = new ModuleCallAction(module,
-					getSourceInfo(ctx));
+					new ArrayList<Term>(0), getSourceInfo(ctx));
 			actions = new ActionCombo();
 			actions.addAction(action);
 		}
