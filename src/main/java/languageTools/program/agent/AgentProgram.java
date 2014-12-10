@@ -32,6 +32,10 @@ import languageTools.analyzer.agent.AgentValidator;
 import languageTools.parser.GOAL;
 import languageTools.program.Program;
 import languageTools.program.agent.msc.Macro;
+import languageTools.program.agent.msc.MentalFormula;
+import languageTools.program.agent.msc.MentalLiteral;
+import languageTools.program.agent.rules.Rule;
+import languageTools.program.agent.selector.Selector.SelectorType;
 
 /**
  * <p>
@@ -146,24 +150,23 @@ public class AgentProgram extends Program {
 	 * @return {@code true} iff the agent program performs mental model queries.
 	 */
 	public boolean usesMentalModels() {
-		// TODO:
-		// for (Module m : this.getAllModules()) {
-		// if (m.getRuleSet() == null) {
-		// continue;
-		// }
-		// for (Rule rule : m.getRuleSet()) {
-		// for (MentalLiteral literal : rule.getCondition().getLiterals()) {
-		// for (SelectExpression agentExpression : literal
-		// .getSelector().getExpressions()) {
-		// if (agentExpression.getType() != SelectorType.SELF
-		// && agentExpression.getType() != SelectorType.THIS) {
-		// return true;
-		// }
-		// }
-		// }
-		// }
-		// }
-
+		for (Module m : getModules()) {
+			if (m.getRules() == null) {
+				continue;
+			}
+			for (Rule rule : m.getRules()) {
+				for (MentalFormula formula : rule.getCondition()
+						.getSubFormulas()) {
+					if (formula instanceof MentalLiteral) {
+						MentalLiteral literal = (MentalLiteral) formula;
+						if (literal.getSelector().getType() != SelectorType.SELF
+								&& literal.getSelector().getType() != SelectorType.THIS) {
+							return true;
+						}
+					}
+				}
+			}
+		}
 		return false;
 	}
 
