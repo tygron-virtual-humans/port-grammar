@@ -135,7 +135,7 @@ public class MASValidatorWarningTest {
 		assertEquals(
 				new File(
 						"src/test/resources/languageTools/analyzer/mas/dummy_environment.jar"),
-				this.program.getEnvironmentfile());
+						this.program.getEnvironmentfile());
 		assertEquals("value1", this.program.getInitParameters().get("key"));
 	}
 

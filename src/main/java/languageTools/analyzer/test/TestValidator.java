@@ -119,8 +119,8 @@ import org.antlr.v4.runtime.tree.ParseTree;
  */
 @SuppressWarnings("rawtypes")
 public class TestValidator extends
-Validator<MyGOALLexer, Test, AgentErrorStrategy, UnitTest> implements
-TestVisitor {
+		Validator<MyGOALLexer, Test, AgentErrorStrategy, UnitTest> implements
+		TestVisitor {
 	private Test parser;
 	private MASProgram masProgram;
 	private AgentProgram agentProgram;

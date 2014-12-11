@@ -88,7 +88,7 @@ public class ForallDoRule extends Rule {
 		}
 
 		return AgentProgram.getTokenName(GOAL.FORALL) + " " + condition + " "
-				+ AgentProgram.getTokenName(GOAL.DO) + " " + actions;
+		+ AgentProgram.getTokenName(GOAL.DO) + " " + actions;
 	}
 
 }

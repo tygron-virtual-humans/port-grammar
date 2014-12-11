@@ -17,7 +17,9 @@
 
 package languageTools.program.mas;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * A launch rule, part of a MAS program, launches agents. Launch rules that are
@@ -25,20 +27,15 @@ import java.util.List;
  * agent when an entity becomes available and connect the agent to that entity.
  */
 public class LaunchRule {
-
 	// Maximum number of applications of this rule; 0 means there is no maximum
 	private int max = 0;
-
 	// Indicates whether rule is conditional on availability of entity or not
 	private boolean conditional = false;
-
 	// Required label of entity; empty means no label is required
 	private String entityName = "";
-
 	// Required type of the entity that agent is connected to; empty means no
 	// type is required
 	private String entityType = "";
-
 	// Launch instructions for launching agents.
 	private final List<Launch> instructions;
 
@@ -121,9 +118,31 @@ public class LaunchRule {
 
 	@Override
 	public String toString() {
-		return "LaunchRule[max=" + getMaxNumberOfApplications() + ", type="
-				+ getRequiredEntityType() + ", label="
-				+ getRequiredEntityName() + "]";
+		StringBuilder string = new StringBuilder();
+		if (!this.entityName.isEmpty()) {
+			string.append("when ");
+			Map<String, String> description = new HashMap<>();
+			if (!this.entityType.isEmpty()) {
+				description.put("type", this.entityType);
+			}
+			if (!this.entityName.isEmpty()) {
+				description.put("name", this.entityName);
+			}
+			if (this.max > 0) {
+				description.put("max", Integer.toString(this.max));
+			}
+			if (description.isEmpty()) {
+				string.append("entity");
+			} else {
+				string.append(description.toString());
+			}
+			string.append("@env do ");
+		}
+		string.append("launch ");
+		for (Launch launch : this.instructions) {
+			string.append(launch.toString());
+		}
+		string.append(".");
+		return string.toString();
 	}
-
 }

@@ -43,7 +43,7 @@ public class MASSyntaxErrorTest {
 
 	/**
 	 * Creates validator, calls validate, and initializes relevant fields.
-	 * 
+	 *
 	 * @param resource
 	 *            The MAS file used in the test.
 	 */
@@ -77,7 +77,7 @@ public class MASSyntaxErrorTest {
 		assertEquals(
 				new File(
 						"src/test/resources/languageTools/analyzer/mas/dummy_environment.jar"),
-				this.program.getEnvironmentfile());
+						this.program.getEnvironmentfile());
 		assertEquals(new HashMap<String, Object>(),
 				this.program.getInitParameters());
 	}

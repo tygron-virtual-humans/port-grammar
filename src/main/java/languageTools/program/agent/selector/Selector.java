@@ -25,7 +25,6 @@ import java.util.Set;
 import krTools.language.Substitution;
 import krTools.language.Term;
 import krTools.language.Var;
-import languageTools.program.agent.selector.Selector.SelectorType;
 
 /**
  * A {@link Selector} is used for indicating the mental model(s) that a mental

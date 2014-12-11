@@ -24,7 +24,6 @@ import java.io.File;
  * file to launch an agent.
  */
 public class Launch {
-
 	/**
 	 * The agent file that is used for launching an agent.
 	 */
@@ -110,8 +109,14 @@ public class Launch {
 	 */
 	@Override
 	public String toString() {
-		return "Launch[basename=" + this.givenName + ", nr="
-				+ this.numberOfAgentsToLaunch + " file=" + this.agentFile + "]";
+		StringBuilder string = new StringBuilder();
+		if (!this.givenName.isEmpty()) {
+			string.append(this.givenName + ":");
+		}
+		string.append(this.agentFile.getName());
+		if (this.numberOfAgentsToLaunch > 1) {
+			string.append("[" + this.numberOfAgentsToLaunch + "]");
+		}
+		return string.toString();
 	}
-
 }

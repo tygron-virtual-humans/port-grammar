@@ -434,9 +434,9 @@ public class AgentValidatorSecondPass {
 							resolved.add(new UserSpecAction(action.getName(),
 									instantiated,
 									spec.getAction().getExernal(), pre
-											.applySubst(unifier), post
-											.applySubst(unifier), action
-											.getSourceInfo()));
+									.applySubst(unifier), post
+									.applySubst(unifier), action
+									.getSourceInfo()));
 						} else {
 							this.firstPass.reportError(
 									AgentError.ACTION_USED_NEVER_DEFINED,
@@ -452,8 +452,8 @@ public class AgentValidatorSecondPass {
 			} else if (action instanceof ModuleCallAction) {
 				// must be anonymous module
 				actionLabelsUsed
-						.addAll(resolveModuleActionRefs(((ModuleCallAction) action)
-								.getTarget()));
+				.addAll(resolveModuleActionRefs(((ModuleCallAction) action)
+						.getTarget()));
 				resolved.add(action);
 			} else {
 				resolved.add(action);
@@ -508,9 +508,9 @@ public class AgentValidatorSecondPass {
 				if (((ModuleCallAction) rule.getAction().getActions().get(0))
 						.getTarget().getType() == TYPE.ANONYMOUS) {
 					macroLabelsUsed
-							.addAll(resolveModuleMacroRefs(((ModuleCallAction) rule
-									.getAction().getActions().get(0))
-									.getTarget()));
+					.addAll(resolveModuleMacroRefs(((ModuleCallAction) rule
+							.getAction().getActions().get(0))
+							.getTarget()));
 				}
 			}
 		}
@@ -554,7 +554,7 @@ public class AgentValidatorSecondPass {
 				if (!unbound.isEmpty()) {
 					this.firstPass.reportError(
 							AgentError.RULE_VARIABLE_NOT_BOUND, unbound
-									.iterator().next().getSourceInfo(),
+							.iterator().next().getSourceInfo(),
 							this.firstPass.prettyPrintSet(unbound));
 				}
 			}

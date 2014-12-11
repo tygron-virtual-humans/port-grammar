@@ -133,8 +133,8 @@ import swiprolog.language.PrologVar;
  */
 @SuppressWarnings("rawtypes")
 public class AgentValidator extends
-Validator<MyGOALLexer, GOAL, TestErrorStrategy, AgentProgram> implements
-		GOALVisitor {
+		Validator<MyGOALLexer, GOAL, TestErrorStrategy, AgentProgram> implements
+GOALVisitor {
 
 	private GOAL parser;
 	private static TestErrorStrategy strategy = null;
@@ -1579,7 +1579,7 @@ Validator<MyGOALLexer, GOAL, TestErrorStrategy, AgentProgram> implements
 		for (Module module : program.getModules()) {
 			if (call.getName().equals(module.getName())
 					&& call.getParameters().size() == module.getParameters()
-							.size()) {
+					.size()) {
 				return new ModuleCallAction(module, call.getParameters(),
 						call.getSourceInfo());
 			}
@@ -1588,12 +1588,12 @@ Validator<MyGOALLexer, GOAL, TestErrorStrategy, AgentProgram> implements
 				UserSpecAction spec = specification.getAction();
 				if (call.getName().equals(spec.getName())
 						&& call.getParameters().size() == spec.getParameters()
-						.size()) {
+								.size()) {
 					return new UserSpecAction(call.getName(),
 							call.getParameters(), spec.getExernal(),
 							((MentalLiteral) spec.getPrecondition()
 									.getSubFormulas().get(1)).getFormula(),
-									spec.getPostcondition(), call.getSourceInfo());
+							spec.getPostcondition(), call.getSourceInfo());
 				}
 			}
 		}

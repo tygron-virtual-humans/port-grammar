@@ -76,8 +76,8 @@ import org.apache.commons.io.FilenameUtils;
  */
 @SuppressWarnings("rawtypes")
 public class MASValidator extends
-		Validator<MyMAS2GLexer, MAS2GParser, MASErrorStrategy, MASProgram>
-		implements MAS2GVisitor {
+Validator<MyMAS2GLexer, MAS2GParser, MASErrorStrategy, MASProgram>
+implements MAS2GVisitor {
 
 	private MAS2GParser parser;
 	private static MASErrorStrategy strategy = null;

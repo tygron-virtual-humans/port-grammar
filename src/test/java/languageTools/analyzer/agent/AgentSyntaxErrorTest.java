@@ -23,7 +23,7 @@ public class AgentSyntaxErrorTest {
 
 	/**
 	 * Creates validator, calls validate, and initializes relevant fields.
-	 * 
+	 *
 	 * @param resource
 	 *            The GOAL agent file used in the test.
 	 * @throws KRInitFailedException
