@@ -123,6 +123,10 @@ public class AgentValidatorSecondPass {
 	 * goal, a-goal, and goal-a literals.
 	 */
 	private final Set<Query> goalQueries = new HashSet<>();
+	/**
+	 * Modules that have been processed by getInsertedBeliefs
+	 */
+	private final Set<Module> processed = new HashSet<>();
 
 	/**
 	 * In the second pass, references in the given agent program are resolved
@@ -193,6 +197,7 @@ public class AgentValidatorSecondPass {
 		// Collect all info needed for validation
 		for (Module module : modules) {
 			visitModule(module);
+			this.processed.clear();
 			checkVariablesBoundinRules(module, new HashSet<Term>());
 		}
 
@@ -349,20 +354,24 @@ public class AgentValidatorSecondPass {
 	 *            Module from which to retrieve information.
 	 */
 	private void visitModule(Module module) {
+
 		this.actionLabelsUsed.addAll(resolveModuleActionRefs(module));
 		this.macroLabelsUsed.addAll(resolveModuleMacroRefs(module));
 
 		// extract relevant sets of database formulas and queries from module
-		this.knowledge.addAll(module.getKnowledge()); // exploits fact that we
-		// don't allow module
-		// declarations within
-		// modules
+		this.knowledge.addAll(module.getKnowledge());
+		// exploits fact that we don't allow module declarations within modules
 		this.beliefs.addAll(module.getBeliefs());
+		this.processed.clear();
 		this.dynamicBeliefs.addAll(getInsertedBeliefs(module));
+		this.processed.clear();
 		this.beliefQueries.addAll(getBeliefQueries(module));
 		this.goals.addAll(module.getGoals());
+		this.processed.clear();
 		this.goals.addAll(getAdoptedGoals(module));
+		this.processed.clear();
 		this.goalDbfs.addAll(getGoalDfs(module));
+		this.processed.clear();
 		this.goalQueries.addAll(getGoalQueries(module));
 	}
 
@@ -425,9 +434,9 @@ public class AgentValidatorSecondPass {
 							resolved.add(new UserSpecAction(action.getName(),
 									instantiated,
 									spec.getAction().getExernal(), pre
-											.applySubst(unifier), post
-											.applySubst(unifier), action
-											.getSourceInfo()));
+									.applySubst(unifier), post
+									.applySubst(unifier), action
+									.getSourceInfo()));
 						} else {
 							this.firstPass.reportError(
 									AgentError.ACTION_USED_NEVER_DEFINED,
@@ -443,8 +452,8 @@ public class AgentValidatorSecondPass {
 			} else if (action instanceof ModuleCallAction) {
 				// must be anonymous module
 				actionLabelsUsed
-						.addAll(resolveModuleActionRefs(((ModuleCallAction) action)
-								.getTarget()));
+				.addAll(resolveModuleActionRefs(((ModuleCallAction) action)
+						.getTarget()));
 				resolved.add(action);
 			} else {
 				resolved.add(action);
@@ -500,9 +509,9 @@ public class AgentValidatorSecondPass {
 				if (((ModuleCallAction) rule.getAction().getActions().get(0))
 						.getTarget().getType() == TYPE.ANONYMOUS) {
 					macroLabelsUsed
-							.addAll(resolveModuleMacroRefs(((ModuleCallAction) rule
-									.getAction().getActions().get(0))
-									.getTarget()));
+					.addAll(resolveModuleMacroRefs(((ModuleCallAction) rule
+							.getAction().getActions().get(0))
+							.getTarget()));
 				}
 			}
 		}
@@ -518,37 +527,38 @@ public class AgentValidatorSecondPass {
 	 */
 	private void checkVariablesBoundinRules(Module module, Set<Term> scope) {
 		Set<Term> localScope;
-		if (module.getType() != TYPE.ANONYMOUS) {
-			// reset scope
-			localScope = new HashSet<Term>();
-			for (Term term : module.getParameters()) {
-				localScope.add(term);
-			}
-		} else {
-			localScope = new HashSet<Term>(scope);
-		}
-
-		for (Rule rule : module.getRules()) {
-			// Set up new scope that also includes variables bound by rule
-			// condition
-			Set<Term> newscope = new HashSet<Term>(localScope);
-			newscope.addAll(rule.getCondition().getFreeVar());
-
-			Set<Var> unbound = new HashSet<>();
-			for (Action<?> action : rule.getAction().getActions()) {
-				if (action instanceof ModuleCallAction) {
-					checkVariablesBoundinRules(
-							((ModuleCallAction) action).getTarget(), newscope);
-				} else {
-					unbound.addAll(action.getFreeVar());
-					unbound.removeAll(newscope);
+		if (this.processed.add(module)) {
+			if (module.getType() != TYPE.ANONYMOUS) {
+				// reset scope
+				localScope = new HashSet<Term>();
+				for (Term term : module.getParameters()) {
+					localScope.add(term);
 				}
+			} else {
+				localScope = new HashSet<Term>(scope);
 			}
-
-			if (!unbound.isEmpty()) {
-				this.firstPass.reportError(AgentError.RULE_VARIABLE_NOT_BOUND,
-						unbound.iterator().next().getSourceInfo(),
-						this.firstPass.prettyPrintSet(unbound));
+			for (Rule rule : module.getRules()) {
+				// Set up new scope that also includes variables bound by rule
+				// condition
+				Set<Term> newscope = new HashSet<Term>(localScope);
+				newscope.addAll(rule.getCondition().getFreeVar());
+				Set<Var> unbound = new HashSet<>();
+				for (Action<?> action : rule.getAction().getActions()) {
+					if (action instanceof ModuleCallAction) {
+						checkVariablesBoundinRules(
+								((ModuleCallAction) action).getTarget(),
+								newscope);
+					} else {
+						unbound.addAll(action.getFreeVar());
+						unbound.removeAll(newscope);
+					}
+				}
+				if (!unbound.isEmpty()) {
+					this.firstPass.reportError(
+							AgentError.RULE_VARIABLE_NOT_BOUND, unbound
+							.iterator().next().getSourceInfo(),
+							this.firstPass.prettyPrintSet(unbound));
+				}
 			}
 		}
 	}
@@ -564,30 +574,29 @@ public class AgentValidatorSecondPass {
 	 */
 	private Set<DatabaseFormula> getInsertedBeliefs(Module module) {
 		Set<DatabaseFormula> dbfs = new HashSet<>();
-
-		// Add beliefs inserted by inserts and deletes
-		for (Rule rule : module.getRules()) {
-			for (Action<?> action : rule.getAction().getActions()) {
-				if (action instanceof InsertAction) {
-					dbfs.addAll(((InsertAction) action).getUpdate()
-							.getAddList());
-				}
-				if (action instanceof DeleteAction) {
-					dbfs.addAll(((DeleteAction) action).getUpdate()
-							.getDeleteList());
-				}
-				if (action instanceof ModuleCallAction) {
-					dbfs.addAll(getInsertedBeliefs(((ModuleCallAction) action)
-							.getTarget()));
+		if (this.processed.add(module)) {
+			// Add beliefs inserted by inserts and deletes
+			for (Rule rule : module.getRules()) {
+				for (Action<?> action : rule.getAction().getActions()) {
+					if (action instanceof InsertAction) {
+						dbfs.addAll(((InsertAction) action).getUpdate()
+								.getAddList());
+					}
+					if (action instanceof DeleteAction) {
+						dbfs.addAll(((DeleteAction) action).getUpdate()
+								.getDeleteList());
+					}
+					if (action instanceof ModuleCallAction) {
+						dbfs.addAll(getInsertedBeliefs(((ModuleCallAction) action)
+								.getTarget()));
+					}
 				}
 			}
+			// Add beliefs inserted by post-conditions
+			for (ActionSpecification spec : module.getActionSpecifications()) {
+				dbfs.addAll(spec.getPostCondition().getAddList());
+			}
 		}
-
-		// Add beliefs inserted by post-conditions
-		for (ActionSpecification spec : module.getActionSpecifications()) {
-			dbfs.addAll(spec.getPostCondition().getAddList());
-		}
-
 		return dbfs;
 	}
 
@@ -601,31 +610,30 @@ public class AgentValidatorSecondPass {
 	 */
 	private Set<Query> getBeliefQueries(Module module) {
 		Set<Query> queries = new HashSet<>();
-
-		// Add queries used in rule conditions
-		// First collect all literals as well as queries from submodules
-		Set<MentalLiteral> literals = new HashSet<MentalLiteral>();
-		for (Rule rule : module.getRules()) {
-			literals.addAll(getBeliefLiterals(rule.getCondition()));
-			for (Action<?> action : rule.getAction().getActions()) {
-				if (action instanceof ModuleCallAction) {
-					queries.addAll(getBeliefQueries(((ModuleCallAction) action)
-							.getTarget()));
+		if (this.processed.add(module)) {
+			// Add queries used in rule conditions
+			// First collect all literals as well as queries from submodules
+			Set<MentalLiteral> literals = new HashSet<MentalLiteral>();
+			for (Rule rule : module.getRules()) {
+				literals.addAll(getBeliefLiterals(rule.getCondition()));
+				for (Action<?> action : rule.getAction().getActions()) {
+					if (action instanceof ModuleCallAction) {
+						queries.addAll(getBeliefQueries(((ModuleCallAction) action)
+								.getTarget()));
+					}
+				}
+			}
+			for (MentalLiteral literal : literals) {
+				queries.add(literal.getFormula());
+			}
+			// Add pre-conditions
+			for (ActionSpecification spec : module.getActionSpecifications()) {
+				for (MentalLiteral literal : getBeliefLiterals(spec
+						.getPreCondition())) {
+					queries.add(literal.getFormula());
 				}
 			}
 		}
-		for (MentalLiteral literal : literals) {
-			queries.add(literal.getFormula());
-		}
-
-		// Add pre-conditions
-		for (ActionSpecification spec : module.getActionSpecifications()) {
-			for (MentalLiteral literal : getBeliefLiterals(spec
-					.getPreCondition())) {
-				queries.add(literal.getFormula());
-			}
-		}
-
 		return queries;
 	}
 
@@ -662,23 +670,23 @@ public class AgentValidatorSecondPass {
 	 */
 	private Set<Query> getAdoptedGoals(Module module) {
 		Set<Query> queries = new HashSet<Query>();
-
-		// Add updates in adopts
-		for (Rule rule : module.getRules()) {
-			for (Action<?> action : rule.getAction().getActions()) {
-				if (action instanceof AdoptAction) {
-					for (DatabaseFormula dbf : ((AdoptAction) action)
-							.getUpdate().getAddList()) {
-						queries.add(dbf.toQuery());
+		if (this.processed.add(module)) {
+			// Add updates in adopts
+			for (Rule rule : module.getRules()) {
+				for (Action<?> action : rule.getAction().getActions()) {
+					if (action instanceof AdoptAction) {
+						for (DatabaseFormula dbf : ((AdoptAction) action)
+								.getUpdate().getAddList()) {
+							queries.add(dbf.toQuery());
+						}
 					}
-				}
-				if (action instanceof ModuleCallAction) {
-					queries.addAll(getAdoptedGoals(((ModuleCallAction) action)
-							.getTarget()));
+					if (action instanceof ModuleCallAction) {
+						queries.addAll(getAdoptedGoals(((ModuleCallAction) action)
+								.getTarget()));
+					}
 				}
 			}
 		}
-
 		return queries;
 	}
 
@@ -689,25 +697,25 @@ public class AgentValidatorSecondPass {
 	 */
 	private Set<DatabaseFormula> getGoalDfs(Module module) {
 		Set<DatabaseFormula> dbfs = new HashSet<>();
-
-		// Add goals in goal section
-		for (Query query : module.getGoals()) {
-			dbfs.addAll(query.toUpdate().getAddList());
-		}
-
-		// Add updates in adopts
-		for (Rule rule : module.getRules()) {
-			for (Action<?> action : rule.getAction().getActions()) {
-				if (action instanceof AdoptAction) {
-					dbfs.addAll(((AdoptAction) action).getUpdate().getAddList());
-				}
-				if (action instanceof ModuleCallAction) {
-					dbfs.addAll(getGoalDfs(((ModuleCallAction) action)
-							.getTarget()));
+		if (this.processed.add(module)) {
+			// Add goals in goal section
+			for (Query query : module.getGoals()) {
+				dbfs.addAll(query.toUpdate().getAddList());
+			}
+			// Add updates in adopts
+			for (Rule rule : module.getRules()) {
+				for (Action<?> action : rule.getAction().getActions()) {
+					if (action instanceof AdoptAction) {
+						dbfs.addAll(((AdoptAction) action).getUpdate()
+								.getAddList());
+					}
+					if (action instanceof ModuleCallAction) {
+						dbfs.addAll(getGoalDfs(((ModuleCallAction) action)
+								.getTarget()));
+					}
 				}
 			}
 		}
-
 		return dbfs;
 	}
 
@@ -720,23 +728,23 @@ public class AgentValidatorSecondPass {
 	 */
 	private Set<Query> getGoalQueries(Module module) {
 		Set<Query> queries = new HashSet<>();
-
-		// Add queries used in rule conditions
-		// First collect all literals as well as queries from submodules
-		Set<MentalLiteral> literals = new HashSet<>();
-		for (Rule rule : module.getRules()) {
-			literals.addAll(getGoalLiterals(rule.getCondition()));
-			for (Action<?> action : rule.getAction().getActions()) {
-				if (action instanceof ModuleCallAction) {
-					queries.addAll(getGoalQueries(((ModuleCallAction) action)
-							.getTarget()));
+		if (this.processed.add(module)) {
+			// Add queries used in rule conditions
+			// First collect all literals as well as queries from submodules
+			Set<MentalLiteral> literals = new HashSet<>();
+			for (Rule rule : module.getRules()) {
+				literals.addAll(getGoalLiterals(rule.getCondition()));
+				for (Action<?> action : rule.getAction().getActions()) {
+					if (action instanceof ModuleCallAction) {
+						queries.addAll(getGoalQueries(((ModuleCallAction) action)
+								.getTarget()));
+					}
 				}
 			}
+			for (MentalLiteral literal : literals) {
+				queries.add(literal.getFormula());
+			}
 		}
-		for (MentalLiteral literal : literals) {
-			queries.add(literal.getFormula());
-		}
-
 		return queries;
 	}
 
