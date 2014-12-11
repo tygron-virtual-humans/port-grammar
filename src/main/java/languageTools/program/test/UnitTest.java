@@ -1,10 +1,7 @@
 package languageTools.program.test;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 
 import krTools.parser.SourceInfo;
@@ -22,67 +19,10 @@ public class UnitTest extends Program {
 	private long timeout;
 
 	/**
-	 * Constructs a new unit test with no agent tests.
-	 *
-	 * @param masProgram
-	 *            of the system under test
-	 */
-	public UnitTest(MASProgram masProgram, SourceInfo info) {
-		this(masProgram, new LinkedList<AgentTest>(), info);
-	}
-
-	/**
-	 * Constructs a new unit test.
-	 *
-	 * @param masProgram
-	 *            of the system under test
-	 * @param tests
-	 *            to run
-	 */
-	public UnitTest(MASProgram masProgram, List<AgentTest> tests,
-			SourceInfo info) {
-		this(masProgram, tests, 0, info);
-	}
-
-	/**
-	 * Constructs a new unit test.
-	 *
-	 * @param masProgram
-	 *            of the system under test
-	 * @param tests
-	 *            to run
-	 * @param timeout
-	 *            duration in ms before test times out
-	 */
-	public UnitTest(MASProgram masProgram, List<AgentTest> tests, long timeout,
-			SourceInfo info) {
-		super(info);
-		this.masProgram = masProgram;
-		for (AgentTest t : tests) {
-			this.tests.put(t.getAgentName(), t);
-		}
-		this.timeout = timeout;
-	}
-
-	/**
-	 * Constructs a new unit test.
-	 *
-	 * @param unitTestFile
-	 *            file containing the unit test
-	 * @param masProgram
-	 *            of the system under test
-	 * @param timeout
-	 *            duration in ms before test times out
-	 */
-	public UnitTest(MASProgram masProgram, long timeout, SourceInfo info) {
-		this(masProgram, new LinkedList<AgentTest>(), timeout, info);
-	}
-
-	/**
 	 * Constructs a new unit test.
 	 */
 	public UnitTest(SourceInfo info) {
-		this(null, new ArrayList<AgentTest>(0), 0, info);
+		super(info);
 	}
 
 	public void setMASProgram(MASProgram masProgram) {
@@ -124,10 +64,5 @@ public class UnitTest extends Program {
 	@Override
 	public String toString(String linePrefix, String indent) {
 		return ""; // TODO Auto-generated method stub
-	}
-
-	@Override
-	public boolean canRun() {
-		return !this.tests.isEmpty(); // TODO Auto-generated method stub
 	}
 }

@@ -173,18 +173,6 @@ public class MASProgram extends Program {
 	}
 
 	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public boolean canRun() {
-		if (isValid()) {
-			// TODO Perhaps should not be here? MAS program cannot tell itself
-			// whether it can run or not...
-		}
-		return false;
-	}
-
-	/**
 	 * @return A string with all program parts of this {@link MASProgram}.
 	 */
 	@Override

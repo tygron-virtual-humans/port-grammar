@@ -552,14 +552,6 @@ public class Module extends Program {
 		}
 	}
 
-	/**
-	 * A module can be run if it is valid.
-	 */
-	@Override
-	public boolean canRun() {
-		return isValid();
-	}
-
 	// -------------------------------------------------------------
 	// Enum classes for TYPE, FocusMethod, and ExitCondition
 	// -------------------------------------------------------------

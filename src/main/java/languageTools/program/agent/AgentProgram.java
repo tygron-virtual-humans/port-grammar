@@ -171,27 +171,6 @@ public class AgentProgram extends Program {
 	}
 
 	/**
-	 * An agent program can be run if it is valid, all of its modules can be
-	 * run, and all of the imported module files have been validated and can be
-	 * run.
-	 */
-	@Override
-	public boolean canRun() {
-		boolean canRun = isValid();
-		for (Module module : this.modules) {
-			canRun &= module.canRun();
-		}
-		// TODO: imported module files (how do we validate these?)
-		canRun &= false;
-		return canRun;
-	}
-
-	/**
-	 *
-	 * @param tokenIndex
-	 */
-
-	/**
 	 * @param tokenIndex
 	 *            Integer index of parser token.
 	 * @return String with the name of the token.

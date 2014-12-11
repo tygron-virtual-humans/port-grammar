@@ -54,11 +54,10 @@ import org.apache.commons.io.FilenameUtils;
  * problems and {@link ValidatorError}s if the program specific validator
  * detected problems. It may also generate {@link ValidatorWarning}s. Upon
  * completion, {@link #validate()} sets a flag in the program which indicates
- * whether the program is valid or not. Note that this does not mean that the
- * program <i>can be run</i>, see also {@link Program#canRun()}.
+ * whether the program is valid or not.
  */
 public abstract class Validator<L extends MyLexer<?>, P extends Parser, E extends MyErrorStrategy, Q extends Program>
-implements ANTLRErrorListener {
+		implements ANTLRErrorListener {
 
 	/**
 	 * Name of the file that is validated.
@@ -380,7 +379,7 @@ implements ANTLRErrorListener {
 	public SourceInfo getSourceInfo(ParserRuleContext ctx) {
 		InputStreamPosition pos = new InputStreamPosition(ctx.getStart(),
 				ctx.getStop() == null ? ctx.getStart() : ctx.getStop(),
-						this.source);
+				this.source);
 		return pos;
 	}
 
@@ -592,7 +591,7 @@ implements ANTLRErrorListener {
 	public void reportAmbiguity(Parser recognizer, DFA dfa, int startIndex,
 			int stopIndex, boolean exact, BitSet ambigAlts, ATNConfigSet configs) {
 		System.out
-		.println("Found ambiguous readings of file! Please report this finding and send us this file.");
+				.println("Found ambiguous readings of file! Please report this finding and send us this file.");
 	}
 
 	@Override

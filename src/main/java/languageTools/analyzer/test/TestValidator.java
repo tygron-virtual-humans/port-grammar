@@ -194,7 +194,7 @@ public class TestValidator extends
 	}
 
 	@Override
-	public UnitTest visitUnitTest(UnitTestContext ctx) {
+	public Void visitUnitTest(UnitTestContext ctx) {
 		if (ctx == null) {
 			return null;
 		} else if (ctx.masFile() == null) {
@@ -221,6 +221,8 @@ public class TestValidator extends
 					return null;
 				}
 			}
+			getProgram().setMASProgram(this.masProgram);
+
 			this.agentPrograms = new HashMap<>(this.masProgram.getAgentFiles()
 					.size());
 			for (File agentFile : this.masProgram.getAgentFiles()) {
@@ -244,37 +246,27 @@ public class TestValidator extends
 			if (ctx.timeout() != null) {
 				timeout = visitTimeout(ctx.timeout());
 			}
+			getProgram().setTimeout(timeout);
 
-			if (ctx.agentTests() == null) {
-				return new UnitTest(this.masProgram,
-						new ArrayList<AgentTest>(0), timeout,
-						getSourceInfo(ctx));
-			}
-
-			List<AgentTests> tests = visitAgentTests(ctx.agentTests());
-			if (tests == null) { // Error covered by visitor.
+			List<AgentTests> tests = (ctx.agentTests() == null) ? null
+					: visitAgentTests(ctx.agentTests());
+			if (tests == null || tests.isEmpty() || tests.get(0).isEmpty()) {
 				return null;
-			} else if (tests.isEmpty() || tests.get(0).isEmpty()) {
-				return new UnitTest(this.masProgram,
-						new ArrayList<AgentTest>(0), timeout,
-						getSourceInfo(ctx));
 			}
 
 			// We now have a list of tests for each agent. These have to be
 			// transformed into a list of unit tests containing one test for
 			// each agent.
-			List<UnitTest> unitTests = new ArrayList<>(tests.get(0).size());
 			for (int i = 0; i < tests.get(0).size(); i++) {
 				List<AgentTest> agentTests = new ArrayList<>(tests.size());
 				for (int j = 0; j < tests.size(); j++) {
-					agentTests.add(tests.get(j).get(i));
+					getProgram().addTest(tests.get(j).get(i));
 				}
-				unitTests.add(new UnitTest(this.masProgram, agentTests,
-						timeout, getSourceInfo(ctx)));
+				// FIXME: For now only allow 1 unit test.
+				// Silently ignores any other unit tests!
+				break;
 			}
-			// FIXME: For now only allow 1 unit test.
-			// Silently ignores any other unit tests!
-			return unitTests.get(0);
+			return null;
 		} catch (Exception any) {
 			// Convert stack trace to string
 			StringWriter sw = new StringWriter();

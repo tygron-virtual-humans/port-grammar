@@ -27,12 +27,10 @@ import krTools.parser.SourceInfo;
  * Tools.
  */
 public abstract class Program {
-
 	/**
 	 * The source used to create this {@link Program}.
 	 */
 	private final SourceInfo info;
-
 	/**
 	 * Flag to signal whether MAS file has been validated or not.
 	 *
@@ -64,11 +62,6 @@ public abstract class Program {
 	/**
 	 * @return Whether the program is valid or not. Also see
 	 *         {@link #setValid(boolean)}.
-	 *
-	 *         <p>
-	 *         Does not indicate whether other files are valid! See also
-	 *         {@link #canRun()}.
-	 *         </p>
 	 */
 	public boolean isValid() {
 		return this.valid;
@@ -97,14 +90,4 @@ public abstract class Program {
 	 * @return A string that consists of the program parts.
 	 */
 	public abstract String toString(String linePrefix, String indent);
-
-	/**
-	 * Checks whether everything is set up OK for running the program. If this
-	 * program is valid, this method should check whether all program files this
-	 * program depends on are valid as well.
-	 *
-	 * @return {@code true} if the program can be run, {@code false} otherwise.
-	 */
-	public abstract boolean canRun();
-
 }
