@@ -57,7 +57,7 @@ import org.apache.commons.io.FilenameUtils;
  * whether the program is valid or not.
  */
 public abstract class Validator<L extends MyLexer<?>, P extends Parser, E extends MyErrorStrategy, Q extends Program>
-		implements ANTLRErrorListener {
+implements ANTLRErrorListener {
 
 	/**
 	 * Name of the file that is validated.
@@ -287,7 +287,7 @@ public abstract class Validator<L extends MyLexer<?>, P extends Parser, E extend
 	 * @param args
 	 *            Additional info to be inserted into warning message.
 	 */
-	protected boolean reportError(SyntaxError type, SourceInfo info,
+	public boolean reportError(SyntaxError type, SourceInfo info,
 			String... args) {
 		return this.syntaxErrors.add(new ParserError(type, info, args));
 	}
@@ -305,7 +305,7 @@ public abstract class Validator<L extends MyLexer<?>, P extends Parser, E extend
 	 * @param args
 	 *            Additional info to be inserted into warning message.
 	 */
-	protected boolean reportError(SyntaxError type, InputStreamPosition pos,
+	public boolean reportError(SyntaxError type, InputStreamPosition pos,
 			String... args) {
 		return this.syntaxErrors.add(new ParserError(type, pos, args));
 	}
@@ -379,7 +379,7 @@ public abstract class Validator<L extends MyLexer<?>, P extends Parser, E extend
 	public SourceInfo getSourceInfo(ParserRuleContext ctx) {
 		InputStreamPosition pos = new InputStreamPosition(ctx.getStart(),
 				ctx.getStop() == null ? ctx.getStart() : ctx.getStop(),
-				this.source);
+						this.source);
 		return pos;
 	}
 
@@ -591,7 +591,7 @@ public abstract class Validator<L extends MyLexer<?>, P extends Parser, E extend
 	public void reportAmbiguity(Parser recognizer, DFA dfa, int startIndex,
 			int stopIndex, boolean exact, BitSet ambigAlts, ATNConfigSet configs) {
 		System.out
-				.println("Found ambiguous readings of file! Please report this finding and send us this file.");
+		.println("Found ambiguous readings of file! Please report this finding and send us this file.");
 	}
 
 	@Override

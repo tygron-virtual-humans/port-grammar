@@ -18,7 +18,8 @@
 package languageTools.analyzer.agent;
 
 import java.io.File;
-import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -33,6 +34,7 @@ import krTools.language.Term;
 import krTools.language.Update;
 import krTools.language.Var;
 import languageTools.analyzer.module.ModuleValidator;
+import languageTools.errors.ParserError.SyntaxError;
 import languageTools.errors.agent.AgentError;
 import languageTools.errors.agent.AgentWarning;
 import languageTools.parser.GOAL;
@@ -143,7 +145,7 @@ public class AgentValidatorSecondPass {
 	 * @param firstPass
 	 *            The validator object that executed the first pass.
 	 */
-	protected AgentValidatorSecondPass(AgentValidator firstPass) {
+	public AgentValidatorSecondPass(AgentValidator firstPass) {
 		this.firstPass = firstPass;
 		this.program = firstPass.getProgram();
 		this.actionSymbols = firstPass.getActionSymbols();
@@ -188,9 +190,12 @@ public class AgentValidatorSecondPass {
 						validator.getSyntaxErrors());
 				this.firstPass.getErrors().addAll(validator.getErrors());
 				this.firstPass.getWarnings().addAll(validator.getWarnings());
-			} catch (IOException e) {
-				// TODO: use logger.
-				System.out.println(e.getMessage());
+			} catch (Exception e) {
+				// Convert stack trace to string
+				StringWriter sw = new StringWriter();
+				e.printStackTrace(new PrintWriter(sw));
+				this.firstPass.reportError(SyntaxError.FATAL, null,
+						e.getMessage() + "\n" + sw.toString());
 			}
 		}
 
@@ -399,7 +404,7 @@ public class AgentValidatorSecondPass {
 	 *            {@link ActionCombo} with list of actions used.
 	 * @return Set of string signatures of used actions and modules.
 	 */
-	private Set<String> resolveActionReferences(ActionCombo actions) {
+	public Set<String> resolveActionReferences(ActionCombo actions) {
 		Set<String> actionLabelsUsed = new HashSet<>();
 		List<Action<?>> resolved = new ArrayList<>();
 

@@ -14,7 +14,7 @@ public enum TestError implements ValidatorErrorType {
 	/* Test contents (2) */
 	TEST_MISSING_ACTION, TEST_MISSING_TEST, TEST_INVALID_TEST, TEST_MISSING_MODULE,
 	/* Test contents (3) */
-	TEST_MISSING_OPERATOR;
+	TEST_MISSING_OPERATOR, TEST_INVALID_ACTION, TEST_INVALID_QUERY;
 
 	private static final ResourceBundle BUNDLE = ResourceBundle
 			.getBundle("languageTools.messages.TestErrorMessages");
