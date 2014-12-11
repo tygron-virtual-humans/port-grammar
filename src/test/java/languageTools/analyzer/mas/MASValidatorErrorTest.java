@@ -76,26 +76,6 @@ public class MASValidatorErrorTest {
 	}
 
 	@Test
-	public void test_ENVIRONMENT_NOTAJAR() {
-		setup("src/test/resources/languageTools/analyzer/mas/test_ENVIRONMENT_NOTAJAR.mas2g");
-
-		// MAS should not produce any syntax errors
-		assertTrue(this.syntaxerrors.isEmpty());
-
-		// MAS should produce 1 error
-		assertEquals(1, this.errors.size());
-
-		assertEquals(MASError.ENVIRONMENT_NOTAJAR, this.errors.get(0).getType());
-
-		// MAS should produce no warnings
-		assertTrue(this.warnings.isEmpty());
-
-		assertEquals(null, this.program.getEnvironmentfile());
-		assertEquals(new HashMap<String, Object>(),
-				this.program.getInitParameters());
-	}
-
-	@Test
 	public void test_INIT_UNRECOGNIZED_PARAMETER() {
 		setup("src/test/resources/languageTools/analyzer/mas/test_INIT_UNRECOGNIZED_PARAMETER.mas2g");
 
