@@ -219,7 +219,7 @@ public class MASProgram extends Program {
 
 		// Launch policy section
 		for (LaunchRule rule : this.launchRules) {
-			str.append(linePrefix + indent + "<laucnh rule: " + rule + ">,");
+			str.append(linePrefix + indent + "<launch rule: " + rule + ">,");
 		}
 
 		str.append(linePrefix + ">");

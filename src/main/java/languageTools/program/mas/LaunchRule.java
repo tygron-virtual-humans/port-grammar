@@ -121,8 +121,7 @@ public class LaunchRule {
 
 	@Override
 	public String toString() {
-		return "LaunchRule[" + super.toString() + ", max="
-				+ getMaxNumberOfApplications() + ", type="
+		return "LaunchRule[max=" + getMaxNumberOfApplications() + ", type="
 				+ getRequiredEntityType() + ", label="
 				+ getRequiredEntityName() + "]";
 	}
