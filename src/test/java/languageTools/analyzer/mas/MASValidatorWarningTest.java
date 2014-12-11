@@ -22,7 +22,6 @@ import static org.junit.Assert.assertTrue;
 import goalhub.krTools.KRFactory;
 
 import java.io.File;
-import java.util.HashMap;
 import java.util.List;
 
 import languageTools.errors.Message;
@@ -44,7 +43,7 @@ public class MASValidatorWarningTest {
 
 	/**
 	 * Creates validator, calls validate, and initializes relevant fields.
-	 * 
+	 *
 	 * @param resource
 	 *            The MAS file used in the test.
 	 */
@@ -93,15 +92,11 @@ public class MASValidatorWarningTest {
 		// MAS should not produce any errors
 		assertTrue(this.errors.isEmpty());
 
-		// MAS should produce 1 warning
-		assertEquals(1, this.warnings.size());
+		// MAS should produce 2 warnings
+		assertEquals(2, this.warnings.size());
 
 		assertEquals(MASWarning.ENVIRONMENT_NO_REFERENCE, this.warnings.get(0)
 				.getType());
-
-		assertEquals(null, this.program.getEnvironmentfile());
-		assertEquals(new HashMap<String, Object>(),
-				this.program.getInitParameters());
 	}
 
 	@Test
@@ -114,15 +109,11 @@ public class MASValidatorWarningTest {
 		// MAS should not produce any validation errors
 		assertTrue(this.errors.isEmpty());
 
-		// MAS should produce 1 warning
-		assertEquals(1, this.warnings.size());
+		// MAS should produce 2 warnings
+		assertEquals(2, this.warnings.size());
 
 		assertEquals(MASWarning.ENVIRONMENT_NO_REFERENCE, this.warnings.get(0)
 				.getType());
-
-		assertEquals(null, this.program.getEnvironmentfile());
-		assertEquals(new HashMap<String, Object>(),
-				this.program.getInitParameters());
 	}
 
 	@Test

@@ -40,7 +40,7 @@ public class MASValidatorErrorTest {
 
 	/**
 	 * Creates validator, calls validate, and initializes relevant fields.
-	 * 
+	 *
 	 * @param resource
 	 *            The MAS file used in the test.
 	 */
@@ -71,8 +71,6 @@ public class MASValidatorErrorTest {
 		assertTrue(this.warnings.isEmpty());
 
 		assertEquals(null, this.program.getEnvironmentfile());
-		assertEquals(new HashMap<String, Object>(),
-				this.program.getInitParameters());
 	}
 
 	@Test
