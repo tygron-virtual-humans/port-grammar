@@ -76,8 +76,8 @@ import org.apache.commons.io.FilenameUtils;
  */
 @SuppressWarnings("rawtypes")
 public class MASValidator extends
-Validator<MyMAS2GLexer, MAS2GParser, MASErrorStrategy, MASProgram>
-implements MAS2GVisitor {
+		Validator<MyMAS2GLexer, MAS2GParser, MASErrorStrategy, MASProgram>
+		implements MAS2GVisitor {
 
 	private MAS2GParser parser;
 	private static MASErrorStrategy strategy = null;
@@ -176,8 +176,6 @@ implements MAS2GVisitor {
 
 	@Override
 	public Void visitEnvironment(EnvironmentContext ctx) {
-		boolean problem = false;
-
 		/**
 		 * Get the reference to the environment interface file.
 		 */
@@ -188,34 +186,21 @@ implements MAS2GVisitor {
 			filename = visitString(ctx.string());
 		}
 		if (filename.isEmpty()) {
-			problem = reportWarning(MASWarning.ENVIRONMENT_NO_REFERENCE,
+			reportWarning(MASWarning.ENVIRONMENT_NO_REFERENCE,
 					getSourceInfo(ctx));
 		}
 		// file must be located relative to path specified for MAS file
 		String path = getPathRelativeToSourceFile(filename);
 		File environmentfile = new File(path);
 
-		// Validate
-
-		// Check for existence
-		if (!environmentfile.exists()) {
-			problem = reportError(MASError.ENVIRONMENT_COULDNOT_FIND, ctx,
-					environmentfile.getPath());
-		}
-
-		// Check whether extension is "jar"
+		// If extension is "jar", the file must exist;
+		// otherwise it can be a reference to an existing environment.
 		String ext = FilenameUtils.getExtension(filename);
-		if (!problem && !ext.equals("jar")) {
-			problem = reportError(MASError.ENVIRONMENT_NOTAJAR, ctx, path, ext);
-		}
-
-		// Set environment interface file (only if no errors were detected).
-		if (!problem) {
-			getProgram().setEnvironmentfile(environmentfile);
+		if (ext.equals("jar") && !environmentfile.exists()) {
+			reportError(MASError.ENVIRONMENT_COULDNOT_FIND, ctx,
+					environmentfile.getPath());
 		} else {
-			// Skip remainder of environment section, if any, which does not
-			// make sense without environment interface file
-			return null;
+			getProgram().setEnvironmentfile(environmentfile);
 		}
 
 		/**

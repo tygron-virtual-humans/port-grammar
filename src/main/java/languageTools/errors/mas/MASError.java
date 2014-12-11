@@ -20,10 +20,6 @@ public enum MASError implements ValidatorErrorType {
 	 */
 	ENVIRONMENT_COULDNOT_FIND,
 	/**
-	 * Environment interface files should be jar files.
-	 */
-	ENVIRONMENT_NOTAJAR,
-	/**
 	 * Initialization parameter in environment section should be valid.
 	 */
 	INIT_UNRECOGNIZED_PARAMETER,
