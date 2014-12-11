@@ -59,4 +59,22 @@ public abstract class TestCondition {
 	public void setNestedCondition(TestCondition nested) {
 		this.nested = nested;
 	}
+
+	/**
+	 * @return A readable version of the temporal operator.
+	 */
+	public abstract String getOperator();
+
+	@Override
+	public String toString() {
+		StringBuilder str = new StringBuilder();
+		str.append(getOperator());
+		str.append(" ");
+		str.append(this.query.toString());
+		if (hasNestedCondition()) {
+			str.append(" -> ");
+			// str.append(this.nested.toString());
+		}
+		return str.toString();
+	}
 }

@@ -50,14 +50,8 @@ public class AssertTest implements TestSection {
 		return this.condition;
 	}
 
-	/**
-	 * (non-Javadoc)
-	 *
-	 * @see java.lang.Object#toString()
-	 */
 	@Override
 	public String toString() {
-		return "MentalStateTest [condition=" + this.condition + ", message="
-				+ this.message + "]";
+		return "assert " + this.condition.toString();
 	}
 }

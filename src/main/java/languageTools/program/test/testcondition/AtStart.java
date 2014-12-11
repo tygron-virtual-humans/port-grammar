@@ -34,9 +34,12 @@ public class AtStart extends TestCondition {
 		return this.module;
 	}
 
+	private String getModuleName() {
+		return (this.module == null) ? "" : ("[" + this.module.getName() + "]");
+	}
+
 	@Override
-	public String toString() {
-		return "AtStart[query=" + this.query + ", module="
-				+ getModule().getSignature() + "]";
+	public String getOperator() {
+		return "atstart" + getModuleName();
 	}
 }

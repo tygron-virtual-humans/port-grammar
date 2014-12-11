@@ -23,13 +23,13 @@ public class Never extends TestCondition {
 	}
 
 	@Override
-	public String toString() {
-		return "Never [query=" + this.query + "]";
-	}
-
-	@Override
 	public void setNestedCondition(TestCondition nested) {
 		throw new IllegalArgumentException(
 				"Never-condition cannot have a nested condition");
+	}
+
+	@Override
+	public String getOperator() {
+		return "never";
 	}
 }

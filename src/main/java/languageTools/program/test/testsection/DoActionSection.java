@@ -8,18 +8,6 @@ import languageTools.program.agent.actions.ActionCombo;
  * @author mpkorstanje
  */
 public class DoActionSection implements TestSection {
-	/**
-	 * @return the action combo to execute
-	 */
-	public ActionCombo getAction() {
-		return this.action;
-	}
-
-	@Override
-	public String toString() {
-		return "Action [action=" + this.action + "]";
-	}
-
 	private final ActionCombo action;
 
 	/**
@@ -30,5 +18,17 @@ public class DoActionSection implements TestSection {
 	 */
 	public DoActionSection(ActionCombo action) {
 		this.action = action;
+	}
+
+	/**
+	 * @return the action combo to execute
+	 */
+	public ActionCombo getAction() {
+		return this.action;
+	}
+
+	@Override
+	public String toString() {
+		return "do " + this.action.toString();
 	}
 }

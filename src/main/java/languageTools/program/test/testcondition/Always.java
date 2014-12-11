@@ -22,7 +22,7 @@ public class Always extends TestCondition {
 	}
 
 	@Override
-	public String toString() {
-		return "Always [query=" + this.query + "]";
+	public String getOperator() {
+		return "always";
 	}
 }

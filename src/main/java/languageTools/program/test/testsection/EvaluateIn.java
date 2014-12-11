@@ -33,12 +33,6 @@ import languageTools.program.test.testcondition.TestCondition;
  * @author mpkorstanje
  */
 public class EvaluateIn implements TestSection {
-	@Override
-	public String toString() {
-		return "EvaluateIn [conditions= " + this.conditions + ", action="
-				+ this.action + ", boundary=" + this.boundary + "]";
-	}
-
 	private final List<TestCondition> conditions;
 	private final DoActionSection action;
 	private final TestCondition boundary;
@@ -87,5 +81,21 @@ public class EvaluateIn implements TestSection {
 	 */
 	public TestCondition getBoundary() {
 		return this.boundary;
+	}
+
+	@Override
+	public String toString() {
+		StringBuilder str = new StringBuilder();
+		str.append("evaluate {\n");
+		for (TestCondition query : getQueries()) {
+			str.append(query.toString() + "\n");
+		}
+		str.append("} in ");
+		str.append(this.action.toString());
+		if (this.boundary != null) {
+			str.append(" ");
+			str.append(this.boundary.toString());
+		}
+		return str.toString();
 	}
 }

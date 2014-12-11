@@ -34,9 +34,12 @@ public class AtEnd extends TestCondition {
 		return this.module;
 	}
 
+	private String getModuleName() {
+		return (this.module == null) ? "" : ("[" + this.module.getName() + "]");
+	}
+
 	@Override
-	public String toString() {
-		return "AtEnd [query=" + this.query + ", module="
-				+ getModule().getSignature() + "]";
+	public String getOperator() {
+		return "atend" + getModuleName();
 	}
 }

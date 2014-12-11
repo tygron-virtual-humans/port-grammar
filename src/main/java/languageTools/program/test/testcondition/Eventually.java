@@ -22,7 +22,7 @@ public class Eventually extends TestCondition {
 	}
 
 	@Override
-	public String toString() {
-		return "Eventually [query=" + this.query + "]";
+	public String getOperator() {
+		return "eventually";
 	}
 }

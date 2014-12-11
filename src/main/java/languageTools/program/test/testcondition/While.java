@@ -21,13 +21,13 @@ public class While extends TestCondition {
 	}
 
 	@Override
-	public String toString() {
-		return "While [query=" + this.query + "]";
-	}
-
-	@Override
 	public void setNestedCondition(TestCondition nested) {
 		throw new IllegalArgumentException(
 				"Boundaries cannot have a nested condition");
+	}
+
+	@Override
+	public String getOperator() {
+		return "while";
 	}
 }
