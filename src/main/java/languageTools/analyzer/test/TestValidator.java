@@ -252,7 +252,6 @@ public class TestValidator extends
 			// transformed into a list of unit tests containing one test for
 			// each agent.
 			for (int i = 0; i < tests.get(0).size(); i++) {
-				List<AgentTest> agentTests = new ArrayList<>(tests.size());
 				for (int j = 0; j < tests.size(); j++) {
 					getProgram().addTest(tests.get(j).get(i));
 				}
@@ -347,9 +346,12 @@ public class TestValidator extends
 					break;
 				}
 			}
+			if (agentFile != null) {
+				break;
+			}
 		}
 		if (agentFile == null) {
-			// Error covered by visitor.
+			reportError(TestError.TEST_MISSING_AGENT, ctx);
 			return null;
 		}
 
