@@ -23,9 +23,7 @@ import java.io.PrintWriter;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import krTools.language.Term;
 import languageTools.analyzer.Validator;
@@ -122,11 +120,10 @@ import org.antlr.v4.runtime.tree.ParseTree;
  */
 @SuppressWarnings("rawtypes")
 public class TestValidator extends
-		Validator<MyGOALLexer, Test, AgentErrorStrategy, UnitTest> implements
-		TestVisitor {
+Validator<MyGOALLexer, Test, AgentErrorStrategy, UnitTest> implements
+TestVisitor {
 	private Test parser;
 	private MASProgram masProgram;
-	private Map<File, AgentProgram> agentPrograms;
 	private AgentProgram agentProgram;
 	private static AgentErrorStrategy strategy = null;
 
@@ -223,8 +220,6 @@ public class TestValidator extends
 			}
 			getProgram().setMASProgram(this.masProgram);
 
-			this.agentPrograms = new HashMap<>(this.masProgram.getAgentFiles()
-					.size());
 			for (File agentFile : this.masProgram.getAgentFiles()) {
 				AgentValidator createAgent = new AgentValidator(
 						agentFile.getPath());
@@ -233,7 +228,7 @@ public class TestValidator extends
 				createAgent.validate();
 				AgentProgram agent = createAgent.getProgram();
 				if (agent.isValid()) {
-					this.agentPrograms.put(agentFile, agent);
+					getProgram().addAgent(agent);
 				} else {
 					List<Message> agentErrors = createAgent.getErrors();
 					agentErrors.addAll(createAgent.getSyntaxErrors());
@@ -359,7 +354,7 @@ public class TestValidator extends
 			return null;
 		}
 
-		this.agentProgram = this.agentPrograms.get(agentFile);
+		this.agentProgram = getProgram().getAgent(agentFile);
 		if (this.agentProgram == null) {
 			reportError(TestError.AGENT_INVALID, ctx, agentFile.getPath(),
 					"not found");

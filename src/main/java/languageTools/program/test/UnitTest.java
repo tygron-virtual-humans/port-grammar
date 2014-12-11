@@ -1,11 +1,13 @@
 package languageTools.program.test;
 
+import java.io.File;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
 import krTools.parser.SourceInfo;
 import languageTools.program.Program;
+import languageTools.program.agent.AgentProgram;
 import languageTools.program.mas.MASProgram;
 
 /**
@@ -16,6 +18,7 @@ import languageTools.program.mas.MASProgram;
 public class UnitTest extends Program {
 	private final Map<String, AgentTest> tests = new HashMap<>();
 	private MASProgram masProgram;
+	private final Map<File, AgentProgram> agents = new HashMap<>();
 	private long timeout;
 
 	/**
@@ -37,8 +40,16 @@ public class UnitTest extends Program {
 		this.tests.put(test.getAgentName(), test);
 	}
 
+	public void addAgent(AgentProgram agent) {
+		this.agents.put(agent.getSourceFile(), agent);
+	}
+
 	public Collection<AgentTest> getTests() {
 		return this.tests.values();
+	}
+
+	public Map<File, AgentProgram> getAgents() {
+		return this.agents;
 	}
 
 	public MASProgram getMasProgram() {
@@ -55,6 +66,10 @@ public class UnitTest extends Program {
 	 */
 	public AgentTest getTest(String agentName) {
 		return this.tests.get(agentName);
+	}
+
+	public AgentProgram getAgent(File agentFile) {
+		return this.agents.get(agentFile);
 	}
 
 	public long getTimeout() {
