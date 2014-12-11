@@ -145,7 +145,7 @@ public class AgentValidatorSecondPass {
 	 * @param firstPass
 	 *            The validator object that executed the first pass.
 	 */
-	public AgentValidatorSecondPass(AgentValidator firstPass) {
+	protected AgentValidatorSecondPass(AgentValidator firstPass) {
 		this.firstPass = firstPass;
 		this.program = firstPass.getProgram();
 		this.actionSymbols = firstPass.getActionSymbols();
@@ -359,10 +359,8 @@ public class AgentValidatorSecondPass {
 	 *            Module from which to retrieve information.
 	 */
 	private void visitModule(Module module) {
-
 		this.actionLabelsUsed.addAll(resolveModuleActionRefs(module));
 		this.macroLabelsUsed.addAll(resolveModuleMacroRefs(module));
-
 		// extract relevant sets of database formulas and queries from module
 		this.knowledge.addAll(module.getKnowledge());
 		// exploits fact that we don't allow module declarations within modules
@@ -389,11 +387,9 @@ public class AgentValidatorSecondPass {
 	 */
 	private Set<String> resolveModuleActionRefs(Module module) {
 		Set<String> actionLabelsUsed = new HashSet<>();
-
 		for (Rule rule : module.getRules()) {
 			actionLabelsUsed.addAll(resolveActionReferences(rule.getAction()));
 		}
-
 		return actionLabelsUsed;
 	}
 
@@ -404,10 +400,9 @@ public class AgentValidatorSecondPass {
 	 *            {@link ActionCombo} with list of actions used.
 	 * @return Set of string signatures of used actions and modules.
 	 */
-	public Set<String> resolveActionReferences(ActionCombo actions) {
+	private Set<String> resolveActionReferences(ActionCombo actions) {
 		Set<String> actionLabelsUsed = new HashSet<>();
 		List<Action<?>> resolved = new ArrayList<>();
-
 		for (Action<?> action : actions.getActions()) {
 			if (action instanceof UserSpecOrModuleCall) {
 				UserSpecOrModuleCall call = (UserSpecOrModuleCall) action;
@@ -439,9 +434,9 @@ public class AgentValidatorSecondPass {
 							resolved.add(new UserSpecAction(action.getName(),
 									instantiated,
 									spec.getAction().getExernal(), pre
-									.applySubst(unifier), post
-									.applySubst(unifier), action
-									.getSourceInfo()));
+											.applySubst(unifier), post
+											.applySubst(unifier), action
+											.getSourceInfo()));
 						} else {
 							this.firstPass.reportError(
 									AgentError.ACTION_USED_NEVER_DEFINED,
@@ -457,8 +452,8 @@ public class AgentValidatorSecondPass {
 			} else if (action instanceof ModuleCallAction) {
 				// must be anonymous module
 				actionLabelsUsed
-				.addAll(resolveModuleActionRefs(((ModuleCallAction) action)
-						.getTarget()));
+						.addAll(resolveModuleActionRefs(((ModuleCallAction) action)
+								.getTarget()));
 				resolved.add(action);
 			} else {
 				resolved.add(action);
@@ -480,7 +475,6 @@ public class AgentValidatorSecondPass {
 	 */
 	private Set<String> resolveModuleMacroRefs(Module module) {
 		Set<String> macroLabelsUsed = new HashSet<>();
-
 		for (Rule rule : module.getRules()) {
 			// Resolve references to macros
 			for (MentalFormula formula : rule.getCondition().getSubFormulas()) {
@@ -514,13 +508,12 @@ public class AgentValidatorSecondPass {
 				if (((ModuleCallAction) rule.getAction().getActions().get(0))
 						.getTarget().getType() == TYPE.ANONYMOUS) {
 					macroLabelsUsed
-					.addAll(resolveModuleMacroRefs(((ModuleCallAction) rule
-							.getAction().getActions().get(0))
-							.getTarget()));
+							.addAll(resolveModuleMacroRefs(((ModuleCallAction) rule
+									.getAction().getActions().get(0))
+									.getTarget()));
 				}
 			}
 		}
-
 		return macroLabelsUsed;
 	}
 
@@ -561,7 +554,7 @@ public class AgentValidatorSecondPass {
 				if (!unbound.isEmpty()) {
 					this.firstPass.reportError(
 							AgentError.RULE_VARIABLE_NOT_BOUND, unbound
-							.iterator().next().getSourceInfo(),
+									.iterator().next().getSourceInfo(),
 							this.firstPass.prettyPrintSet(unbound));
 				}
 			}
@@ -662,7 +655,6 @@ public class AgentValidatorSecondPass {
 				}
 			}
 		}
-
 		return literals;
 	}
 
@@ -772,7 +764,6 @@ public class AgentValidatorSecondPass {
 				}
 			}
 		}
-
 		return literals;
 	}
 
@@ -793,7 +784,6 @@ public class AgentValidatorSecondPass {
 		Iterator<Term> instantiated = instantiatedParameters.iterator();
 		Substitution substitution = this.program.getKRInterface()
 				.getSubstitution(new HashMap<Var, Term>());
-
 		if (formal.hasNext()) {
 			substitution = formal.next().mgu(instantiated.next());
 			while (formal.hasNext() && substitution != null) {
@@ -801,8 +791,6 @@ public class AgentValidatorSecondPass {
 						instantiated.next()));
 			}
 		}
-
 		return substitution;
 	}
-
 }

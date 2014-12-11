@@ -68,6 +68,10 @@ public class UnitTest extends Program {
 		return this.tests.get(agentName);
 	}
 
+	public AgentProgram getAgent(File agentFile) {
+		return this.agents.get(agentFile);
+	}
+
 	public long getTimeout() {
 		return this.timeout;
 	}

@@ -23,14 +23,10 @@ import java.io.PrintWriter;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-import krTools.language.Term;
 import languageTools.analyzer.Validator;
 import languageTools.analyzer.agent.AgentValidator;
-import languageTools.analyzer.agent.AgentValidatorSecondPass;
 import languageTools.analyzer.mas.MASValidator;
 import languageTools.errors.Message;
 import languageTools.errors.ParserError.SyntaxError;
@@ -85,9 +81,9 @@ import languageTools.parser.TestVisitor;
 import languageTools.parser.agent.MyGOALLexer;
 import languageTools.program.agent.AgentProgram;
 import languageTools.program.agent.Module;
-import languageTools.program.agent.Module.TYPE;
+import languageTools.program.agent.actions.Action;
 import languageTools.program.agent.actions.ActionCombo;
-import languageTools.program.agent.actions.ModuleCallAction;
+import languageTools.program.agent.actions.UserSpecOrModuleCall;
 import languageTools.program.agent.msc.MentalStateCondition;
 import languageTools.program.mas.Launch;
 import languageTools.program.mas.LaunchRule;
@@ -123,12 +119,11 @@ import org.antlr.v4.runtime.tree.ParseTree;
  */
 @SuppressWarnings("rawtypes")
 public class TestValidator extends
-Validator<MyGOALLexer, Test, AgentErrorStrategy, UnitTest> implements
-TestVisitor {
+		Validator<MyGOALLexer, Test, AgentErrorStrategy, UnitTest> implements
+		TestVisitor {
 	private Test parser;
 	private MASProgram masProgram;
-	private Map<File, AgentValidator> agentPrograms;
-	private AgentValidator agentProgram;
+	private AgentProgram agentProgram;
 	private static AgentErrorStrategy strategy = null;
 
 	/**
@@ -224,8 +219,6 @@ TestVisitor {
 			}
 			getProgram().setMASProgram(this.masProgram);
 
-			this.agentPrograms = new HashMap<>(this.masProgram.getAgentFiles()
-					.size());
 			for (File agentFile : this.masProgram.getAgentFiles()) {
 				AgentValidator createAgent = new AgentValidator(
 						agentFile.getPath());
@@ -235,7 +228,6 @@ TestVisitor {
 				AgentProgram agent = createAgent.getProgram();
 				if (agent.isValid()) {
 					getProgram().addAgent(agent);
-					this.agentPrograms.put(agent.getSourceFile(), createAgent);
 				} else {
 					List<Message> agentErrors = createAgent.getErrors();
 					agentErrors.addAll(createAgent.getSyntaxErrors());
@@ -361,7 +353,7 @@ TestVisitor {
 			return null;
 		}
 
-		this.agentProgram = this.agentPrograms.get(agentFile);
+		this.agentProgram = getProgram().getAgent(agentFile);
 		if (this.agentProgram == null) {
 			reportError(TestError.AGENT_INVALID, ctx, agentFile.getPath(),
 					"not found");
@@ -442,23 +434,36 @@ TestVisitor {
 
 	@Override
 	public ActionCombo visitActions(ActionsContext ctx) {
-		// HACK: Checking for main. GOAL doesn't understand this.
-		ActionCombo combo;
-		if (ctx.getText().equals("main")) {
-			combo = insertMainModuleCall(ctx);
-		} else {
-			GOAL parser = prepareGOALParser(ctx.getText());
-			languageTools.parser.GOAL.ActionsContext comboContext = parser
-					.actions();
-			combo = this.agentProgram.visitActions(comboContext);
-			new AgentValidatorSecondPass(this.agentProgram)
-					.resolveActionReferences(combo);
-			List<Message> errors = this.agentProgram.getErrors();
-			errors.addAll(this.agentProgram.getSyntaxErrors());
-			if (!errors.isEmpty()) {
-				reportError(TestError.TEST_INVALID_ACTION, ctx);
+		ActionCombo combo = new ActionCombo();
+		GOAL parser = prepareGOALParser(ctx.getText());
+		languageTools.parser.GOAL.ActionsContext comboContext = parser
+				.actions();
+
+		AgentValidator sub = new AgentValidator("inline-action");
+		sub.setKRInterface(this.agentProgram.getKRInterface());
+		ActionCombo subcombo = sub.visitActions(comboContext);
+		List<Message> errors = sub.getErrors();
+		errors.addAll(sub.getSyntaxErrors());
+
+		if (errors.isEmpty()) {
+			for (Action<?> action : subcombo.getActions()) {
+				Action<?> resolved;
+				if (action instanceof UserSpecOrModuleCall) {
+					resolved = AgentValidator.resolve(
+							(UserSpecOrModuleCall) action, this.agentProgram);
+				} else {
+					resolved = action;
+				}
+				if (resolved == null) {
+					reportError(TestError.TEST_INVALID_ACTION, ctx);
+				} else {
+					combo.addAction(resolved);
+				}
 			}
+		} else {
+			reportError(TestError.TEST_INVALID_ACTION, ctx);
 		}
+
 		return combo;
 	}
 
@@ -492,10 +497,14 @@ TestVisitor {
 		GOAL parser = prepareGOALParser(ctx.getText());
 		languageTools.parser.GOAL.MentalStateConditionContext conditionContext = parser
 				.mentalStateCondition();
-		MentalStateCondition condition = this.agentProgram
+
+		AgentValidator sub = new AgentValidator("inline-condition");
+		sub.setKRInterface(this.agentProgram.getKRInterface());
+		MentalStateCondition condition = sub
 				.visitMentalStateCondition(conditionContext);
-		List<Message> errors = this.agentProgram.getErrors();
-		errors.addAll(this.agentProgram.getSyntaxErrors());
+		List<Message> errors = sub.getErrors();
+		errors.addAll(sub.getSyntaxErrors());
+
 		if (!errors.isEmpty()) {
 			reportError(TestError.TEST_INVALID_QUERY, ctx);
 		}
@@ -526,8 +535,7 @@ TestVisitor {
 			boundary = visitTestBoundary(ctx.testBoundary());
 		}
 
-		return new EvaluateIn(queries, action, boundary,
-				this.agentProgram.getProgram());
+		return new EvaluateIn(queries, action, boundary, this.agentProgram);
 	}
 
 	@Override
@@ -562,7 +570,7 @@ TestVisitor {
 		Module module = null;
 		if (ctx.testModule() != null) {
 			String moduleName = visitTestModule(ctx.testModule());
-			for (Module check : this.agentProgram.getProgram().getModules()) {
+			for (Module check : this.agentProgram.getModules()) {
 				if (check.getName().equals(moduleName)) {
 					module = check;
 					break;
@@ -836,20 +844,5 @@ TestVisitor {
 		} catch (IOException e) {
 			return null;
 		}
-	}
-
-	private ActionCombo insertMainModuleCall(ActionsContext ctx) {
-		Module main = null;
-		for (Module module : this.agentProgram.getProgram().getModules()) {
-			if (module.getType() == TYPE.MAIN) {
-				main = module;
-				break;
-			}
-		}
-		ActionCombo actions = new ActionCombo();
-		ModuleCallAction mainCall = new ModuleCallAction(main,
-				new ArrayList<Term>(0), getSourceInfo(ctx));
-		actions.addAction(mainCall);
-		return actions;
 	}
 }

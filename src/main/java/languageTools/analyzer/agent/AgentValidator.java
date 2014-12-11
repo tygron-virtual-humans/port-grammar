@@ -133,8 +133,8 @@ import swiprolog.language.PrologVar;
  */
 @SuppressWarnings("rawtypes")
 public class AgentValidator extends
-		Validator<MyGOALLexer, GOAL, TestErrorStrategy, AgentProgram> implements
-GOALVisitor {
+Validator<MyGOALLexer, GOAL, TestErrorStrategy, AgentProgram> implements
+		GOALVisitor {
 
 	private GOAL parser;
 	private static TestErrorStrategy strategy = null;
@@ -1566,4 +1566,37 @@ GOALVisitor {
 		return var;
 	}
 
+	// TODO: this code implements a rather naive approach to getting the
+	// action specification(s) of the action. In particular, it does not take
+	// scope into account. If an action is specified e.g. at top level and again
+	// within a module, then this approach is not able to determine which action
+	// specification should be associated with the action.
+	// If the user intends to execute the action in the module, we maybe should
+	// allow for expressions of the form: module.action(parameters) so that the
+	// user is able to refer to the right scope.
+	public static Action<?> resolve(UserSpecOrModuleCall call,
+			AgentProgram program) {
+		for (Module module : program.getModules()) {
+			if (call.getName().equals(module.getName())
+					&& call.getParameters().size() == module.getParameters()
+							.size()) {
+				return new ModuleCallAction(module, call.getParameters(),
+						call.getSourceInfo());
+			}
+			for (ActionSpecification specification : module
+					.getActionSpecifications()) {
+				UserSpecAction spec = specification.getAction();
+				if (call.getName().equals(spec.getName())
+						&& call.getParameters().size() == spec.getParameters()
+						.size()) {
+					return new UserSpecAction(call.getName(),
+							call.getParameters(), spec.getExernal(),
+							((MentalLiteral) spec.getPrecondition()
+									.getSubFormulas().get(1)).getFormula(),
+									spec.getPostcondition(), call.getSourceInfo());
+				}
+			}
+		}
+		return null;
+	}
 }
