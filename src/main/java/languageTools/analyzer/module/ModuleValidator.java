@@ -20,11 +20,16 @@ package languageTools.analyzer.module;
 import goalhub.krTools.KRFactory;
 
 import java.io.File;
+import java.io.PrintWriter;
 import java.io.StringReader;
+import java.io.StringWriter;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -55,6 +60,7 @@ import languageTools.parser.GOAL.DeclarationContext;
 import languageTools.parser.GOAL.DeclarationOrCallWithTermsContext;
 import languageTools.parser.GOAL.GoalsContext;
 import languageTools.parser.GOAL.KnowledgeContext;
+import languageTools.parser.GOAL.KrImportContext;
 import languageTools.parser.GOAL.MacroDefContext;
 import languageTools.parser.GOAL.MentalAtomContext;
 import languageTools.parser.GOAL.MentalOperatorContext;
@@ -270,10 +276,16 @@ public class ModuleValidator extends
 		// Process module options
 		visitModuleOptions(ctx);
 
+		List<DatabaseFormula> knowledge = new LinkedList<>();
+		// Imported knowledge
+		if (ctx.krImport() != null) {
+			knowledge.addAll(visitKrImport(ctx.krImport()));
+		}
 		// Knowledge
 		if (ctx.knowledge() != null) {
-			getProgram().setKnowledge(visitKnowledge(ctx.knowledge()));
+			knowledge.addAll(visitKnowledge(ctx.knowledge()));
 		}
+		getProgram().setKnowledge(knowledge);
 
 		// Beliefs
 		if (ctx.beliefs() != null) {
@@ -413,6 +425,44 @@ public class ModuleValidator extends
 	// -------------------------------------------------------------
 	// Module sections
 	// -------------------------------------------------------------
+
+	@Override
+	public List<DatabaseFormula> visitKrImport(KrImportContext ctx) {
+		List<DatabaseFormula> imported = new ArrayList<>(0);
+		String path = null;
+		if (ctx.StringLiteral() != null) {
+			// TODO: what is the logic here?
+			String text = ctx.StringLiteral().getText();
+			String[] parts = text.split("(?<!\\\\)\"", 0);
+			path = parts[1].replace("\\\"", "\"");
+		}
+		if (ctx.SingleQuotedStringLiteral() != null) {
+			// TODO: what is the logic here?
+			String text = ctx.SingleQuotedStringLiteral().getText();
+			String[] parts = text.split("(?<!\\\\)'", 0);
+			path = parts[1].replace("\\'", "'");
+		}
+		File file = (path == null) ? null : new File(
+				getPathRelativeToSourceFile(path));
+		// Check existence of file. Extension check handled in grammar.
+		if (file != null && file.exists()) {
+			try {
+				String content = new String(Files.readAllBytes(Paths.get(file
+						.getPath())));
+				imported = visit_KR_DBFs(removeLeadTrailCharacters(content),
+						new InputStreamPosition(0, 0, 0, 0, file));
+			} catch (Exception e) {
+				// Convert stack trace to string
+				StringWriter sw = new StringWriter();
+				e.printStackTrace(new PrintWriter(sw));
+				reportError(SyntaxError.FATAL, getSourceInfo(ctx),
+						e.getMessage() + "\n" + sw.toString());
+			}
+		} else {
+			reportError(AgentError.IMPORT_MISSING_FILE, ctx, file.getPath());
+		}
+		return imported;
+	}
 
 	@Override
 	public List<DatabaseFormula> visitKnowledge(KnowledgeContext ctx) {

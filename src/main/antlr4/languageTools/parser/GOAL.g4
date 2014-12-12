@@ -34,12 +34,12 @@ modules
 	;
 
 moduleImport
-	: '#import' (StringLiteral | SingleQuotedStringLiteral) '.'
+	: '#import' MODULEFILE '.'
 	;
 
 module
 	: moduleDef ('[' moduleOption (',' moduleOption)* ']')?
-	  '{' knowledge? beliefs? goals? program? actionSpecs? '}'
+	  '{' krImport? knowledge? beliefs? goals? program? actionSpecs? '}'
 	;
 
 moduleDef
@@ -55,6 +55,9 @@ moduleOption
 	;
 
 // Mental state sections
+krImport
+	: '#import' (StringLiteral | SingleQuotedStringLiteral) '.'
+	;
 
 knowledge
 	: 'knowledge' KR_BLOCK // allow empty knowledge section

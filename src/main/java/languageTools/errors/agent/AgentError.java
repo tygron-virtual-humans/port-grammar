@@ -40,10 +40,6 @@ public enum AgentError implements ValidatorErrorType {
 	 */
 	IMPORT_MISSING_FILE,
 	/**
-	 * Imported file should be module or prolog.
-	 */
-	IMPORT_INVALID_EXTENSION,
-	/**
 	 * An expression in a knowledge representation language that is queried
 	 * should be defined.
 	 */

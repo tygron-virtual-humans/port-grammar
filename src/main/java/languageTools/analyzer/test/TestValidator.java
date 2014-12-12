@@ -52,6 +52,7 @@ import languageTools.parser.Test.DoActionsContext;
 import languageTools.parser.Test.EvaluateInContext;
 import languageTools.parser.Test.GoalsContext;
 import languageTools.parser.Test.KnowledgeContext;
+import languageTools.parser.Test.KrImportContext;
 import languageTools.parser.Test.MacroDefContext;
 import languageTools.parser.Test.MasFileContext;
 import languageTools.parser.Test.MentalAtomContext;
@@ -119,8 +120,8 @@ import org.antlr.v4.runtime.tree.ParseTree;
  */
 @SuppressWarnings("rawtypes")
 public class TestValidator extends
-		Validator<MyGOALLexer, Test, AgentErrorStrategy, UnitTest> implements
-		TestVisitor {
+Validator<MyGOALLexer, Test, AgentErrorStrategy, UnitTest> implements
+TestVisitor {
 	private Test parser;
 	private MASProgram masProgram;
 	private AgentProgram agentProgram;
@@ -761,6 +762,11 @@ public class TestValidator extends
 
 	@Override
 	public Void visitDeclaration(DeclarationContext ctx) {
+		return null;
+	}
+
+	@Override
+	public Void visitKrImport(KrImportContext ctx) {
 		return null;
 	}
 

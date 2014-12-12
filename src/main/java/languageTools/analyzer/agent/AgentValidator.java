@@ -60,6 +60,7 @@ import languageTools.parser.GOAL.DeclarationContext;
 import languageTools.parser.GOAL.DeclarationOrCallWithTermsContext;
 import languageTools.parser.GOAL.GoalsContext;
 import languageTools.parser.GOAL.KnowledgeContext;
+import languageTools.parser.GOAL.KrImportContext;
 import languageTools.parser.GOAL.MacroDefContext;
 import languageTools.parser.GOAL.MentalAtomContext;
 import languageTools.parser.GOAL.MentalOperatorContext;
@@ -138,8 +139,8 @@ import swiprolog.language.PrologVar;
  */
 @SuppressWarnings("rawtypes")
 public class AgentValidator extends
-Validator<MyGOALLexer, GOAL, TestErrorStrategy, AgentProgram> implements
-		GOALVisitor {
+		Validator<MyGOALLexer, GOAL, TestErrorStrategy, AgentProgram> implements
+GOALVisitor {
 
 	private GOAL parser;
 	private static TestErrorStrategy strategy = null;
@@ -263,9 +264,8 @@ Validator<MyGOALLexer, GOAL, TestErrorStrategy, AgentProgram> implements
 		getProgram().setKRInterface(this.kri);
 
 		// Get imported module files
-		List<DatabaseFormula> importedKnowledge = new LinkedList<>();
 		for (ModuleImportContext imported : ctx.moduleImport()) {
-			importedKnowledge.addAll(visitModuleImport(imported));
+			visitModuleImport(imported);
 		}
 
 		// Get modules defined in agent file
@@ -286,57 +286,24 @@ Validator<MyGOALLexer, GOAL, TestErrorStrategy, AgentProgram> implements
 		if (mainOrEvent == null) {
 			reportError(AgentError.PROGRAM_NO_MAIN_NOR_EVENT, getProgram()
 					.getSourceInfo());
-		} else {
-			mainOrEvent.getKnowledge().addAll(importedKnowledge);
 		}
 
 		return null; // Java says must return something even when Void
 	}
 
 	@Override
-	public List<DatabaseFormula> visitModuleImport(ModuleImportContext ctx) {
-		String path = null;
-		if (ctx.StringLiteral() != null) {
-			// TODO: what is the logic here?
-			String text = ctx.StringLiteral().getText();
-			String[] parts = text.split("(?<!\\\\)\"", 0);
-			path = parts[1].replace("\\\"", "\"");
-		}
-		if (ctx.SingleQuotedStringLiteral() != null) {
-			// TODO: what is the logic here?
-			String text = ctx.SingleQuotedStringLiteral().getText();
-			String[] parts = text.split("(?<!\\\\)'", 0);
-			path = parts[1].replace("\\'", "'");
-		}
-		if (path != null) {
+	public Void visitModuleImport(ModuleImportContext ctx) {
+		if (ctx.MODULEFILE() != null) {
+			String path = removeLeadTrailCharacters(ctx.MODULEFILE().getText());
 			File file = new File(getPathRelativeToSourceFile(path));
 			// Check existence of file. Extension check handled in grammar.
-			if (!file.exists()) {
-				reportError(AgentError.IMPORT_MISSING_FILE, ctx, file.getPath());
-			} else if (path.toLowerCase().endsWith("mod2g")) {
+			if (file.exists()) {
 				getProgram().addImportedModule(file);
-			} else if (path.toLowerCase().endsWith("pl")
-					|| path.toLowerCase().endsWith("pro")) {
-				try {
-					String content = new String(Files.readAllBytes(Paths
-							.get(file.getPath())));
-					List<DatabaseFormula> imported = visit_KR_DBFs(
-							removeLeadTrailCharacters(content),
-							new InputStreamPosition(0, 0, 0, 0, file));
-					return imported;
-				} catch (Exception e) {
-					// Convert stack trace to string
-					StringWriter sw = new StringWriter();
-					e.printStackTrace(new PrintWriter(sw));
-					reportError(SyntaxError.FATAL, getSourceInfo(ctx),
-							e.getMessage() + "\n" + sw.toString());
-				}
 			} else {
-				reportError(AgentError.IMPORT_INVALID_EXTENSION, ctx,
-						file.getPath());
+				reportError(AgentError.IMPORT_MISSING_FILE, ctx, file.getPath());
 			}
 		}
-		return new ArrayList<DatabaseFormula>(0);
+		return null; // Java says must return something even when Void
 	}
 
 	@Override
@@ -349,25 +316,16 @@ Validator<MyGOALLexer, GOAL, TestErrorStrategy, AgentProgram> implements
 		// Process module options
 		visitModuleOptions(ctx, module);
 
-		// Visit module sections
-
-		// Imports
-		// TODO
-		// // Check imported files can be found
-		// List<File> files = new ArrayList<File>();
-		// for (String filename : base.getKey()) {
-		// File file = new File(getPathRelativeToSourceFile(filename));
-		// if (file.exists()) {
-		// files.add(file);
-		// } else {
-		// problem = reportError(AgentError.IMPORT_MISSING_FILE, ctx, filename);
-		// }
-		// }
-
+		List<DatabaseFormula> knowledge = new LinkedList<>();
+		// Imported knowledge
+		if (ctx.krImport() != null) {
+			knowledge.addAll(visitKrImport(ctx.krImport()));
+		}
 		// Knowledge
 		if (ctx.knowledge() != null) {
-			module.setKnowledge(visitKnowledge(ctx.knowledge()));
+			knowledge.addAll(visitKnowledge(ctx.knowledge()));
 		}
+		module.setKnowledge(knowledge);
 
 		// Beliefs
 		if (ctx.beliefs() != null) {
@@ -527,6 +485,44 @@ Validator<MyGOALLexer, GOAL, TestErrorStrategy, AgentProgram> implements
 	// -------------------------------------------------------------
 	// Module sections
 	// -------------------------------------------------------------
+
+	@Override
+	public List<DatabaseFormula> visitKrImport(KrImportContext ctx) {
+		List<DatabaseFormula> imported = new ArrayList<>(0);
+		String path = null;
+		if (ctx.StringLiteral() != null) {
+			// TODO: what is the logic here?
+			String text = ctx.StringLiteral().getText();
+			String[] parts = text.split("(?<!\\\\)\"", 0);
+			path = parts[1].replace("\\\"", "\"");
+		}
+		if (ctx.SingleQuotedStringLiteral() != null) {
+			// TODO: what is the logic here?
+			String text = ctx.SingleQuotedStringLiteral().getText();
+			String[] parts = text.split("(?<!\\\\)'", 0);
+			path = parts[1].replace("\\'", "'");
+		}
+		File file = (path == null) ? null : new File(
+				getPathRelativeToSourceFile(path));
+		// Check existence of file. Extension check handled in grammar.
+		if (file != null && file.exists()) {
+			try {
+				String content = new String(Files.readAllBytes(Paths.get(file
+						.getPath())));
+				imported = visit_KR_DBFs(removeLeadTrailCharacters(content),
+						new InputStreamPosition(0, 0, 0, 0, file));
+			} catch (Exception e) {
+				// Convert stack trace to string
+				StringWriter sw = new StringWriter();
+				e.printStackTrace(new PrintWriter(sw));
+				reportError(SyntaxError.FATAL, getSourceInfo(ctx),
+						e.getMessage() + "\n" + sw.toString());
+			}
+		} else {
+			reportError(AgentError.IMPORT_MISSING_FILE, ctx, file.getPath());
+		}
+		return imported;
+	}
 
 	@Override
 	public List<DatabaseFormula> visitKnowledge(KnowledgeContext ctx) {
@@ -1620,7 +1616,7 @@ Validator<MyGOALLexer, GOAL, TestErrorStrategy, AgentProgram> implements
 		for (Module module : program.getModules()) {
 			if (call.getName().equals(module.getName())
 					&& call.getParameters().size() == module.getParameters()
-							.size()) {
+					.size()) {
 				return new ModuleCallAction(module, call.getParameters(),
 						call.getSourceInfo());
 			}
@@ -1629,12 +1625,12 @@ Validator<MyGOALLexer, GOAL, TestErrorStrategy, AgentProgram> implements
 				UserSpecAction spec = specification.getAction();
 				if (call.getName().equals(spec.getName())
 						&& call.getParameters().size() == spec.getParameters()
-						.size()) {
+								.size()) {
 					return new UserSpecAction(call.getName(),
 							call.getParameters(), spec.getExernal(),
 							((MentalLiteral) spec.getPrecondition()
 									.getSubFormulas().get(1)).getFormula(),
-									spec.getPostcondition(), call.getSourceInfo());
+							spec.getPostcondition(), call.getSourceInfo());
 				}
 			}
 		}

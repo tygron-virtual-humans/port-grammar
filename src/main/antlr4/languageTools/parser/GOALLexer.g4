@@ -31,6 +31,7 @@ tokens{ HIDDEN }
 // Modules
 IMPORT			: '#import';
 MODULE			: 'module';
+MODULEFILE		: '"' ~[ \t\f\r\n?%*:|"<>]+ '.mod2g"';
 INIT			: 'init';
 MAIN			: 'main';
 EVENT			: 'event';
