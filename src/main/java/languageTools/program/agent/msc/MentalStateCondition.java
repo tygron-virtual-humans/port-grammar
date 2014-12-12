@@ -92,14 +92,16 @@ public class MentalStateCondition {
 				literals.add((MentalLiteral) formula);
 			} else if (formula instanceof Macro) {
 				MentalStateCondition sub = ((Macro) formula).getDefinition();
-				literals.addAll(sub.getAllLiterals());
+				if (sub != null) {
+					literals.addAll(sub.getAllLiterals());
+				} // FIXME: why the null check?!
 			}
 		}
 		return literals;
 	}
 
 	/**
-	 *
+	 * DOC
 	 */
 	public Set<Var> getFreeVar() {
 		Set<Var> freeVar = new LinkedHashSet<Var>();
