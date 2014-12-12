@@ -30,7 +30,6 @@ tokens{ HIDDEN }
 
 // Modules
 IMPORT			: '#import';
-MODULEFILE		: '"' ~[ \t\f\r\n?%*:|"<>]+ '.mod2g"';
 MODULE			: 'module';
 INIT			: 'init';
 MAIN			: 'main';

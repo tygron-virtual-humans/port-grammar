@@ -1235,7 +1235,11 @@ public class ModuleValidator extends
 	 *            fragment is located.
 	 */
 	private void reportParsingException(ParserException e, SourceInfo info) {
-		reportError(SyntaxError.EMBEDDED_LANGUAGE_ERROR, info, e.getMessage());
+		String msg = e.getMessage();
+		if (e.getCause() != null) {
+			msg += " because " + e.getCause().getMessage();
+		}
+		reportError(SyntaxError.EMBEDDED_LANGUAGE_ERROR, info, msg);
 	}
 
 	/**
@@ -1426,9 +1430,9 @@ public class ModuleValidator extends
 			// Add errors from parser for embedded language to our own
 			reportEmbeddedLanguageErrors(parser, info);
 		} catch (ParserException e) {
-			// Report exception and try to continue
-			reportError(AgentError.KR_SAYS_PARAMETER_INVALID, info,
-					e.getMessage());
+			// Report problem, return, and try to continue with parsing the rest
+			// of the source.
+			reportParsingException(e, info);
 		}
 
 		return term;
@@ -1455,9 +1459,9 @@ public class ModuleValidator extends
 			// Add errors from parser for embedded language to our own
 			reportEmbeddedLanguageErrors(parser, info);
 		} catch (ParserException e) {
-			// Report exception and try to continue
-			reportError(AgentError.KR_SAYS_PARAMETER_INVALID, info,
-					e.getMessage());
+			// Report problem, return, and try to continue with parsing the rest
+			// of the source.
+			reportParsingException(e, info);
 		}
 
 		return parameters;

@@ -162,8 +162,8 @@ public class AgentValidatorErrorTest {
 	public void test_KR_SAYS_PARAMETER_INVALID() throws KRInitFailedException {
 		setup("src/test/resources/languageTools/analyzer/agent/test_KR_SAYS_PARAMETER_INVALID.goal");
 
-		// Agent file should produce 1 syntax error
-		assertEquals(1, this.syntaxerrors.size());
+		// Agent file should produce 2 syntax errors
+		assertEquals(2, this.syntaxerrors.size());
 
 		assertEquals(SyntaxError.EMBEDDED_LANGUAGE_ERROR, this.syntaxerrors
 				.get(0).getType());

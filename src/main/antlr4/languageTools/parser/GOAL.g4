@@ -34,7 +34,7 @@ modules
 	;
 
 moduleImport
-	: '#import' MODULEFILE '.'
+	: '#import' (StringLiteral | SingleQuotedStringLiteral) '.'
 	;
 
 module

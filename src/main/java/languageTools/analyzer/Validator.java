@@ -57,21 +57,17 @@ import org.apache.commons.io.FilenameUtils;
  * whether the program is valid or not.
  */
 public abstract class Validator<L extends MyLexer<?>, P extends Parser, E extends MyErrorStrategy, Q extends Program>
-		implements ANTLRErrorListener {
-
+implements ANTLRErrorListener {
 	/**
 	 * Name of the file that is validated.
 	 */
 	private final String filename;
 	protected final File source;
-
 	private Q program;
-
 	/**
 	 * Lexer generated tokens.
 	 */
-	CommonTokenStream tokens;
-
+	private CommonTokenStream tokens;
 	private List<Message> syntaxErrors = new ArrayList<Message>();
 	private List<Message> errors = new ArrayList<Message>();
 	private List<Message> warnings = new ArrayList<Message>();
@@ -379,7 +375,7 @@ public abstract class Validator<L extends MyLexer<?>, P extends Parser, E extend
 	public SourceInfo getSourceInfo(ParserRuleContext ctx) {
 		InputStreamPosition pos = new InputStreamPosition(ctx.getStart(),
 				ctx.getStop() == null ? ctx.getStart() : ctx.getStop(),
-				this.source);
+						this.source);
 		return pos;
 	}
 
@@ -591,7 +587,7 @@ public abstract class Validator<L extends MyLexer<?>, P extends Parser, E extend
 	public void reportAmbiguity(Parser recognizer, DFA dfa, int startIndex,
 			int stopIndex, boolean exact, BitSet ambigAlts, ATNConfigSet configs) {
 		System.out
-				.println("Found ambiguous readings of file! Please report this finding and send us this file.");
+		.println("Found ambiguous readings of file! Please report this finding and send us this file.");
 	}
 
 	@Override
@@ -731,10 +727,10 @@ public abstract class Validator<L extends MyLexer<?>, P extends Parser, E extend
 	 *
 	 * @param quoted
 	 *            A string with quotes.
-	 * @return The string without quotes.
+	 * @return The string without quotes and leading/trailing whitespace
 	 */
 	protected String removeLeadTrailCharacters(String quoted) {
-		return quoted.substring(1, quoted.length() - 1);
+		return quoted.substring(1, quoted.length() - 1).trim();
 	}
 
 	/**
@@ -766,5 +762,4 @@ public abstract class Validator<L extends MyLexer<?>, P extends Parser, E extend
 		}
 		return builder.toString();
 	}
-
 }

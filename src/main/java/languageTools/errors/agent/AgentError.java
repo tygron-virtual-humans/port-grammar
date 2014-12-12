@@ -40,6 +40,10 @@ public enum AgentError implements ValidatorErrorType {
 	 */
 	IMPORT_MISSING_FILE,
 	/**
+	 * Imported file should be module or prolog.
+	 */
+	IMPORT_INVALID_EXTENSION,
+	/**
 	 * An expression in a knowledge representation language that is queried
 	 * should be defined.
 	 */
@@ -49,11 +53,6 @@ public enum AgentError implements ValidatorErrorType {
 	 * should be defined.
 	 */
 	KR_GOAL_QUERIED_NEVER_DEFINED,
-	/**
-	 * A parameter must be a variable recognized by the KR interface language
-	 * that is used.
-	 */
-	KR_SAYS_PARAMETER_INVALID,
 	/**
 	 * Macro should be defined only once.
 	 */

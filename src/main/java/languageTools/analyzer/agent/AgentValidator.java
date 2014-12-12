@@ -20,11 +20,16 @@ package languageTools.analyzer.agent;
 import goalhub.krTools.KRFactory;
 
 import java.io.File;
+import java.io.PrintWriter;
 import java.io.StringReader;
+import java.io.StringWriter;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -133,8 +138,8 @@ import swiprolog.language.PrologVar;
  */
 @SuppressWarnings("rawtypes")
 public class AgentValidator extends
-		Validator<MyGOALLexer, GOAL, TestErrorStrategy, AgentProgram> implements
-GOALVisitor {
+Validator<MyGOALLexer, GOAL, TestErrorStrategy, AgentProgram> implements
+		GOALVisitor {
 
 	private GOAL parser;
 	private static TestErrorStrategy strategy = null;
@@ -254,13 +259,13 @@ GOALVisitor {
 
 	@Override
 	public Void visitModules(ModulesContext ctx) {
-
 		// Set KR interface
 		getProgram().setKRInterface(this.kri);
 
 		// Get imported module files
+		List<DatabaseFormula> importedKnowledge = new LinkedList<>();
 		for (ModuleImportContext imported : ctx.moduleImport()) {
-			visitModuleImport(imported);
+			importedKnowledge.addAll(visitModuleImport(imported));
 		}
 
 		// Get modules defined in agent file
@@ -269,37 +274,69 @@ GOALVisitor {
 		}
 
 		// Check for main or event module
-		boolean hasMainOrEvent = false;
+		Module mainOrEvent = null;
 		for (Module module : getProgram().getModules()) {
-			hasMainOrEvent |= (module.getType() == TYPE.MAIN || module
-					.getType() == TYPE.EVENT);
+			if (module.getType() == TYPE.MAIN || module.getType() == TYPE.EVENT) {
+				mainOrEvent = module;
+				break;
+			}
 		}
 
 		// Report error if no main or event module
-		if (!hasMainOrEvent) {
+		if (mainOrEvent == null) {
 			reportError(AgentError.PROGRAM_NO_MAIN_NOR_EVENT, getProgram()
 					.getSourceInfo());
+		} else {
+			mainOrEvent.getKnowledge().addAll(importedKnowledge);
 		}
 
 		return null; // Java says must return something even when Void
 	}
 
 	@Override
-	public Void visitModuleImport(ModuleImportContext ctx) {
-		if (ctx.MODULEFILE() != null) {
-			String path = removeLeadTrailCharacters(ctx.MODULEFILE().getText());
+	public List<DatabaseFormula> visitModuleImport(ModuleImportContext ctx) {
+		String path = null;
+		if (ctx.StringLiteral() != null) {
+			// TODO: what is the logic here?
+			String text = ctx.StringLiteral().getText();
+			String[] parts = text.split("(?<!\\\\)\"", 0);
+			path = parts[1].replace("\\\"", "\"");
+		}
+		if (ctx.SingleQuotedStringLiteral() != null) {
+			// TODO: what is the logic here?
+			String text = ctx.SingleQuotedStringLiteral().getText();
+			String[] parts = text.split("(?<!\\\\)'", 0);
+			path = parts[1].replace("\\'", "'");
+		}
+		if (path != null) {
 			File file = new File(getPathRelativeToSourceFile(path));
-
 			// Check existence of file. Extension check handled in grammar.
 			if (!file.exists()) {
-				reportError(AgentError.IMPORT_MISSING_FILE, ctx.MODULEFILE(),
-						file.getPath());
-			} else {
+				reportError(AgentError.IMPORT_MISSING_FILE, ctx, file.getPath());
+			} else if (path.toLowerCase().endsWith("mod2g")) {
 				getProgram().addImportedModule(file);
+			} else if (path.toLowerCase().endsWith("pl")
+					|| path.toLowerCase().endsWith("pro")) {
+				try {
+					String content = new String(Files.readAllBytes(Paths
+							.get(file.getPath())));
+					List<DatabaseFormula> imported = visit_KR_DBFs(
+							removeLeadTrailCharacters(content),
+							new InputStreamPosition(0, 0, 0, 0, file));
+					return imported;
+				} catch (Exception e) {
+					// Convert stack trace to string
+					StringWriter sw = new StringWriter();
+					e.printStackTrace(new PrintWriter(sw));
+					reportError(SyntaxError.FATAL, getSourceInfo(ctx),
+							e.getMessage() + "\n" + sw.toString());
+				}
+			} else {
+				reportError(AgentError.IMPORT_INVALID_EXTENSION, ctx,
+						file.getPath());
 			}
 		}
-
-		return null; // Java says must return something even when Void
+		return new ArrayList<DatabaseFormula>(0);
 	}
 
 	@Override
@@ -1312,7 +1349,11 @@ GOALVisitor {
 	 *            fragment is located.
 	 */
 	private void reportParsingException(ParserException e, SourceInfo info) {
-		reportError(SyntaxError.EMBEDDED_LANGUAGE_ERROR, info, e.getMessage());
+		String msg = e.getMessage();
+		if (e.getCause() != null) {
+			msg += " because " + e.getCause().getMessage();
+		}
+		reportError(SyntaxError.EMBEDDED_LANGUAGE_ERROR, info, msg);
 	}
 
 	/**
@@ -1503,9 +1544,9 @@ GOALVisitor {
 			// Add errors from parser for embedded language to our own
 			reportEmbeddedLanguageErrors(parser, info);
 		} catch (ParserException e) {
-			// Report exception and try to continue
-			reportError(AgentError.KR_SAYS_PARAMETER_INVALID, info,
-					e.getMessage());
+			// Report problem, return, and try to continue with parsing the rest
+			// of the source.
+			reportParsingException(e, info);
 		}
 
 		return term;
@@ -1532,9 +1573,9 @@ GOALVisitor {
 			// Add errors from parser for embedded language to our own
 			reportEmbeddedLanguageErrors(parser, info);
 		} catch (ParserException e) {
-			// Report exception and try to continue
-			reportError(AgentError.KR_SAYS_PARAMETER_INVALID, info,
-					e.getMessage());
+			// Report problem, return, and try to continue with parsing the rest
+			// of the source.
+			reportParsingException(e, info);
 		}
 
 		return parameters;
@@ -1579,7 +1620,7 @@ GOALVisitor {
 		for (Module module : program.getModules()) {
 			if (call.getName().equals(module.getName())
 					&& call.getParameters().size() == module.getParameters()
-					.size()) {
+							.size()) {
 				return new ModuleCallAction(module, call.getParameters(),
 						call.getSourceInfo());
 			}
@@ -1588,12 +1629,12 @@ GOALVisitor {
 				UserSpecAction spec = specification.getAction();
 				if (call.getName().equals(spec.getName())
 						&& call.getParameters().size() == spec.getParameters()
-								.size()) {
+						.size()) {
 					return new UserSpecAction(call.getName(),
 							call.getParameters(), spec.getExernal(),
 							((MentalLiteral) spec.getPrecondition()
 									.getSubFormulas().get(1)).getFormula(),
-							spec.getPostcondition(), call.getSourceInfo());
+									spec.getPostcondition(), call.getSourceInfo());
 				}
 			}
 		}

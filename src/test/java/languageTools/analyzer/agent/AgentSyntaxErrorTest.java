@@ -9,6 +9,7 @@ import java.util.List;
 import krTools.errors.exceptions.KRInitFailedException;
 import languageTools.errors.Message;
 import languageTools.errors.ParserError.SyntaxError;
+import languageTools.errors.agent.AgentError;
 import languageTools.errors.agent.AgentWarning;
 import languageTools.program.agent.AgentProgram;
 
@@ -44,15 +45,13 @@ public class AgentSyntaxErrorTest {
 		setup("src/test/resources/languageTools/analyzer/agent/test_IMPORT_NOT_A_MOD2G.goal");
 
 		// Agent file should not produce any syntax errors
-		assertEquals(1, this.syntaxerrors.size());
-
-		assertEquals(SyntaxError.INPUTMISMATCH, this.syntaxerrors.get(0)
-				.getType());
+		assertTrue(this.syntaxerrors.isEmpty());
 
 		// Agent file should produce 1 error
-		assertTrue(this.errors.isEmpty());
+		assertEquals(1, this.errors.size());
 
-		// assertEquals(AgentError.IMPORT_NOT_A_MOD2G, errors.get(0).getType());
+		assertEquals(AgentError.IMPORT_INVALID_EXTENSION, this.errors.get(0)
+				.getType());
 
 		// Agent file should produce no warnings
 		assertTrue(this.warnings.isEmpty());
