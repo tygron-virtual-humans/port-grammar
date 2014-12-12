@@ -20,6 +20,7 @@ package languageTools.program.agent.msc;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
@@ -74,6 +75,27 @@ public class MentalStateCondition {
 	 */
 	public List<MentalFormula> getSubFormulas() {
 		return this.formulas;
+	}
+
+	/**
+	 * Returns all {@link MentalLiteral}s that can be found in this
+	 * {@link MentalStateCondition}, where the literals are also extracted from
+	 * the macros that might be in the formulas.
+	 *
+	 * @return A {@link List} of the all literals used by this mental state
+	 *         condition.
+	 */
+	public List<MentalLiteral> getAllLiterals() {
+		List<MentalLiteral> literals = new LinkedList<>();
+		for (MentalFormula formula : this.formulas) {
+			if (formula instanceof MentalLiteral) {
+				literals.add((MentalLiteral) formula);
+			} else if (formula instanceof Macro) {
+				MentalStateCondition sub = ((Macro) formula).getDefinition();
+				literals.addAll(sub.getAllLiterals());
+			}
+		}
+		return literals;
 	}
 
 	/**
