@@ -46,8 +46,8 @@ import krTools.parser.SourceInfo;
 import languageTools.analyzer.Validator;
 import languageTools.errors.ParserError.SyntaxError;
 import languageTools.errors.agent.AgentError;
+import languageTools.errors.agent.AgentErrorStrategy;
 import languageTools.errors.agent.AgentWarning;
-import languageTools.errors.test.TestErrorStrategy;
 import languageTools.parser.GOAL;
 import languageTools.parser.GOAL.ActionContext;
 import languageTools.parser.GOAL.ActionOperatorContext;
@@ -139,11 +139,11 @@ import swiprolog.language.PrologVar;
  */
 @SuppressWarnings("rawtypes")
 public class AgentValidator extends
-		Validator<MyGOALLexer, GOAL, TestErrorStrategy, AgentProgram> implements
-GOALVisitor {
+Validator<MyGOALLexer, GOAL, AgentErrorStrategy, AgentProgram>
+		implements GOALVisitor {
 
 	private GOAL parser;
-	private static TestErrorStrategy strategy = null;
+	private static AgentErrorStrategy strategy = null;
 
 	/**
 	 * Knowledge representation interface used for parsing the contents of
@@ -178,9 +178,9 @@ GOALVisitor {
 	}
 
 	@Override
-	protected TestErrorStrategy getTheErrorStrategy() {
+	protected AgentErrorStrategy getTheErrorStrategy() {
 		if (strategy == null) {
-			strategy = new TestErrorStrategy();
+			strategy = new AgentErrorStrategy();
 		}
 		return strategy;
 	}
@@ -1616,7 +1616,7 @@ GOALVisitor {
 		for (Module module : program.getModules()) {
 			if (call.getName().equals(module.getName())
 					&& call.getParameters().size() == module.getParameters()
-					.size()) {
+							.size()) {
 				return new ModuleCallAction(module, call.getParameters(),
 						call.getSourceInfo());
 			}
@@ -1625,12 +1625,12 @@ GOALVisitor {
 				UserSpecAction spec = specification.getAction();
 				if (call.getName().equals(spec.getName())
 						&& call.getParameters().size() == spec.getParameters()
-								.size()) {
+						.size()) {
 					return new UserSpecAction(call.getName(),
 							call.getParameters(), spec.getExernal(),
 							((MentalLiteral) spec.getPrecondition()
 									.getSubFormulas().get(1)).getFormula(),
-							spec.getPostcondition(), call.getSourceInfo());
+									spec.getPostcondition(), call.getSourceInfo());
 				}
 			}
 		}

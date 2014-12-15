@@ -30,8 +30,8 @@ import languageTools.analyzer.agent.AgentValidator;
 import languageTools.analyzer.mas.MASValidator;
 import languageTools.errors.Message;
 import languageTools.errors.ParserError.SyntaxError;
-import languageTools.errors.agent.AgentErrorStrategy;
 import languageTools.errors.test.TestError;
+import languageTools.errors.test.TestErrorStrategy;
 import languageTools.parser.GOAL;
 import languageTools.parser.GOALLexer;
 import languageTools.parser.InputStreamPosition;
@@ -120,12 +120,12 @@ import org.antlr.v4.runtime.tree.ParseTree;
  */
 @SuppressWarnings("rawtypes")
 public class TestValidator extends
-Validator<MyGOALLexer, Test, AgentErrorStrategy, UnitTest> implements
-TestVisitor {
+		Validator<MyGOALLexer, Test, TestErrorStrategy, UnitTest> implements
+		TestVisitor {
 	private Test parser;
 	private MASProgram masProgram;
 	private AgentProgram agentProgram;
-	private static AgentErrorStrategy strategy = null;
+	private static TestErrorStrategy strategy = null;
 
 	/**
 	 * Creates the test validator.
@@ -154,9 +154,9 @@ TestVisitor {
 	}
 
 	@Override
-	protected AgentErrorStrategy getTheErrorStrategy() {
+	protected TestErrorStrategy getTheErrorStrategy() {
 		if (strategy == null) {
-			strategy = new AgentErrorStrategy();
+			strategy = new TestErrorStrategy();
 		}
 		return strategy;
 	}
