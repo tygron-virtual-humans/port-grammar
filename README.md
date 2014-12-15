@@ -9,7 +9,7 @@ Run 'mvn package' to generate an executable jar with dependencies.
 
 Usage
 =====
-Usage: java -jar grammar-0.1-jar-with-dependencies.jar < <filename>.goal.
+Usage: java -jar grammar-1.1.1-jar-with-dependencies.jar < <filename>.goal.
 
 Dependency information 
 =====================
@@ -25,9 +25,37 @@ Dependency information
 <dependency>
   <groupId>com.github.goalhub.grammar</groupId>
   <artifactId>languageTools</artifactId>
-  <version>1.0.0</version>
+  <version>1.1.1</version>
 </dependency>
 ```	
+
+Release Procedure
+=============
+
+Ensure your ~/.m2/settings.xml file is as follows:
+
+```
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0
+                          http://maven.apache.org/xsd/settings-1.0.0.xsd">
+	<servers>
+		<server>
+   			<id>github</id>
+   			<username>YOUR_USERNAME</username>
+   			<password>YOUR_PASSWORD</password>
+		</server>
+	</servers>
+</settings>
+```
+
+Then call:
+
+```
+mvn versions:use-latest-versions && mvn deploy -DcreateChecksum=true
+```
+
+Note that you must have a public name and e-mail address set on GitHub for this to work correctly (https://github.com/settings/profile)
 
 Link to more information about GOAL
 ===================================
