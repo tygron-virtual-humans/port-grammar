@@ -17,8 +17,6 @@
 
 package languageTools.analyzer.module;
 
-import goalhub.krTools.KRFactory;
-
 import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringReader;
@@ -130,9 +128,6 @@ import org.antlr.v4.runtime.TokenStream;
 import org.antlr.v4.runtime.misc.NotNull;
 import org.antlr.v4.runtime.tree.ErrorNodeImpl;
 import org.antlr.v4.runtime.tree.ParseTree;
-
-import swiprolog.language.PrologTerm;
-import swiprolog.language.PrologVar;
 
 /**
  * Validates an agent or module file and constructs an agent program or module.
@@ -621,13 +616,13 @@ public class ModuleValidator extends
 					var = visit_KR_Var(name, getSourceInfo(ctx));
 
 					// Check for Prolog anonymous variable
-					if (this.kri.getName().equals(KRFactory.SWI_PROLOG)
-							&& ((PrologVar) var).isAnonymous()) {
-						reportError(
-								AgentError.PROLOG_LISTALL_ANONYMOUS_VARIABLE,
-								ctx.VAR(), name);
-						var = null;
-					}
+					/*
+					 * if (this.kri.getName().equals(KRFactory.SWI_PROLOG) FIXME
+					 * CANNOT USE PROLOGVAR HERE && ((PrologVar)
+					 * var).isAnonymous()) { reportError(
+					 * AgentError.PROLOG_LISTALL_ANONYMOUS_VARIABLE, ctx.VAR(),
+					 * name); var = null; }
+					 */
 				}
 
 				rule = new ListallDoRule(msc, var, actions);
@@ -741,14 +736,13 @@ public class ModuleValidator extends
 			return new GoalLiteral(true, selector, query, getSourceInfo(ctx));
 		} else {
 			// Check for Prolog anonymous variable
-			for (Var var : query.getFreeVar()) {
-				if (this.kri.getName().equals(KRFactory.SWI_PROLOG)
-						&& ((PrologVar) var).isAnonymous()) {
-					reportError(
-							AgentError.PROLOG_MENTAL_LITERAL_ANONYMOUS_VARIABLE,
-							ctx, var.toString(), ctx.toString());
-				}
-			}
+			/*
+			 * for (Var var : query.getFreeVar()) { FIXME CANNOT USE PROLOGVAR
+			 * HERE if (this.kri.getName().equals(KRFactory.SWI_PROLOG) &&
+			 * ((PrologVar) var).isAnonymous()) { reportError(
+			 * AgentError.PROLOG_MENTAL_LITERAL_ANONYMOUS_VARIABLE, ctx,
+			 * var.toString(), ctx.toString()); } }
+			 */
 			if (op.equals(getTokenName(GOAL.AGOAL_OP))) {
 				return new AGoalLiteral(true, selector, query,
 						getSourceInfo(ctx));
@@ -1112,11 +1106,12 @@ public class ModuleValidator extends
 		for (Term node : parameters) {
 			// KR specific check: cannot use Prolog anonymous variable as
 			// parameter
-			if (this.kri.getName().equals(KRFactory.SWI_PROLOG)
-					&& ((PrologTerm) node).isAnonymousVar()) {
-				reportError(AgentError.PROLOG_ANONYMOUS_VARIABLE, ctx,
-						node.toString());
-			}
+			/*
+			 * if (this.kri.getName().equals(KRFactory.SWI_PROLOG) FIXME CANNOT
+			 * USE PROLOGTERM HERE && ((PrologTerm) node).isAnonymousVar()) {
+			 * reportError(AgentError.PROLOG_ANONYMOUS_VARIABLE, ctx,
+			 * node.toString()); }
+			 */
 		}
 
 		return parameters;

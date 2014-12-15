@@ -17,8 +17,6 @@
 
 package languageTools.analyzer.agent;
 
-import goalhub.krTools.KRFactory;
-
 import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringReader;
@@ -131,16 +129,13 @@ import org.antlr.v4.runtime.misc.NotNull;
 import org.antlr.v4.runtime.tree.ErrorNodeImpl;
 import org.antlr.v4.runtime.tree.ParseTree;
 
-import swiprolog.language.PrologTerm;
-import swiprolog.language.PrologVar;
-
 /**
  * Validates an agent or module file and constructs an agent program or module.
  */
 @SuppressWarnings("rawtypes")
 public class AgentValidator extends
-Validator<MyGOALLexer, GOAL, AgentErrorStrategy, AgentProgram>
-		implements GOALVisitor {
+		Validator<MyGOALLexer, GOAL, AgentErrorStrategy, AgentProgram>
+implements GOALVisitor {
 
 	private GOAL parser;
 	private static AgentErrorStrategy strategy = null;
@@ -681,13 +676,13 @@ Validator<MyGOALLexer, GOAL, AgentErrorStrategy, AgentProgram>
 					var = visit_KR_Var(name, getSourceInfo(ctx));
 
 					// Check for Prolog anonymous variable
-					if (this.kri.getName().equals(KRFactory.SWI_PROLOG)
-							&& ((PrologVar) var).isAnonymous()) {
-						reportError(
-								AgentError.PROLOG_LISTALL_ANONYMOUS_VARIABLE,
-								ctx.VAR(), name);
-						var = null;
-					}
+					/*
+					 * if (this.kri.getName().equals(KRFactory.SWI_PROLOG) &&
+					 * ((PrologVar) var).isAnonymous()) { FIXME CANNOT USE
+					 * PROLOGVAR HERE reportError(
+					 * AgentError.PROLOG_LISTALL_ANONYMOUS_VARIABLE, ctx.VAR(),
+					 * name); var = null; }
+					 */
 				}
 
 				rule = new ListallDoRule(msc, var, actions);
@@ -801,14 +796,13 @@ Validator<MyGOALLexer, GOAL, AgentErrorStrategy, AgentProgram>
 			return new GoalLiteral(true, selector, query, getSourceInfo(ctx));
 		} else {
 			// Check for Prolog anonymous variable
-			for (Var var : query.getFreeVar()) {
-				if (this.kri.getName().equals(KRFactory.SWI_PROLOG)
-						&& ((PrologVar) var).isAnonymous()) {
-					reportError(
-							AgentError.PROLOG_MENTAL_LITERAL_ANONYMOUS_VARIABLE,
-							ctx, var.toString(), ctx.toString());
-				}
-			}
+			/*
+			 * for (Var var : query.getFreeVar()) { FIXME CANNOT USE PROLOGVAR
+			 * HERE if (this.kri.getName().equals(KRFactory.SWI_PROLOG) &&
+			 * ((PrologVar) var).isAnonymous()) { reportError(
+			 * AgentError.PROLOG_MENTAL_LITERAL_ANONYMOUS_VARIABLE, ctx,
+			 * var.toString(), ctx.toString()); } }
+			 */
 			if (op.equals(getTokenName(GOAL.AGOAL_OP))) {
 				return new AGoalLiteral(true, selector, query,
 						getSourceInfo(ctx));
@@ -1169,15 +1163,14 @@ Validator<MyGOALLexer, GOAL, AgentErrorStrategy, AgentProgram>
 			parameters = new ArrayList<Term>();
 		}
 
-		for (Term node : parameters) {
-			// KR specific check: cannot use Prolog anonymous variable as
-			// parameter
-			if (this.kri.getName().equals(KRFactory.SWI_PROLOG)
-					&& ((PrologTerm) node).isAnonymousVar()) {
-				reportError(AgentError.PROLOG_ANONYMOUS_VARIABLE, ctx,
-						node.toString());
-			}
-		}
+		/*
+		 * for (Term node : parameters) { FIXME cannot use PrologTerm here // KR
+		 * specific check: cannot use Prolog anonymous variable as // parameter
+		 * if (this.kri.getName().equals(KRFactory.SWI_PROLOG) && ((PrologTerm)
+		 * node).isAnonymousVar()) {
+		 * reportError(AgentError.PROLOG_ANONYMOUS_VARIABLE, ctx,
+		 * node.toString()); } }
+		 */
 
 		return parameters;
 	}
@@ -1616,7 +1609,7 @@ Validator<MyGOALLexer, GOAL, AgentErrorStrategy, AgentProgram>
 		for (Module module : program.getModules()) {
 			if (call.getName().equals(module.getName())
 					&& call.getParameters().size() == module.getParameters()
-							.size()) {
+					.size()) {
 				return new ModuleCallAction(module, call.getParameters(),
 						call.getSourceInfo());
 			}
@@ -1625,12 +1618,12 @@ Validator<MyGOALLexer, GOAL, AgentErrorStrategy, AgentProgram>
 				UserSpecAction spec = specification.getAction();
 				if (call.getName().equals(spec.getName())
 						&& call.getParameters().size() == spec.getParameters()
-						.size()) {
+								.size()) {
 					return new UserSpecAction(call.getName(),
 							call.getParameters(), spec.getExernal(),
 							((MentalLiteral) spec.getPrecondition()
 									.getSubFormulas().get(1)).getFormula(),
-									spec.getPostcondition(), call.getSourceInfo());
+							spec.getPostcondition(), call.getSourceInfo());
 				}
 			}
 		}
