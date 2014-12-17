@@ -9,7 +9,7 @@ Run 'mvn package' to generate an executable jar with dependencies.
 
 Usage
 =====
-Usage: java -jar grammar-1.1.1-jar-with-dependencies.jar < <filename>.goal.
+Usage: java -jar grammar-1.1.2-jar-with-dependencies.jar < <filename>.goal.
 
 Dependency information 
 =====================
@@ -25,7 +25,7 @@ Dependency information
 <dependency>
   <groupId>com.github.goalhub.grammar</groupId>
   <artifactId>languageTools</artifactId>
-  <version>1.1.1</version>
+  <version>1.1.2</version>
 </dependency>
 ```	
 
