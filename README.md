@@ -9,7 +9,7 @@ Run 'mvn package' to generate an executable jar with dependencies.
 
 Usage
 =====
-Usage: java -jar grammar-1.1.2-jar-with-dependencies.jar < <filename>.goal.
+Usage: java -jar grammar-1.1.3-SNAPSHOT-jar-with-dependencies.jar < <filename>.goal.
 
 Dependency information 
 =====================
@@ -25,7 +25,7 @@ Dependency information
 <dependency>
   <groupId>com.github.goalhub.grammar</groupId>
   <artifactId>languageTools</artifactId>
-  <version>1.1.2</version>
+  <version>1.1.3-SNAPSHOT</version>
 </dependency>
 ```	
 
@@ -52,7 +52,7 @@ Ensure your ~/.m2/settings.xml file is as follows:
 Then call:
 
 ```
-mvn versions:use-latest-versions && mvn deploy -DcreateChecksum=true
+mvn versions:use-latest-versions -DallowSnapshots=true && mvn deploy -DcreateChecksum=true
 ```
 
 Note that you must have a public name and e-mail address set on GitHub for this to work correctly (https://github.com/settings/profile)
