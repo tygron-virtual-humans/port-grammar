@@ -58,7 +58,7 @@ public class UnitTest extends Program {
 
 	@Override
 	public boolean isValid() {
-		boolean valid = isValid() && this.masProgram.isValid();
+		boolean valid = super.isValid() && this.masProgram.isValid();
 		for (AgentProgram agent : this.agents.values()) {
 			valid &= agent.isValid();
 		}

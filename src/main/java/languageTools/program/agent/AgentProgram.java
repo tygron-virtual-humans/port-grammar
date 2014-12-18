@@ -139,7 +139,7 @@ public class AgentProgram extends Program {
 
 	@Override
 	public boolean isValid() {
-		boolean valid = isValid();
+		boolean valid = super.isValid();
 		for (Module module : this.modules) {
 			valid &= module.isValid();
 		}
