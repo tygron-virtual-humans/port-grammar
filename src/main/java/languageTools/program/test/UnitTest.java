@@ -56,15 +56,6 @@ public class UnitTest extends Program {
 		return this.masProgram;
 	}
 
-	@Override
-	public boolean isValid() {
-		boolean valid = super.isValid() && this.masProgram.isValid();
-		for (AgentProgram agent : this.agents.values()) {
-			valid &= agent.isValid();
-		}
-		return valid;
-	}
-
 	/**
 	 * Returns a test for the agent with the given base name or null when the
 	 * agent has no test associated with it.

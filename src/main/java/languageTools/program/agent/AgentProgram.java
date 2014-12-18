@@ -137,15 +137,6 @@ public class AgentProgram extends Program {
 		this.krInterface = krInterface;
 	}
 
-	@Override
-	public boolean isValid() {
-		boolean valid = super.isValid();
-		for (Module module : this.modules) {
-			valid &= module.isValid();
-		}
-		return valid;
-	}
-
 	/**
 	 * Checks whether the agent program performs mental model queries.
 	 *
