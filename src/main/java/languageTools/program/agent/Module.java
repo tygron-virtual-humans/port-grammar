@@ -54,7 +54,6 @@ import languageTools.program.agent.rules.Rule;
  * @author Koen Hindriks
  */
 public class Module extends Program {
-
 	// -------------------------------------------------------------
 	// Module declaration section
 	// -------------------------------------------------------------
@@ -130,15 +129,15 @@ public class Module extends Program {
 	/**
 	 * The macros specified at the beginning of the program section.
 	 */
-	List<Macro> macros = new ArrayList<Macro>();
+	private List<Macro> macros = new ArrayList<Macro>();
 	/**
 	 * List of rules in the program section of the module.
 	 */
-	List<Rule> rules = new ArrayList<Rule>();
+	private List<Rule> rules = new ArrayList<Rule>();
 	/**
 	 * List of action specifications of the module.
 	 */
-	List<ActionSpecification> specs = new ArrayList<ActionSpecification>();
+	private List<ActionSpecification> specs = new ArrayList<ActionSpecification>();
 
 	// -------------------------------------------------------------
 	// Module type and KR language used.
@@ -734,5 +733,4 @@ public class Module extends Program {
 			return this == ADAPTIVE;
 		}
 	}
-
 }

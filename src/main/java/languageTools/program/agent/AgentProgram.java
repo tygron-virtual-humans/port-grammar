@@ -89,8 +89,7 @@ public class AgentProgram extends Program {
 	}
 
 	/**
-	 * @return List of the modules defined in the program file (does <b>not</b>
-	 *         include the imported modules!)
+	 * @return List of the modules defined in the program file
 	 */
 	public List<Module> getModules() {
 		return this.modules;
@@ -136,6 +135,15 @@ public class AgentProgram extends Program {
 	 */
 	public void setKRInterface(KRInterface krInterface) {
 		this.krInterface = krInterface;
+	}
+
+	@Override
+	public boolean isValid() {
+		boolean valid = isValid();
+		for (Module module : this.modules) {
+			valid &= module.isValid();
+		}
+		return valid;
 	}
 
 	/**
