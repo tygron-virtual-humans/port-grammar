@@ -29,7 +29,7 @@ import org.antlr.v4.runtime.Token;
  * number index and character position on that line.
  */
 public class InputStreamPosition implements SourceInfo,
-		Comparable<InputStreamPosition> {
+Comparable<InputStreamPosition> {
 
 	/**
 	 * The name or description of the file or other stream this
@@ -62,7 +62,7 @@ public class InputStreamPosition implements SourceInfo,
 	 * @param sourceFile
 	 */
 	public InputStreamPosition(Token start, Token stop, File sourceFile) {
-		this(start.getLine(), start.getCharPositionInLine() + 1, start
+		this(start.getLine(), start.getCharPositionInLine(), start
 				.getStartIndex(), stop.getStopIndex(), sourceFile);
 	}
 
@@ -74,9 +74,9 @@ public class InputStreamPosition implements SourceInfo,
 	 * @param source
 	 */
 	public InputStreamPosition(Token token, int index, File source) {
-		this(token.getLine(), token.getCharPositionInLine() + 1, index, token
+		this(token.getLine(), token.getCharPositionInLine(), index, token
 				.getText() == null ? index : index + token.getText().length(),
-						source);
+				source);
 	}
 
 	/**
@@ -149,8 +149,7 @@ public class InputStreamPosition implements SourceInfo,
 	 * C&lt;COL&gt;</code>.
 	 */
 	public String toShortString() {
-		return "L" + (this.lineNumber + 1) + ", C"
-				+ (this.characterPosition + 1);
+		return "L" + this.lineNumber + ", C" + this.characterPosition;
 	}
 
 	/**
@@ -169,7 +168,7 @@ public class InputStreamPosition implements SourceInfo,
 		if (!this.source.equals(source)) {
 			return false;
 		}
-		return this.lineNumber >= lineNumber + 1;
+		return this.lineNumber >= (lineNumber + 1);
 	}
 
 	public InputStreamPosition end(InputStreamPosition end) {
@@ -235,14 +234,14 @@ public class InputStreamPosition implements SourceInfo,
 		} else if (this.lineNumber > o.lineNumber) {
 			return 1;
 		} else
-			// then by character position
-			if (this.characterPosition < o.characterPosition) {
-				return -1;
-			} else if (this.characterPosition > o.characterPosition) {
-				return 1;
-			} else {
-				return 0;
-			}
+		// then by character position
+		if (this.characterPosition < o.characterPosition) {
+			return -1;
+		} else if (this.characterPosition > o.characterPosition) {
+			return 1;
+		} else {
+			return 0;
+		}
 	}
 
 	@Override
