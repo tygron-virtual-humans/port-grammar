@@ -1151,10 +1151,9 @@ public class ModuleValidator extends
 	 * @return The default exit condition associated with the module type.
 	 */
 	private ExitCondition getDefaultExitCondition(TYPE type) {
-		switch (type) {
-		case MAIN:
+		if (type == TYPE.MAIN) {
 			return ExitCondition.NEVER;
-		default:
+		} else {
 			return ExitCondition.ALWAYS;
 		}
 	}
@@ -1166,12 +1165,9 @@ public class ModuleValidator extends
 	 *         type.
 	 */
 	private RuleEvaluationOrder getDefaultRuleEvaluationOrder(TYPE type) {
-		switch (type) {
-		case ANONYMOUS:
-		case EVENT:
-		case INIT:
+		if (type == TYPE.ANONYMOUS || type == TYPE.EVENT || type == TYPE.INIT) {
 			return RuleEvaluationOrder.LINEARALL;
-		default:
+		} else {
 			return RuleEvaluationOrder.LINEAR;
 		}
 	}

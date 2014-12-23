@@ -134,8 +134,8 @@ import org.antlr.v4.runtime.tree.ParseTree;
  */
 @SuppressWarnings("rawtypes")
 public class AgentValidator extends
-		Validator<MyGOALLexer, GOAL, AgentErrorStrategy, AgentProgram>
-implements GOALVisitor {
+Validator<MyGOALLexer, GOAL, AgentErrorStrategy, AgentProgram>
+		implements GOALVisitor {
 
 	private GOAL parser;
 	private static AgentErrorStrategy strategy = null;
@@ -1209,10 +1209,9 @@ implements GOALVisitor {
 	 * @return The default exit condition associated with the module type.
 	 */
 	private ExitCondition getDefaultExitCondition(TYPE type) {
-		switch (type) {
-		case MAIN:
+		if (type == TYPE.MAIN) {
 			return ExitCondition.NEVER;
-		default:
+		} else {
 			return ExitCondition.ALWAYS;
 		}
 	}
@@ -1224,12 +1223,9 @@ implements GOALVisitor {
 	 *         type.
 	 */
 	private RuleEvaluationOrder getDefaultRuleEvaluationOrder(TYPE type) {
-		switch (type) {
-		case ANONYMOUS:
-		case EVENT:
-		case INIT:
+		if(type == TYPE.ANONYMOUS || type == TYPE.EVENT || type == TYPE.INIT){
 			return RuleEvaluationOrder.LINEARALL;
-		default:
+		} else {
 			return RuleEvaluationOrder.LINEAR;
 		}
 	}
@@ -1609,7 +1605,7 @@ implements GOALVisitor {
 		for (Module module : program.getModules()) {
 			if (call.getName().equals(module.getName())
 					&& call.getParameters().size() == module.getParameters()
-					.size()) {
+							.size()) {
 				return new ModuleCallAction(module, call.getParameters(),
 						call.getSourceInfo());
 			}
@@ -1618,12 +1614,12 @@ implements GOALVisitor {
 				UserSpecAction spec = specification.getAction();
 				if (call.getName().equals(spec.getName())
 						&& call.getParameters().size() == spec.getParameters()
-								.size()) {
+						.size()) {
 					return new UserSpecAction(call.getName(),
 							call.getParameters(), spec.getExernal(),
 							((MentalLiteral) spec.getPrecondition()
 									.getSubFormulas().get(1)).getFormula(),
-							spec.getPostcondition(), call.getSourceInfo());
+									spec.getPostcondition(), call.getSourceInfo());
 				}
 			}
 		}
