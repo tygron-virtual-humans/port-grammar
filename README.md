@@ -25,7 +25,7 @@ Dependency information
 <dependency>
   <groupId>com.github.goalhub.grammar</groupId>
   <artifactId>languageTools</artifactId>
-  <version>1.1.3-SNAPSHOT</version>
+  <version>1.1.4</version>
 </dependency>
 ```	
 
