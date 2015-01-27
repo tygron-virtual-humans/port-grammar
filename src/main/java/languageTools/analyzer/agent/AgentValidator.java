@@ -134,8 +134,8 @@ import org.antlr.v4.runtime.tree.ParseTree;
  */
 @SuppressWarnings("rawtypes")
 public class AgentValidator extends
-Validator<MyGOALLexer, GOAL, AgentErrorStrategy, AgentProgram>
-		implements GOALVisitor {
+		Validator<MyGOALLexer, GOAL, AgentErrorStrategy, AgentProgram>
+implements GOALVisitor {
 
 	private GOAL parser;
 	private static AgentErrorStrategy strategy = null;
@@ -1208,7 +1208,7 @@ Validator<MyGOALLexer, GOAL, AgentErrorStrategy, AgentProgram>
 	 *            Type of module.
 	 * @return The default exit condition associated with the module type.
 	 */
-	private ExitCondition getDefaultExitCondition(TYPE type) {
+	public ExitCondition getDefaultExitCondition(TYPE type) {
 		if (type == TYPE.MAIN) {
 			return ExitCondition.NEVER;
 		} else {
@@ -1222,8 +1222,8 @@ Validator<MyGOALLexer, GOAL, AgentErrorStrategy, AgentProgram>
 	 * @return The default rule evaluation order associated with the module
 	 *         type.
 	 */
-	private RuleEvaluationOrder getDefaultRuleEvaluationOrder(TYPE type) {
-		if(type == TYPE.ANONYMOUS || type == TYPE.EVENT || type == TYPE.INIT){
+	public RuleEvaluationOrder getDefaultRuleEvaluationOrder(TYPE type) {
+		if (type == TYPE.ANONYMOUS || type == TYPE.EVENT || type == TYPE.INIT) {
 			return RuleEvaluationOrder.LINEARALL;
 		} else {
 			return RuleEvaluationOrder.LINEAR;
@@ -1238,7 +1238,7 @@ Validator<MyGOALLexer, GOAL, AgentErrorStrategy, AgentProgram>
 	 * @return Mood operator, if message starts with operator, {@code null}
 	 *         otherwise.
 	 */
-	private SentenceMood getMood(String msg) {
+	public SentenceMood getMood(String msg) {
 		if (msg.startsWith("!")) {
 			return SentenceMood.IMPERATIVE;
 		} else if (msg.startsWith("?")) {
@@ -1391,7 +1391,7 @@ Validator<MyGOALLexer, GOAL, AgentErrorStrategy, AgentProgram>
 	 *            Source info about embedded language fragment.
 	 * @return List of {@link DatabaseFormula}s.
 	 */
-	private List<DatabaseFormula> visit_KR_DBFs(String krFragment,
+	public List<DatabaseFormula> visit_KR_DBFs(String krFragment,
 			SourceInfo info) {
 		List<DatabaseFormula> formulas = new ArrayList<DatabaseFormula>();
 
@@ -1425,7 +1425,7 @@ Validator<MyGOALLexer, GOAL, AgentErrorStrategy, AgentProgram>
 	 *            Source info about embedded language fragment.
 	 * @return {@link Update}.
 	 */
-	private Update visit_KR_Update(String krFragment, SourceInfo info) {
+	public Update visit_KR_Update(String krFragment, SourceInfo info) {
 		Update update = null;
 
 		// Get the update
@@ -1454,7 +1454,7 @@ Validator<MyGOALLexer, GOAL, AgentErrorStrategy, AgentProgram>
 	 *            Source info about embedded language fragment.
 	 * @return A {@link List<Query>}.
 	 */
-	private List<Query> visit_KR_Queries(String krFragment, SourceInfo info) {
+	public List<Query> visit_KR_Queries(String krFragment, SourceInfo info) {
 		List<Query> queries = new ArrayList<Query>();
 
 		if (krFragment.isEmpty()) {
@@ -1487,7 +1487,7 @@ Validator<MyGOALLexer, GOAL, AgentErrorStrategy, AgentProgram>
 	 *            Source info about embedded language fragment.
 	 * @return A {@link Query}.
 	 */
-	private Query visit_KR_Query(String krFragment, SourceInfo info) {
+	public Query visit_KR_Query(String krFragment, SourceInfo info) {
 		Query query = null;
 
 		// Get the query
@@ -1518,7 +1518,7 @@ Validator<MyGOALLexer, GOAL, AgentErrorStrategy, AgentProgram>
 	 *            Source info about embedded language fragment.
 	 * @return A {@link Term}.
 	 */
-	private Term visit_KR_Term(String krFragment, SourceInfo info) {
+	public Term visit_KR_Term(String krFragment, SourceInfo info) {
 		Term term = null;
 
 		// Get the term
@@ -1548,7 +1548,7 @@ Validator<MyGOALLexer, GOAL, AgentErrorStrategy, AgentProgram>
 	 *            Source info about embedded language fragment.
 	 * @return A {@link Term}.
 	 */
-	private List<Term> visit_KR_Terms(String krFragment, SourceInfo info) {
+	public List<Term> visit_KR_Terms(String krFragment, SourceInfo info) {
 		List<Term> parameters = null;
 
 		try {
@@ -1581,7 +1581,7 @@ Validator<MyGOALLexer, GOAL, AgentErrorStrategy, AgentProgram>
 	 * @throws ParserException
 	 *             See {@link ParserException}.
 	 */
-	private Var visit_KR_Var(String name, SourceInfo info)
+	public Var visit_KR_Var(String name, SourceInfo info)
 			throws ParserException {
 		Parser parser = this.kri.getParser(new StringReader(name));
 		Var var = parser.parseVar(info);
@@ -1605,7 +1605,7 @@ Validator<MyGOALLexer, GOAL, AgentErrorStrategy, AgentProgram>
 		for (Module module : program.getModules()) {
 			if (call.getName().equals(module.getName())
 					&& call.getParameters().size() == module.getParameters()
-							.size()) {
+					.size()) {
 				return new ModuleCallAction(module, call.getParameters(),
 						call.getSourceInfo());
 			}
@@ -1614,12 +1614,12 @@ Validator<MyGOALLexer, GOAL, AgentErrorStrategy, AgentProgram>
 				UserSpecAction spec = specification.getAction();
 				if (call.getName().equals(spec.getName())
 						&& call.getParameters().size() == spec.getParameters()
-						.size()) {
+								.size()) {
 					return new UserSpecAction(call.getName(),
 							call.getParameters(), spec.getExernal(),
 							((MentalLiteral) spec.getPrecondition()
 									.getSubFormulas().get(1)).getFormula(),
-									spec.getPostcondition(), call.getSourceInfo());
+							spec.getPostcondition(), call.getSourceInfo());
 				}
 			}
 		}
