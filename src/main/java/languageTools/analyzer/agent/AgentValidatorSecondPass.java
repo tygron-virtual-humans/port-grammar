@@ -521,8 +521,9 @@ public class AgentValidatorSecondPass {
 	}
 
 	/**
-	 * Reports error if variables in a rule have not been bound.
-	 *
+	 * Reports error if variables in a rule have not been bound. FIXME Duplicate
+	 * code, #3434
+	 * 
 	 * @param module
 	 *            Module with rules to be checked.
 	 */

@@ -43,6 +43,8 @@ import languageTools.program.agent.actions.AdoptAction;
 import languageTools.program.agent.actions.DeleteAction;
 import languageTools.program.agent.actions.InsertAction;
 import languageTools.program.agent.actions.ModuleCallAction;
+import languageTools.program.agent.actions.SendAction;
+import languageTools.program.agent.actions.SendOnceAction;
 import languageTools.program.agent.actions.UserSpecAction;
 import languageTools.program.agent.actions.UserSpecOrModuleCall;
 import languageTools.program.agent.msc.BelLiteral;
@@ -51,6 +53,7 @@ import languageTools.program.agent.msc.Macro;
 import languageTools.program.agent.msc.MentalFormula;
 import languageTools.program.agent.msc.MentalLiteral;
 import languageTools.program.agent.msc.MentalStateCondition;
+import languageTools.program.agent.msg.SentenceMood;
 import languageTools.program.agent.rules.Rule;
 import languageTools.symbolTable.Symbol;
 import languageTools.symbolTable.SymbolTable;
@@ -382,9 +385,9 @@ public class ModuleValidatorSecondPass {
 							resolved.add(new UserSpecAction(action.getName(),
 									instantiated,
 									spec.getAction().getExernal(), pre
-									.applySubst(unifier), post
-									.applySubst(unifier), action
-									.getSourceInfo()));
+											.applySubst(unifier), post
+											.applySubst(unifier), action
+											.getSourceInfo()));
 						} else {
 							this.firstPass.reportError(
 									AgentError.ACTION_USED_NEVER_DEFINED,
@@ -400,8 +403,8 @@ public class ModuleValidatorSecondPass {
 			} else if (action instanceof ModuleCallAction) {
 				// must be anonymous module
 				actionLabelsUsed
-				.addAll(resolveModuleActionRefs(((ModuleCallAction) action)
-						.getTarget()));
+						.addAll(resolveModuleActionRefs(((ModuleCallAction) action)
+								.getTarget()));
 				resolved.add(action);
 			} else {
 				resolved.add(action);
@@ -457,9 +460,9 @@ public class ModuleValidatorSecondPass {
 				if (((ModuleCallAction) rule.getAction().getActions().get(0))
 						.getTarget().getType() == TYPE.ANONYMOUS) {
 					macroLabelsUsed
-					.addAll(resolveModuleMacroRefs(((ModuleCallAction) rule
-							.getAction().getActions().get(0))
-							.getTarget()));
+							.addAll(resolveModuleMacroRefs(((ModuleCallAction) rule
+									.getAction().getActions().get(0))
+									.getTarget()));
 				}
 			}
 		}
@@ -468,7 +471,8 @@ public class ModuleValidatorSecondPass {
 	}
 
 	/**
-	 * Reports error if variables in a rule have not been bound.
+	 * Reports error if variables in a rule have not been bound. FIXME Duplicate
+	 * code, #3434
 	 *
 	 * @param module
 	 *            Module with rules to be checked.
@@ -493,13 +497,22 @@ public class ModuleValidatorSecondPass {
 
 			Set<Var> unbound = new HashSet<>();
 			for (Action<?> action : rule.getAction().getActions()) {
+				Set<Var> free = new HashSet<Var>();
+
 				if (action instanceof ModuleCallAction) {
 					checkVariablesBoundinRules(
 							((ModuleCallAction) action).getTarget(), newscope);
+				} else if (action instanceof SendAction
+						|| action instanceof SendOnceAction) {
+					if (getSendMood(action) != SentenceMood.INTERROGATIVE) {
+						free = action.getFreeVar();
+					}
 				} else {
-					unbound.addAll(action.getFreeVar());
-					unbound.removeAll(newscope);
+					free = action.getFreeVar();
 				}
+				unbound.addAll(free);
+				unbound.removeAll(newscope); // CHECK why is this in the
+												// loop?
 			}
 
 			if (!unbound.isEmpty()) {
@@ -508,6 +521,20 @@ public class ModuleValidatorSecondPass {
 						this.firstPass.prettyPrintSet(unbound));
 			}
 		}
+	}
+
+	/**
+	 * Get the mood of the given action. Assumes action is {@link SendAction} or
+	 * {@link SendOnceAction}. Helper function to get around #3433
+	 * 
+	 * @param action
+	 * @return mood of the given action.
+	 */
+	private SentenceMood getSendMood(Action<?> action) {
+		if (action instanceof SendAction) {
+			return ((SendAction) action).getMood();
+		}
+		return ((SendOnceAction) action).getMood();
 	}
 
 	/**
