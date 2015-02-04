@@ -29,7 +29,7 @@ import org.antlr.v4.runtime.Token;
  * number index and character position on that line.
  */
 public class InputStreamPosition implements SourceInfo,
-Comparable<InputStreamPosition> {
+		Comparable<InputStreamPosition> {
 
 	/**
 	 * The name or description of the file or other stream this
@@ -80,13 +80,15 @@ Comparable<InputStreamPosition> {
 	}
 
 	/**
-	 * TODO
+	 * constructor.
 	 *
 	 * @param lineNumber
+	 *            the line number. 1 is first line.
 	 * @param characterPosition
 	 * @param startIndex
 	 * @param stopIndex
 	 * @param source
+	 *            the source {@link File}
 	 */
 	public InputStreamPosition(int lineNumber, int characterPosition,
 			int startIndex, int stopIndex, File source) {
@@ -154,13 +156,13 @@ Comparable<InputStreamPosition> {
 
 	/**
 	 * Determines if this {@link InputStreamPosition} is located after the given
-	 * location. WARNING: the line number is 0-based, while the line number in
-	 * this {@link InputStreamPosition} is 1-based.
+	 * location. Given line number and {@link InputStreamPosition} have 1 as
+	 * first line number.
 	 *
 	 * @param source
 	 *            The referenced file.
 	 * @param lineNumber
-	 *            The referenced line number.
+	 *            The referenced line number. 1 is first line
 	 * @return {@code true} iff this {@link InputStreamPosition} is located in
 	 *         the given file, after or at the start of the given line.
 	 */
@@ -168,7 +170,7 @@ Comparable<InputStreamPosition> {
 		if (!this.source.equals(source)) {
 			return false;
 		}
-		return this.lineNumber >= (lineNumber + 1);
+		return this.lineNumber >= lineNumber;
 	}
 
 	public InputStreamPosition end(InputStreamPosition end) {
