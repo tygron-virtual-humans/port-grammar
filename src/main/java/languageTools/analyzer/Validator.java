@@ -57,7 +57,7 @@ import org.apache.commons.io.FilenameUtils;
  * whether the program is valid or not.
  */
 public abstract class Validator<L extends MyLexer<?>, P extends Parser, E extends MyErrorStrategy, Q extends Program>
-implements ANTLRErrorListener {
+		implements ANTLRErrorListener {
 	/**
 	 * Name of the file that is validated.
 	 */
@@ -130,7 +130,7 @@ implements ANTLRErrorListener {
 	 * @throws IOException
 	 *             If the file does not exist.
 	 */
-	public ParseTree parseFile() throws IOException {
+	private ParseTree parseFile() throws IOException {
 		ANTLRFileStream stream = new ANTLRFileStream(getFilename());
 
 		// Create a lexer that feeds off of input CharStream (also redirects
@@ -375,7 +375,7 @@ implements ANTLRErrorListener {
 	public SourceInfo getSourceInfo(ParserRuleContext ctx) {
 		InputStreamPosition pos = new InputStreamPosition(ctx.getStart(),
 				ctx.getStop() == null ? ctx.getStart() : ctx.getStop(),
-						this.source);
+				this.source);
 		return pos;
 	}
 
@@ -587,7 +587,7 @@ implements ANTLRErrorListener {
 	public void reportAmbiguity(Parser recognizer, DFA dfa, int startIndex,
 			int stopIndex, boolean exact, BitSet ambigAlts, ATNConfigSet configs) {
 		System.out
-		.println("Found ambiguous readings of file! Please report this finding and send us this file.");
+				.println("Found ambiguous readings of file! Please report this finding and send us this file.");
 	}
 
 	@Override
