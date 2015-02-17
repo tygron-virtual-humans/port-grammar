@@ -134,8 +134,8 @@ import org.antlr.v4.runtime.tree.ParseTree;
  */
 @SuppressWarnings("rawtypes")
 public class ModuleValidator extends
-		Validator<MyGOALLexer, GOAL, AgentErrorStrategy, Module> implements
-		GOALVisitor {
+Validator<MyGOALLexer, GOAL, AgentErrorStrategy, Module> implements
+GOALVisitor {
 
 	private GOAL parser;
 	private static AgentErrorStrategy strategy = null;
@@ -916,9 +916,9 @@ public class ModuleValidator extends
 		boolean problem = false;
 
 		// Get internal/external annotation
-		boolean external = false;
-		if (ctx.EXTERNAL() != null) {
-			external = true;
+		boolean external = true;
+		if (ctx.INTERNAL() != null) {
+			external = false;
 		}
 		// Get action
 		Map.Entry<String, List<Term>> declaration = visitDeclarationOrCallWithTerms(ctx
