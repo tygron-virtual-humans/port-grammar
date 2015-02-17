@@ -70,7 +70,7 @@ public class EvaluateIn implements TestSection {
 	 *
 	 * @return the action or module on which queries are evaluated
 	 */
-	public TestSection getAction() {
+	public DoActionSection getAction() {
 		return this.action;
 	}
 
