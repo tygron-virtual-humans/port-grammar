@@ -134,7 +134,7 @@ import org.antlr.v4.runtime.tree.ParseTree;
  */
 @SuppressWarnings("rawtypes")
 public class AgentValidator extends
-Validator<MyGOALLexer, GOAL, AgentErrorStrategy, AgentProgram>
+		Validator<MyGOALLexer, GOAL, AgentErrorStrategy, AgentProgram>
 		implements GOALVisitor {
 
 	private GOAL parser;
@@ -1349,29 +1349,28 @@ Validator<MyGOALLexer, GOAL, AgentErrorStrategy, AgentProgram>
 	 *
 	 * @param parser
 	 *            The parser that generated the errors.
-	 * @param relativeLineNr
-	 *            Relative source code line position (start of the embedded
-	 *            fragment in source).
-	 * @param relativeCharPos
-	 *            Relative source code character position (start of the embedded
-	 *            fragment in source).
 	 */
-	private void reportEmbeddedLanguageErrors(Parser parser, SourceInfo info) {
+	private void reportEmbeddedLanguageErrors(Parser parser) {
 		for (SourceInfo error : parser.getErrors()) {
 			// ignore null errors; we cannot make anything out of those...
 			if (error != null) {
-				int line = info.getLineNumber() + error.getLineNumber() - 1;
-				int charpos;
-				// Assumes KR parser starts line counting from 1
-				if (error.getLineNumber() > 1) {
-					charpos = error.getCharacterPosition();
-				} else {
-					charpos = info.getCharacterPosition()
-							+ error.getCharacterPosition();
-				}
+				// int line = info.getLineNumber() + error.getLineNumber() - 1;
+				// int charpos;
+				// // Assumes KR parser starts line counting from 1
+				// if (error.getLineNumber() > 1) {
+				// charpos = error.getCharacterPosition();
+				// } else {
+				// charpos = info.getCharacterPosition()
+				// + error.getCharacterPosition();
+				// }
+				//
+				// InputStreamPosition pos = new InputStreamPosition(line,
+				// charpos, 0, 0, info.getSource());
 
-				InputStreamPosition pos = new InputStreamPosition(line,
-						charpos, 0, 0, info.getSource());
+				InputStreamPosition pos = new InputStreamPosition(
+						error.getLineNumber(), error.getCharacterPosition(), 0,
+						0, error.getSource());
+
 				reportError(SyntaxError.EMBEDDED_LANGUAGE_ERROR, pos,
 						error.getMessage());
 			}
@@ -1390,7 +1389,7 @@ Validator<MyGOALLexer, GOAL, AgentErrorStrategy, AgentProgram>
 	 * @param krFragments
 	 *            List of KR fragments.
 	 * @param info
-	 *            Source info about embedded language fragment.
+	 *            the source info where in the source is the first char of this text fragment
 	 * @return List of {@link DatabaseFormula}s.
 	 */
 	public List<DatabaseFormula> visit_KR_DBFs(String krFragment,
@@ -1399,11 +1398,12 @@ Validator<MyGOALLexer, GOAL, AgentErrorStrategy, AgentProgram>
 
 		// Get the formulas
 		try {
-			Parser parser = this.kri.getParser(new StringReader(krFragment));
-			formulas = parser.parseDBFs(info);
+			Parser parser = this.kri.getParser(new StringReader(krFragment),
+					info);
+			formulas = parser.parseDBFs();
 
 			// Add errors from parser for embedded language to our own
-			reportEmbeddedLanguageErrors(parser, info);
+			reportEmbeddedLanguageErrors(parser);
 		} catch (ParserException e) {
 			// Report problem, and try to continue with parsing the rest of the
 			// source.
@@ -1424,7 +1424,7 @@ Validator<MyGOALLexer, GOAL, AgentErrorStrategy, AgentProgram>
 	 * @param krFragment
 	 *            String with KR fragment.
 	 * @param info
-	 *            Source info about embedded language fragment.
+	 *            the source info where in the source is the first char of this text fragment
 	 * @return {@link Update}.
 	 */
 	public Update visit_KR_Update(String krFragment, SourceInfo info) {
@@ -1432,11 +1432,12 @@ Validator<MyGOALLexer, GOAL, AgentErrorStrategy, AgentProgram>
 
 		// Get the update
 		try {
-			Parser parser = this.kri.getParser(new StringReader(krFragment));
-			update = parser.parseUpdate(info);
+			Parser parser = this.kri.getParser(new StringReader(krFragment),
+					info);
+			update = parser.parseUpdate();
 
 			// Add errors from parser for embedded language to our own
-			reportEmbeddedLanguageErrors(parser, info);
+			reportEmbeddedLanguageErrors(parser);
 		} catch (ParserException e) {
 			// Report problem, and try to continue with parsing the rest of the
 			// source.
@@ -1453,7 +1454,7 @@ Validator<MyGOALLexer, GOAL, AgentErrorStrategy, AgentProgram>
 	 * @param krFragments
 	 *            List of KR fragments.
 	 * @param info
-	 *            Source info about embedded language fragment.
+	 *            the source info where in the source is the first char of this text fragment
 	 * @return A {@link List<Query>}.
 	 */
 	public List<Query> visit_KR_Queries(String krFragment, SourceInfo info) {
@@ -1465,11 +1466,12 @@ Validator<MyGOALLexer, GOAL, AgentErrorStrategy, AgentProgram>
 
 		// Get the queries
 		try {
-			Parser parser = this.kri.getParser(new StringReader(krFragment));
-			queries = parser.parseQueries(info);
+			Parser parser = this.kri.getParser(new StringReader(krFragment),
+					info);
+			queries = parser.parseQueries();
 
 			// Add errors from parser for embedded language to our own
-			reportEmbeddedLanguageErrors(parser, info);
+			reportEmbeddedLanguageErrors(parser);
 		} catch (ParserException e) {
 			// Report problem, return, and try to continue with parsing the rest
 			// of the source.
@@ -1486,7 +1488,7 @@ Validator<MyGOALLexer, GOAL, AgentErrorStrategy, AgentProgram>
 	 * @param krFragments
 	 *            List of KR fragments.
 	 * @param info
-	 *            Source info about embedded language fragment.
+	 *            the source info where in the source is the first char of this text fragment
 	 * @return A {@link Query}.
 	 */
 	public Query visit_KR_Query(String krFragment, SourceInfo info) {
@@ -1495,11 +1497,11 @@ Validator<MyGOALLexer, GOAL, AgentErrorStrategy, AgentProgram>
 		// Get the query
 		Parser parser;
 		try {
-			parser = this.kri.getParser(new StringReader(krFragment));
-			query = parser.parseQuery(info);
+			parser = this.kri.getParser(new StringReader(krFragment), info);
+			query = parser.parseQuery();
 
 			// Add errors from parser for embedded language to our own
-			reportEmbeddedLanguageErrors(parser, info);
+			reportEmbeddedLanguageErrors(parser);
 		} catch (ParserException e) {
 			// Report problem, return, and try to continue with parsing the rest
 			// of the source.
@@ -1517,7 +1519,7 @@ Validator<MyGOALLexer, GOAL, AgentErrorStrategy, AgentProgram>
 	 * @param krFragment
 	 *            KR fragment string.
 	 * @param info
-	 *            Source info about embedded language fragment.
+	 *            the source info where in the source is the first char of this text fragment
 	 * @return A {@link Term}.
 	 */
 	public Term visit_KR_Term(String krFragment, SourceInfo info) {
@@ -1525,11 +1527,12 @@ Validator<MyGOALLexer, GOAL, AgentErrorStrategy, AgentProgram>
 
 		// Get the term
 		try {
-			Parser parser = this.kri.getParser(new StringReader(krFragment));
-			term = parser.parseTerm(info);
+			Parser parser = this.kri.getParser(new StringReader(krFragment),
+					info);
+			term = parser.parseTerm();
 
 			// Add errors from parser for embedded language to our own
-			reportEmbeddedLanguageErrors(parser, info);
+			reportEmbeddedLanguageErrors(parser);
 		} catch (ParserException e) {
 			// Report problem, return, and try to continue with parsing the rest
 			// of the source.
@@ -1547,18 +1550,19 @@ Validator<MyGOALLexer, GOAL, AgentErrorStrategy, AgentProgram>
 	 * @param krFragment
 	 *            KR fragment string.
 	 * @param info
-	 *            Source info about embedded language fragment.
+	 *            the source info where in the source is the first char of this text fragment
 	 * @return A {@link Term}.
 	 */
 	public List<Term> visit_KR_Terms(String krFragment, SourceInfo info) {
 		List<Term> parameters = null;
 
 		try {
-			Parser parser = this.kri.getParser(new StringReader(krFragment));
-			parameters = parser.parseTerms(info);
+			Parser parser = this.kri.getParser(new StringReader(krFragment),
+					info);
+			parameters = parser.parseTerms();
 
 			// Add errors from parser for embedded language to our own
-			reportEmbeddedLanguageErrors(parser, info);
+			reportEmbeddedLanguageErrors(parser);
 		} catch (ParserException e) {
 			// Report problem, return, and try to continue with parsing the rest
 			// of the source.
@@ -1573,23 +1577,21 @@ Validator<MyGOALLexer, GOAL, AgentErrorStrategy, AgentProgram>
 	 * In other words, assumes that the text associated with the node represents
 	 * a {@link Var}.
 	 *
-	 * @param node
-	 *            The node that contains the text that is parsed.
-	 * @param startLine
-	 *            The line number where the node can be found in the source.
-	 * @param startPos
-	 *            The position on the line where the node starts in the source.
+	 * @param name
+	 *            the variable text to be parsed.
+	 * @param info
+	 *            the source info where in the source is the first char of this text fragment
 	 * @return The variable we got from parsing the node.
 	 * @throws ParserException
 	 *             See {@link ParserException}.
 	 */
 	public Var visit_KR_Var(String name, SourceInfo info)
 			throws ParserException {
-		Parser parser = this.kri.getParser(new StringReader(name));
-		Var var = parser.parseVar(info);
+		Parser parser = this.kri.getParser(new StringReader(name), info);
+		Var var = parser.parseVar();
 
 		// Add errors from parser for embedded language to our own
-		reportEmbeddedLanguageErrors(parser, info);
+		reportEmbeddedLanguageErrors(parser);
 
 		return var;
 	}
@@ -1616,12 +1618,12 @@ Validator<MyGOALLexer, GOAL, AgentErrorStrategy, AgentProgram>
 				UserSpecAction spec = specification.getAction();
 				if (call.getName().equals(spec.getName())
 						&& call.getParameters().size() == spec.getParameters()
-						.size()) {
+								.size()) {
 					return new UserSpecAction(call.getName(),
 							call.getParameters(), spec.getExernal(),
 							((MentalLiteral) spec.getPrecondition()
 									.getSubFormulas().get(1)).getFormula(),
-									spec.getPostcondition(), call.getSourceInfo());
+							spec.getPostcondition(), call.getSourceInfo());
 				}
 			}
 		}

@@ -1339,8 +1339,8 @@ GOALVisitor {
 
 		// Get the formulas
 		try {
-			Parser parser = this.kri.getParser(new StringReader(krFragment));
-			formulas = parser.parseDBFs(info);
+			Parser parser = this.kri.getParser(new StringReader(krFragment), info);
+			formulas = parser.parseDBFs();
 
 			// Add errors from parser for embedded language to our own
 			reportEmbeddedLanguageErrors(parser, info);
@@ -1372,8 +1372,8 @@ GOALVisitor {
 
 		// Get the update
 		try {
-			Parser parser = this.kri.getParser(new StringReader(krFragment));
-			update = parser.parseUpdate(info);
+			Parser parser = this.kri.getParser(new StringReader(krFragment), info);
+			update = parser.parseUpdate();
 
 			// Add errors from parser for embedded language to our own
 			reportEmbeddedLanguageErrors(parser, info);
@@ -1405,8 +1405,8 @@ GOALVisitor {
 
 		// Get the queries
 		try {
-			Parser parser = this.kri.getParser(new StringReader(krFragment));
-			queries = parser.parseQueries(info);
+			Parser parser = this.kri.getParser(new StringReader(krFragment),info);
+			queries = parser.parseQueries();
 
 			// Add errors from parser for embedded language to our own
 			reportEmbeddedLanguageErrors(parser, info);
@@ -1435,8 +1435,8 @@ GOALVisitor {
 		// Get the query
 		Parser parser;
 		try {
-			parser = this.kri.getParser(new StringReader(krFragment));
-			query = parser.parseQuery(info);
+			parser = this.kri.getParser(new StringReader(krFragment),info);
+			query = parser.parseQuery();
 
 			// Add errors from parser for embedded language to our own
 			reportEmbeddedLanguageErrors(parser, info);
@@ -1465,8 +1465,8 @@ GOALVisitor {
 
 		// Get the term
 		try {
-			Parser parser = this.kri.getParser(new StringReader(krFragment));
-			term = parser.parseTerm(info);
+			Parser parser = this.kri.getParser(new StringReader(krFragment),info);
+			term = parser.parseTerm();
 
 			// Add errors from parser for embedded language to our own
 			reportEmbeddedLanguageErrors(parser, info);
@@ -1494,8 +1494,8 @@ GOALVisitor {
 		List<Term> parameters = null;
 
 		try {
-			Parser parser = this.kri.getParser(new StringReader(krFragment));
-			parameters = parser.parseTerms(info);
+			Parser parser = this.kri.getParser(new StringReader(krFragment),info);
+			parameters = parser.parseTerms();
 
 			// Add errors from parser for embedded language to our own
 			reportEmbeddedLanguageErrors(parser, info);
@@ -1525,8 +1525,8 @@ GOALVisitor {
 	 */
 	private Var visit_KR_Var(String name, SourceInfo info)
 			throws ParserException {
-		Parser parser = this.kri.getParser(new StringReader(name));
-		Var var = parser.parseVar(info);
+		Parser parser = this.kri.getParser(new StringReader(name),info);
+		Var var = parser.parseVar();
 
 		// Add errors from parser for embedded language to our own
 		reportEmbeddedLanguageErrors(parser, info);
