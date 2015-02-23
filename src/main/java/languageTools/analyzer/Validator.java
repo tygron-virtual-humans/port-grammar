@@ -730,7 +730,7 @@ public abstract class Validator<L extends MyLexer<?>, P extends Parser, E extend
 	 * @return The string without quotes and leading/trailing whitespace
 	 */
 	protected String removeLeadTrailCharacters(String quoted) {
-		return quoted.substring(1, quoted.length() - 1).trim();
+		return quoted.substring(1, quoted.length() - 1);// no trim(). #3042
 	}
 
 	/**
