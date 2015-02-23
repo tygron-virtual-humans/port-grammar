@@ -128,6 +128,7 @@ import org.antlr.v4.runtime.TokenStream;
 import org.antlr.v4.runtime.misc.NotNull;
 import org.antlr.v4.runtime.tree.ErrorNodeImpl;
 import org.antlr.v4.runtime.tree.ParseTree;
+import org.antlr.v4.runtime.tree.TerminalNode;
 
 /**
  * Validates an agent or module file and constructs an agent program or module.
@@ -523,20 +524,20 @@ public class AgentValidator extends
 	public List<DatabaseFormula> visitKnowledge(KnowledgeContext ctx) {
 		return visit_KR_DBFs(
 				removeLeadTrailCharacters(ctx.KR_BLOCK().getText()),
-				getSourceInfo(ctx));
+				getSourceInfo(ctx.KR_BLOCK()));
 	}
 
 	@Override
 	public List<DatabaseFormula> visitBeliefs(BeliefsContext ctx) {
 		return visit_KR_DBFs(
 				removeLeadTrailCharacters(ctx.KR_BLOCK().getText()),
-				getSourceInfo(ctx));
+				getSourceInfo(ctx.KR_BLOCK()));
 	}
 
 	@Override
 	public List<Query> visitGoals(GoalsContext ctx) {
 		List<Query> dbfs = visit_KR_Queries(removeLeadTrailCharacters(ctx
-				.KR_BLOCK().getText()), getSourceInfo(ctx));
+				.KR_BLOCK().getText()), getSourceInfo(ctx.KR_BLOCK()));
 
 		// Check that goals (queries) are closed and can be used as updates, if
 		// not remove them
@@ -855,16 +856,17 @@ public class AgentValidator extends
 						new ArrayList<Term>(), getSourceInfo(ctx));
 			}
 
-			String argument = removeLeadTrailCharacters(ctx.PARLIST().getText());
+			TerminalNode parlistctx = ctx.PARLIST();
+			String argument = removeLeadTrailCharacters(parlistctx.getText());
 
 			// Handle cases
 			if (op.equals(AgentProgram.getTokenName(GOAL.PRINT))) {
-				Term parameter = visit_KR_Term(argument, getSourceInfo(ctx));
-				return new PrintAction(parameter, getSourceInfo(ctx));
+				Term parameter = visit_KR_Term(argument, getSourceInfo(parlistctx));
+				return new PrintAction(parameter, getSourceInfo(parlistctx));
 			} else if (op.equals(AgentProgram.getTokenName(GOAL.LOG))) {
-				return new LogAction(ctx.PARLIST().getText()
-						.substring(1, ctx.PARLIST().getText().length() - 1),
-						getSourceInfo(ctx));
+				return new LogAction(parlistctx.getText()
+						.substring(1, parlistctx.getText().length() - 1),
+						getSourceInfo(parlistctx));
 			} else {
 				// send actions may have initial mood operator; check
 				SentenceMood mood = getMood(argument);
@@ -874,31 +876,31 @@ public class AgentValidator extends
 					argument = argument.substring(1);
 				}
 				// Parse content using KR parser
-				Update content = visit_KR_Update(argument, getSourceInfo(ctx));
+				Update content = visit_KR_Update(argument, getSourceInfo(parlistctx));
 				if (content != null) {
 					if (op.equals(AgentProgram.getTokenName(GOAL.ADOPT))) {
 						return new AdoptAction(selector, content,
-								getSourceInfo(ctx));
+								getSourceInfo(parlistctx));
 					} else if (op.equals(AgentProgram.getTokenName(GOAL.DROP))) {
 						return new DropAction(selector, content,
-								getSourceInfo(ctx));
+								getSourceInfo(parlistctx));
 					} else if (op
 							.equals(AgentProgram.getTokenName(GOAL.INSERT))) {
 						return new InsertAction(selector, content,
-								getSourceInfo(ctx));
+								getSourceInfo(parlistctx));
 					} else if (op
 							.equals(AgentProgram.getTokenName(GOAL.DELETE))) {
 						return new DeleteAction(selector, content,
-								getSourceInfo(ctx));
+								getSourceInfo(parlistctx));
 					} else if (op.equals(AgentProgram.getTokenName(GOAL.SEND))) {
 						checkSendSelector(selector, ctx);
 						return new SendAction(selector, mood, content,
-								getSourceInfo(ctx));
+								getSourceInfo(parlistctx));
 					} else if (op.equals(AgentProgram
 							.getTokenName(GOAL.SENDONCE))) {
 						checkSendSelector(selector, ctx);
 						return new SendOnceAction(selector, mood, content,
-								getSourceInfo(ctx));
+								getSourceInfo(parlistctx));
 					}
 				}
 				return null;
