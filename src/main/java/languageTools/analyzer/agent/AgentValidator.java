@@ -861,11 +861,12 @@ public class AgentValidator extends
 
 			// Handle cases
 			if (op.equals(AgentProgram.getTokenName(GOAL.PRINT))) {
-				Term parameter = visit_KR_Term(argument, getSourceInfo(parlistctx));
+				Term parameter = visit_KR_Term(argument,
+						getSourceInfo(parlistctx));
 				return new PrintAction(parameter, getSourceInfo(parlistctx));
 			} else if (op.equals(AgentProgram.getTokenName(GOAL.LOG))) {
-				return new LogAction(parlistctx.getText()
-						.substring(1, parlistctx.getText().length() - 1),
+				return new LogAction(parlistctx.getText().substring(1,
+						parlistctx.getText().length() - 1),
 						getSourceInfo(parlistctx));
 			} else {
 				// send actions may have initial mood operator; check
@@ -876,7 +877,8 @@ public class AgentValidator extends
 					argument = argument.substring(1);
 				}
 				// Parse content using KR parser
-				Update content = visit_KR_Update(argument, getSourceInfo(parlistctx));
+				Update content = visit_KR_Update(argument,
+						getSourceInfo(parlistctx));
 				if (content != null) {
 					if (op.equals(AgentProgram.getTokenName(GOAL.ADOPT))) {
 						return new AdoptAction(selector, content,
@@ -1391,7 +1393,8 @@ public class AgentValidator extends
 	 * @param krFragments
 	 *            List of KR fragments.
 	 * @param info
-	 *            the source info where in the source is the first char of this text fragment
+	 *            the source info where in the source is the first char of this
+	 *            text fragment
 	 * @return List of {@link DatabaseFormula}s.
 	 */
 	public List<DatabaseFormula> visit_KR_DBFs(String krFragment,
@@ -1426,7 +1429,8 @@ public class AgentValidator extends
 	 * @param krFragment
 	 *            String with KR fragment.
 	 * @param info
-	 *            the source info where in the source is the first char of this text fragment
+	 *            the source info where in the source is the first char of this
+	 *            text fragment
 	 * @return {@link Update}.
 	 */
 	public Update visit_KR_Update(String krFragment, SourceInfo info) {
@@ -1456,7 +1460,8 @@ public class AgentValidator extends
 	 * @param krFragments
 	 *            List of KR fragments.
 	 * @param info
-	 *            the source info where in the source is the first char of this text fragment
+	 *            the source info where in the source is the first char of this
+	 *            text fragment
 	 * @return A {@link List<Query>}.
 	 */
 	public List<Query> visit_KR_Queries(String krFragment, SourceInfo info) {
@@ -1490,7 +1495,8 @@ public class AgentValidator extends
 	 * @param krFragments
 	 *            List of KR fragments.
 	 * @param info
-	 *            the source info where in the source is the first char of this text fragment
+	 *            the source info where in the source is the first char of this
+	 *            text fragment
 	 * @return A {@link Query}.
 	 */
 	public Query visit_KR_Query(String krFragment, SourceInfo info) {
@@ -1521,7 +1527,8 @@ public class AgentValidator extends
 	 * @param krFragment
 	 *            KR fragment string.
 	 * @param info
-	 *            the source info where in the source is the first char of this text fragment
+	 *            the source info where in the source is the first char of this
+	 *            text fragment
 	 * @return A {@link Term}.
 	 */
 	public Term visit_KR_Term(String krFragment, SourceInfo info) {
@@ -1552,7 +1559,8 @@ public class AgentValidator extends
 	 * @param krFragment
 	 *            KR fragment string.
 	 * @param info
-	 *            the source info where in the source is the first char of this text fragment
+	 *            the source info where in the source is the first char of this
+	 *            text fragment
 	 * @return A {@link Term}.
 	 */
 	public List<Term> visit_KR_Terms(String krFragment, SourceInfo info) {
@@ -1582,7 +1590,8 @@ public class AgentValidator extends
 	 * @param name
 	 *            the variable text to be parsed.
 	 * @param info
-	 *            the source info where in the source is the first char of this text fragment
+	 *            the source info where in the source is the first char of this
+	 *            text fragment
 	 * @return The variable we got from parsing the node.
 	 * @throws ParserException
 	 *             See {@link ParserException}.
@@ -1608,6 +1617,9 @@ public class AgentValidator extends
 	// user is able to refer to the right scope.
 	public static Action<?> resolve(UserSpecOrModuleCall call,
 			AgentProgram program) {
+		if (call == null || program == null) {
+			return null;
+		}
 		for (Module module : program.getModules()) {
 			if (call.getName().equals(module.getName())
 					&& call.getParameters().size() == module.getParameters()
@@ -1624,7 +1636,7 @@ public class AgentValidator extends
 					return new UserSpecAction(call.getName(),
 							call.getParameters(), spec.getExernal(),
 							((MentalLiteral) spec.getPrecondition()
-									.getSubFormulas().get(1)).getFormula(),
+									.getSubFormulas().get(0)).getFormula(),
 							spec.getPostcondition(), call.getSourceInfo());
 				}
 			}
