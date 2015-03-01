@@ -23,8 +23,11 @@ import java.io.PrintWriter;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
+import krTools.language.Term;
 import languageTools.analyzer.Validator;
 import languageTools.analyzer.agent.AgentValidator;
 import languageTools.analyzer.mas.MASValidator;
@@ -49,6 +52,7 @@ import languageTools.parser.Test.BeliefsContext;
 import languageTools.parser.Test.DeclarationContext;
 import languageTools.parser.Test.DeclarationOrCallWithTermsContext;
 import languageTools.parser.Test.DoActionsContext;
+import languageTools.parser.Test.DoTestContext;
 import languageTools.parser.Test.EvaluateInContext;
 import languageTools.parser.Test.GoalsContext;
 import languageTools.parser.Test.KnowledgeContext;
@@ -74,16 +78,16 @@ import languageTools.parser.Test.TestBoundaryContext;
 import languageTools.parser.Test.TestConditionContext;
 import languageTools.parser.Test.TestConditionPartContext;
 import languageTools.parser.Test.TestContext;
-import languageTools.parser.Test.TestModuleContext;
+import languageTools.parser.Test.TestMentalStateConditionContext;
 import languageTools.parser.Test.TestSectionContext;
 import languageTools.parser.Test.TimeoutContext;
 import languageTools.parser.Test.UnitTestContext;
 import languageTools.parser.TestVisitor;
 import languageTools.parser.agent.MyGOALLexer;
 import languageTools.program.agent.AgentProgram;
-import languageTools.program.agent.Module;
 import languageTools.program.agent.actions.Action;
 import languageTools.program.agent.actions.ActionCombo;
+import languageTools.program.agent.actions.UserSpecAction;
 import languageTools.program.agent.actions.UserSpecOrModuleCall;
 import languageTools.program.agent.msc.MentalStateCondition;
 import languageTools.program.mas.Launch;
@@ -91,6 +95,7 @@ import languageTools.program.mas.LaunchRule;
 import languageTools.program.mas.MASProgram;
 import languageTools.program.test.AgentTest;
 import languageTools.program.test.TestCollection;
+import languageTools.program.test.TestMentalStateCondition;
 import languageTools.program.test.UnitTest;
 import languageTools.program.test.testcondition.Always;
 import languageTools.program.test.testcondition.AtEnd;
@@ -109,6 +114,7 @@ import org.antlr.v4.runtime.ANTLRErrorListener;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.TokenStream;
 import org.antlr.v4.runtime.misc.NotNull;
 import org.antlr.v4.runtime.tree.ParseTree;
@@ -120,8 +126,8 @@ import org.antlr.v4.runtime.tree.ParseTree;
  */
 @SuppressWarnings("rawtypes")
 public class TestValidator extends
-		Validator<MyGOALLexer, Test, TestErrorStrategy, UnitTest> implements
-		TestVisitor {
+Validator<MyGOALLexer, Test, TestErrorStrategy, UnitTest> implements
+TestVisitor {
 	private Test parser;
 	private MASProgram masProgram;
 	private AgentProgram agentProgram;
@@ -558,36 +564,23 @@ public class TestValidator extends
 
 	@Override
 	public TestCondition visitTestConditionPart(TestConditionPartContext ctx) {
-		if (ctx.mentalStateCondition() == null) {
+		if (ctx.testMentalStateCondition() == null) {
 			reportError(TestError.TEST_MISSING_TEST, ctx);
 			return null;
 		}
 
-		MentalStateCondition condition = visitMentalStateCondition(ctx
-				.mentalStateCondition());
+		TestMentalStateCondition condition = visitTestMentalStateCondition(ctx
+				.testMentalStateCondition());
 		if (condition == null) {
-			reportError(TestError.TEST_INVALID_TEST, ctx.mentalStateCondition());
+			reportError(TestError.TEST_INVALID_TEST,
+					ctx.testMentalStateCondition());
 			return null;
 		}
 
-		Module module = null;
-		if (ctx.testModule() != null) {
-			String moduleName = visitTestModule(ctx.testModule());
-			for (Module check : this.agentProgram.getModules()) {
-				if (check.getName().equals(moduleName)) {
-					module = check;
-					break;
-				}
-			}
-			if (module == null) {
-				reportError(TestError.TEST_MISSING_MODULE, ctx.testModule());
-			}
-		}
-
 		if (ctx.ATSTART() != null) {
-			return new AtStart(condition, module);
+			return new AtStart(condition);
 		} else if (ctx.ATEND() != null) {
-			return new AtEnd(condition, module);
+			return new AtEnd(condition);
 		} else if (ctx.ALWAYS() != null) {
 			return new Always(condition);
 		} else if (ctx.NEVER() != null) {
@@ -601,29 +594,17 @@ public class TestValidator extends
 	}
 
 	@Override
-	public String visitTestModule(TestModuleContext ctx) {
-		if (ctx.INIT() != null) {
-			return ctx.INIT().getText();
-		} else if (ctx.EVENT() != null) {
-			return ctx.EVENT().getText();
-		} else if (ctx.MAIN() != null) {
-			return ctx.MAIN().getText();
-		} else {
-			return ctx.declaration().getText();
-		}
-	}
-
-	@Override
 	public TestCondition visitTestBoundary(TestBoundaryContext ctx) {
-		if (ctx.mentalStateCondition() == null) {
+		if (ctx.testMentalStateCondition() == null) {
 			reportError(TestError.TEST_MISSING_TEST, ctx);
 			return null;
 		}
 
-		MentalStateCondition condition = visitMentalStateCondition(ctx
-				.mentalStateCondition());
+		TestMentalStateCondition condition = visitTestMentalStateCondition(ctx
+				.testMentalStateCondition());
 		if (condition == null) {
-			reportError(TestError.TEST_INVALID_TEST, ctx.mentalStateCondition());
+			reportError(TestError.TEST_INVALID_TEST,
+					ctx.testMentalStateCondition());
 			return null;
 		}
 
@@ -635,6 +616,77 @@ public class TestValidator extends
 			reportError(TestError.TEST_MISSING_OPERATOR, ctx);
 			return null;
 		}
+	}
+
+	@Override
+	public List<UserSpecOrModuleCall> visitDoTest(DoTestContext ctx) {
+		List<UserSpecOrModuleCall> calls = new LinkedList<>();
+		if (ctx.PARLIST() != null) {
+			List<Map.Entry<String, List<Term>>> actions = visitPARLIST(ctx
+					.PARLIST().getText(), ctx);
+			for (Map.Entry<String, List<Term>> action : actions) {
+				if (action != null) {
+					calls.add(new UserSpecOrModuleCall(action.getKey(), action
+							.getValue(), getSourceInfo(ctx)));
+				}
+			}
+		}
+		return calls;
+	}
+
+	public List<Map.Entry<String, List<Term>>> visitPARLIST(String parlist,
+			ParserRuleContext ctx) {
+		AgentValidator sub = new AgentValidator("inline-parlist");
+		sub.setKRInterface(this.agentProgram.getKRInterface());
+		List<Term> actions = sub.visitPARLIST(parlist, ctx);
+
+		List<Map.Entry<String, List<Term>>> returned = new LinkedList<>();
+		for (final Term action : actions) {
+			GOAL parser = prepareGOALParser(action.toString());
+			languageTools.parser.GOAL.DeclarationOrCallWithTermsContext callContext = parser
+					.declarationOrCallWithTerms();
+			Map.Entry<String, List<Term>> call = sub
+					.visitDeclarationOrCallWithTerms(callContext);
+			if (call != null) {
+				returned.add(call);
+			}
+		}
+
+		List<Message> errors = sub.getErrors();
+		errors.addAll(sub.getSyntaxErrors());
+		if (!errors.isEmpty()) {
+			reportError(TestError.TEST_INVALID_ACTION, ctx);
+		}
+
+		return returned;
+	}
+
+	@Override
+	public TestMentalStateCondition visitTestMentalStateCondition(
+			TestMentalStateConditionContext ctx) {
+		List<MentalStateCondition> conditions = new LinkedList<>();
+		if (ctx.mentalStateCondition() != null) {
+			for (MentalStateConditionContext msc : ctx.mentalStateCondition()) {
+				MentalStateCondition condition = visitMentalStateCondition(msc);
+				if (condition != null) {
+					conditions.add(condition);
+				}
+			}
+		}
+		List<UserSpecAction> actions = new LinkedList<>();
+		if (ctx.doTest() != null) {
+			for (DoTestContext dt : ctx.doTest()) {
+				List<UserSpecOrModuleCall> calls = visitDoTest(dt);
+				for (UserSpecOrModuleCall call : calls) {
+					Action<?> action = AgentValidator.resolve(call,
+							this.agentProgram);
+					if (action instanceof UserSpecAction) {
+						actions.add((UserSpecAction) action);
+					} // TODO: else > error
+				}
+			}
+		}
+		return new TestMentalStateCondition(conditions, actions);
 	}
 
 	// THE FUNCTIONS BELOW ARE UNUSED...
@@ -755,18 +807,18 @@ public class TestValidator extends
 	}
 
 	@Override
-	public Void visitDeclarationOrCallWithTerms(
-			DeclarationOrCallWithTermsContext ctx) {
-		return null;
-	}
-
-	@Override
 	public Void visitDeclaration(DeclarationContext ctx) {
 		return null;
 	}
 
 	@Override
 	public Void visitKrImport(KrImportContext ctx) {
+		return null;
+	}
+
+	@Override
+	public Void visitDeclarationOrCallWithTerms(
+			DeclarationOrCallWithTermsContext ctx) {
 		return null;
 	}
 

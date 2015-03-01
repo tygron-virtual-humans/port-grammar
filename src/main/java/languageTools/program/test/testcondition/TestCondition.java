@@ -1,6 +1,6 @@
 package languageTools.program.test.testcondition;
 
-import languageTools.program.agent.msc.MentalStateCondition;
+import languageTools.program.test.TestMentalStateCondition;
 
 /**
  * Abstract base for any test condition. Test conditions are evaluated in the
@@ -12,7 +12,7 @@ public abstract class TestCondition {
 	/**
 	 * The mental state condition of the query
 	 */
-	protected final MentalStateCondition query;
+	protected final TestMentalStateCondition query;
 	/**
 	 * An optional nested condition (... -> ...)
 	 */
@@ -21,7 +21,7 @@ public abstract class TestCondition {
 	/**
 	 * @return the mental state condition of the query
 	 */
-	public MentalStateCondition getQuery() {
+	public TestMentalStateCondition getQuery() {
 		return this.query;
 	}
 
@@ -46,7 +46,7 @@ public abstract class TestCondition {
 	 * @param query
 	 *            A mental state condition.
 	 */
-	public TestCondition(MentalStateCondition query) {
+	public TestCondition(TestMentalStateCondition query) {
 		this.query = query;
 	}
 
