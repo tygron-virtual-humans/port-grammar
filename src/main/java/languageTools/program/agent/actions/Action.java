@@ -206,7 +206,6 @@ Expression {
 	public Substitution mgu(Expression expr) {
 		Substitution substitution = null;
 		Action<?> other = (Action<?>) expr;
-
 		if (!getParameters().isEmpty()
 				&& getParameters().size() == other.getParameters().size()) {
 			// Get mgu for first parameter
@@ -218,7 +217,6 @@ Expression {
 						other.getParameters().get(i));
 				substitution = substitution.combine(mgu);
 			}
-
 		}
 		return substitution;
 	}

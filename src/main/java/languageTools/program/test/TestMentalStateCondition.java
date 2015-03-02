@@ -14,8 +14,8 @@ public class TestMentalStateCondition {
 			List<UserSpecAction> actions) {
 		this.conditions = (conditions == null) ? new ArrayList<MentalStateCondition>(
 				0) : conditions;
-				this.actions = (actions == null) ? new ArrayList<UserSpecAction>(0)
-				: actions;
+		this.actions = (actions == null) ? new ArrayList<UserSpecAction>(0)
+						: actions;
 	}
 
 	public List<MentalStateCondition> getConditions() {
@@ -30,21 +30,21 @@ public class TestMentalStateCondition {
 	public String toString() {
 		boolean first = true;
 		final StringBuilder builder = new StringBuilder();
-		for (MentalStateCondition condition : this.conditions) {
-			if (first) {
-				builder.append(condition.toString());
-				first = false;
-			} else {
-				builder.append(", ").append(condition.toString());
-			}
-		}
 		for (UserSpecAction action : this.actions) {
 			if (first) {
 				builder.append("do(").append(action.toString()).append(")");
 				first = false;
 			} else {
 				builder.append(", ").append("do(").append(action.toString())
-						.append(")");
+				.append(")");
+			}
+		}
+		for (MentalStateCondition condition : this.conditions) {
+			if (first) {
+				builder.append(condition.toString());
+				first = false;
+			} else {
+				builder.append(", ").append(condition.toString());
 			}
 		}
 		return builder.toString();
