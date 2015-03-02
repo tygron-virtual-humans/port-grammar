@@ -126,8 +126,8 @@ import org.antlr.v4.runtime.tree.ParseTree;
  */
 @SuppressWarnings("rawtypes")
 public class TestValidator extends
-Validator<MyGOALLexer, Test, TestErrorStrategy, UnitTest> implements
-TestVisitor {
+		Validator<MyGOALLexer, Test, TestErrorStrategy, UnitTest> implements
+		TestVisitor {
 	private Test parser;
 	private MASProgram masProgram;
 	private AgentProgram agentProgram;
@@ -681,8 +681,6 @@ TestVisitor {
 					Action<?> action = AgentValidator.resolve(call,
 							this.agentProgram);
 					if (action instanceof UserSpecAction) {
-						action.setKRInterface(this.agentProgram
-								.getKRInterface());
 						actions.add((UserSpecAction) action);
 					} // TODO: else > error
 				}

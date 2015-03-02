@@ -18,7 +18,6 @@
 package languageTools.program.agent.actions;
 
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -26,7 +25,6 @@ import java.util.Set;
 import krTools.KRInterface;
 import krTools.language.Expression;
 import krTools.language.Substitution;
-import krTools.language.Term;
 import krTools.language.Var;
 import krTools.parser.SourceInfo;
 import languageTools.program.agent.msc.MentalFormula;
@@ -57,7 +55,7 @@ import languageTools.program.agent.msc.MentalStateCondition;
  * </p>
  */
 public abstract class Action<Parameter extends Expression> implements
-		Expression {
+Expression {
 
 	/**
 	 * The name of the action.
@@ -117,27 +115,6 @@ public abstract class Action<Parameter extends Expression> implements
 	 */
 	public void addParameter(Parameter parameter) {
 		this.parameters.add(parameter);
-	}
-
-	/**
-	 * Returns the KR interface used for representing the action's parameters
-	 * and pre- and post-conditions.
-	 *
-	 * @return The KR interface used for representing the action's parameters
-	 *         and pre- and post-conditions.
-	 */
-	public KRInterface getKRInterface() {
-		return this.kri;
-	}
-
-	/**
-	 * Sets the KR interface.
-	 *
-	 * @param kri
-	 *            A KR interface.
-	 */
-	public void setKRInterface(KRInterface kri) {
-		this.kri = kri;
 	}
 
 	/**
@@ -227,7 +204,7 @@ public abstract class Action<Parameter extends Expression> implements
 	 */
 	@Override
 	public Substitution mgu(Expression expr) {
-		Substitution substitution;
+		Substitution substitution = null;
 		Action<?> other = (Action<?>) expr;
 
 		if (!getParameters().isEmpty()
@@ -242,11 +219,7 @@ public abstract class Action<Parameter extends Expression> implements
 				substitution = substitution.combine(mgu);
 			}
 
-		} else {
-			substitution = this.kri
-					.getSubstitution(new LinkedHashMap<Var, Term>());
 		}
-
 		return substitution;
 	}
 
