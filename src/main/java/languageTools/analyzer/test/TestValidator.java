@@ -681,6 +681,8 @@ TestVisitor {
 					Action<?> action = AgentValidator.resolve(call,
 							this.agentProgram);
 					if (action instanceof UserSpecAction) {
+						action.setKRInterface(this.agentProgram
+								.getKRInterface());
 						actions.add((UserSpecAction) action);
 					} // TODO: else > error
 				}
