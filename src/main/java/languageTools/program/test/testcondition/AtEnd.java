@@ -22,6 +22,12 @@ public class AtEnd extends TestCondition {
 	}
 
 	@Override
+	public void setNestedCondition(TestCondition nested) {
+		throw new IllegalArgumentException(
+				"Atend-condition cannot have a nested condition");
+	}
+
+	@Override
 	public String getOperator() {
 		return "atend";
 	}

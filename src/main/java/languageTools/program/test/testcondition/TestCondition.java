@@ -71,7 +71,7 @@ public abstract class TestCondition {
 		str.append(getOperator());
 		str.append(" ");
 		str.append(this.query.toString());
-		if (hasNestedCondition()) {
+		if (this.nested != null) {
 			str.append(" -> ");
 			// str.append(this.nested.toString());
 		}
