@@ -77,4 +77,41 @@ public abstract class TestCondition {
 		}
 		return str.toString();
 	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result
+				+ ((getOperator() == null) ? 0 : getOperator().hashCode());
+		result = prime * result
+				+ ((this.query == null) ? 0 : this.query.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null || getClass() != obj.getClass()) {
+			return false;
+		}
+		TestCondition other = (TestCondition) obj;
+		if (getOperator() == null) {
+			if (other.getOperator() != null) {
+				return false;
+			}
+		} else if (!getOperator().equals(other.getOperator())) {
+			return false;
+		}
+		if (this.query == null) {
+			if (other.getQuery() != null) {
+				return false;
+			}
+		} else if (!this.query.equals(other.getQuery())) {
+			return false;
+		}
+		return true;
+	}
 }

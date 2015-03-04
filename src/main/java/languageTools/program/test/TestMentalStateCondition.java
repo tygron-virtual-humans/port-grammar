@@ -14,8 +14,8 @@ public class TestMentalStateCondition {
 			List<UserSpecAction> actions) {
 		this.conditions = (conditions == null) ? new ArrayList<MentalStateCondition>(
 				0) : conditions;
-		this.actions = (actions == null) ? new ArrayList<UserSpecAction>(0)
-						: actions;
+				this.actions = (actions == null) ? new ArrayList<UserSpecAction>(0)
+				: actions;
 	}
 
 	public List<MentalStateCondition> getConditions() {
@@ -36,7 +36,7 @@ public class TestMentalStateCondition {
 				first = false;
 			} else {
 				builder.append(", ").append("do(").append(action.toString())
-				.append(")");
+						.append(")");
 			}
 		}
 		for (MentalStateCondition condition : this.conditions) {
@@ -48,5 +48,42 @@ public class TestMentalStateCondition {
 			}
 		}
 		return builder.toString();
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result
+				+ ((this.actions == null) ? 0 : this.actions.hashCode());
+		result = prime * result
+				+ ((this.conditions == null) ? 0 : this.conditions.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null || getClass() != obj.getClass()) {
+			return false;
+		}
+		TestMentalStateCondition other = (TestMentalStateCondition) obj;
+		if (this.actions == null) {
+			if (other.actions != null) {
+				return false;
+			}
+		} else if (!this.actions.equals(other.actions)) {
+			return false;
+		}
+		if (this.conditions == null) {
+			if (other.conditions != null) {
+				return false;
+			}
+		} else if (!this.conditions.equals(other.conditions)) {
+			return false;
+		}
+		return true;
 	}
 }
