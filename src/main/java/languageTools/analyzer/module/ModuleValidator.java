@@ -265,7 +265,6 @@ GOALVisitor {
 
 	@Override
 	public Void visitModule(ModuleContext ctx) {
-		// Process module declaration
 		visitModuleDef(ctx.moduleDef());
 
 		// Process module options
@@ -274,55 +273,107 @@ GOALVisitor {
 		List<DatabaseFormula> knowledge = new LinkedList<>();
 		// Imported knowledge
 		if (ctx.krImport() != null) {
-			knowledge.addAll(visitKrImport(ctx.krImport()));
+			boolean hadImport = false;
+			for (KrImportContext kriCtx : ctx.krImport()) {
+				if (hadImport) {
+					reportWarning(AgentWarning.MODULE_DUPLICATE_SECTION, kriCtx);
+				} else {
+					knowledge.addAll(visitKrImport(kriCtx));
+					hadImport = true;
+				}
+			}
 		}
 		// Knowledge
 		if (ctx.knowledge() != null) {
-			knowledge.addAll(visitKnowledge(ctx.knowledge()));
+			boolean hadKnowledge = false;
+			for (KnowledgeContext knowCtx : ctx.knowledge()) {
+				if (hadKnowledge) {
+					reportWarning(AgentWarning.MODULE_DUPLICATE_SECTION,
+							knowCtx);
+				} else {
+					knowledge.addAll(visitKnowledge(knowCtx));
+					hadKnowledge = true;
+				}
+			}
 		}
 		getProgram().setKnowledge(knowledge);
 
 		// Beliefs
 		if (ctx.beliefs() != null) {
-			getProgram().setBeliefs(visitBeliefs(ctx.beliefs()));
+			boolean hadBeliefs = false;
+			for (BeliefsContext belCtx : ctx.beliefs()) {
+				if (hadBeliefs) {
+					reportWarning(AgentWarning.MODULE_DUPLICATE_SECTION, belCtx);
+				} else {
+					getProgram().setBeliefs(visitBeliefs(belCtx));
+					hadBeliefs = true;
+				}
+			}
 		}
 
 		// Goals
 		if (ctx.goals() != null) {
-			getProgram().setGoals(visitGoals(ctx.goals()));
+			boolean hadGoals = false;
+			for (GoalsContext goalCtx : ctx.goals()) {
+				if (hadGoals) {
+					reportWarning(AgentWarning.MODULE_DUPLICATE_SECTION,
+							goalCtx);
+				} else {
+					getProgram().setGoals(visitGoals(goalCtx));
+					hadGoals = true;
+				}
+			}
 		}
 
 		// Program
+		boolean hadProgram = false;
 		if (ctx.program() != null) {
 			// Process rule evaluation order
-			RuleEvaluationOrder order = visitRuleEvaluationOrder(ctx.program()
-					.ruleEvaluationOrder());
-			if (order == null) {
-				order = getDefaultRuleEvaluationOrder(getProgram().getType());
-			}
-			getProgram().setRuleEvaluationOrder(order);
+			for (ProgramContext progCtx : ctx.program()) {
+				if (hadProgram) {
+					reportWarning(AgentWarning.MODULE_DUPLICATE_SECTION,
+							progCtx);
+				} else {
+					RuleEvaluationOrder order = visitRuleEvaluationOrder(progCtx
+							.ruleEvaluationOrder());
+					if (order == null) {
+						order = getDefaultRuleEvaluationOrder(getProgram()
+								.getType());
+					}
+					getProgram().setRuleEvaluationOrder(order);
 
-			// Process content of program section
-			Map.Entry<List<Macro>, List<Rule>> program = visitProgram(ctx
-					.program());
-			getProgram().setMacros(program.getKey());
-			getProgram().setRules(program.getValue());
+					// Process content of program section
+					Map.Entry<List<Macro>, List<Rule>> program = visitProgram(progCtx);
+					getProgram().setMacros(program.getKey());
+					getProgram().setRules(program.getValue());
 
-			// Check if program section is empty
-			if (getProgram().getRules().isEmpty()
-					&& getProgram().getType() != TYPE.INIT) {
-				reportWarning(AgentWarning.MODULE_EMPTY_PROGRAMSECTION,
-						ctx.program(), getProgram().getNamePhrase());
+					// Check if program section is empty
+					if (getProgram().getRules().isEmpty()) {
+						reportWarning(AgentWarning.MODULE_EMPTY_PROGRAMSECTION,
+								progCtx, getProgram().getNamePhrase());
+					}
+
+					hadProgram = true;
+				}
 			}
-		} else if (getProgram().getType() != TYPE.INIT) {
+		}
+		if (!hadProgram && getProgram().getType() != TYPE.INIT) {
 			reportError(AgentError.MODULE_MISSING_PROGRAM_SECTION, ctx,
 					getProgram().getNamePhrase());
 		}
-
 		// Action specifications
 		if (ctx.actionSpecs() != null) {
-			getProgram().setActionSpecifications(
-					visitActionSpecs(ctx.actionSpecs()));
+			boolean hadSpecs = false;
+			for (ActionSpecsContext specCtx : ctx.actionSpecs()) {
+				if (hadSpecs) {
+					reportWarning(AgentWarning.MODULE_DUPLICATE_SECTION,
+							specCtx);
+				} else {
+					getProgram().setActionSpecifications(
+							visitActionSpecs(specCtx));
+					hadSpecs = true;
+				}
+			}
 		}
 
 		// Remove variable scope for this module again
@@ -1339,7 +1390,8 @@ GOALVisitor {
 
 		// Get the formulas
 		try {
-			Parser parser = this.kri.getParser(new StringReader(krFragment), info);
+			Parser parser = this.kri.getParser(new StringReader(krFragment),
+					info);
 			formulas = parser.parseDBFs();
 
 			// Add errors from parser for embedded language to our own
@@ -1372,7 +1424,8 @@ GOALVisitor {
 
 		// Get the update
 		try {
-			Parser parser = this.kri.getParser(new StringReader(krFragment), info);
+			Parser parser = this.kri.getParser(new StringReader(krFragment),
+					info);
 			update = parser.parseUpdate();
 
 			// Add errors from parser for embedded language to our own
@@ -1405,7 +1458,8 @@ GOALVisitor {
 
 		// Get the queries
 		try {
-			Parser parser = this.kri.getParser(new StringReader(krFragment),info);
+			Parser parser = this.kri.getParser(new StringReader(krFragment),
+					info);
 			queries = parser.parseQueries();
 
 			// Add errors from parser for embedded language to our own
@@ -1435,7 +1489,7 @@ GOALVisitor {
 		// Get the query
 		Parser parser;
 		try {
-			parser = this.kri.getParser(new StringReader(krFragment),info);
+			parser = this.kri.getParser(new StringReader(krFragment), info);
 			query = parser.parseQuery();
 
 			// Add errors from parser for embedded language to our own
@@ -1465,7 +1519,8 @@ GOALVisitor {
 
 		// Get the term
 		try {
-			Parser parser = this.kri.getParser(new StringReader(krFragment),info);
+			Parser parser = this.kri.getParser(new StringReader(krFragment),
+					info);
 			term = parser.parseTerm();
 
 			// Add errors from parser for embedded language to our own
@@ -1494,7 +1549,8 @@ GOALVisitor {
 		List<Term> parameters = null;
 
 		try {
-			Parser parser = this.kri.getParser(new StringReader(krFragment),info);
+			Parser parser = this.kri.getParser(new StringReader(krFragment),
+					info);
 			parameters = parser.parseTerms();
 
 			// Add errors from parser for embedded language to our own
@@ -1525,7 +1581,7 @@ GOALVisitor {
 	 */
 	private Var visit_KR_Var(String name, SourceInfo info)
 			throws ParserException {
-		Parser parser = this.kri.getParser(new StringReader(name),info);
+		Parser parser = this.kri.getParser(new StringReader(name), info);
 		Var var = parser.parseVar();
 
 		// Add errors from parser for embedded language to our own

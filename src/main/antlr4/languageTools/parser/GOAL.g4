@@ -30,7 +30,8 @@ options{ tokenVocab=GOALLexer; }
 // Modules
 
 modules
-	: (moduleImport | module)+ EOF
+	: (moduleImport | module)+ 
+	  EOF
 	;
 
 moduleImport
@@ -39,7 +40,7 @@ moduleImport
 
 module
 	: moduleDef ('[' moduleOption (',' moduleOption)* ']')?
-	  '{' krImport? knowledge? beliefs? goals? program? actionSpecs? '}'
+	  '{' (krImport | knowledge | beliefs | goals | program | actionSpecs)* '}'
 	;
 
 moduleDef
