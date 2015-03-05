@@ -71,11 +71,12 @@ doActions
 	;
 
 assertTest
-	: 'assert' mentalStateCondition (':' ( SingleQuotedStringLiteral | StringLiteral ) )?
+	: 'assert' mentalStateCondition (':' (SingleQuotedStringLiteral | StringLiteral) )?
 	;
 	
 doTest
-	: 'do' PARLIST
+	: ('do' PARLIST)
+	| (NOT '(' 'do' PARLIST ')')
 	;
 
 evaluateIn
