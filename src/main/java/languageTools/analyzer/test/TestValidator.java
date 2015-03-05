@@ -87,6 +87,7 @@ import languageTools.parser.agent.MyGOALLexer;
 import languageTools.program.agent.AgentProgram;
 import languageTools.program.agent.actions.Action;
 import languageTools.program.agent.actions.ActionCombo;
+import languageTools.program.agent.actions.ModuleCallAction;
 import languageTools.program.agent.actions.UserSpecAction;
 import languageTools.program.agent.actions.UserSpecOrModuleCall;
 import languageTools.program.agent.msc.MentalStateCondition;
@@ -100,7 +101,6 @@ import languageTools.program.test.TestMentalStateCondition;
 import languageTools.program.test.UnitTest;
 import languageTools.program.test.testcondition.Always;
 import languageTools.program.test.testcondition.AtEnd;
-import languageTools.program.test.testcondition.AtStart;
 import languageTools.program.test.testcondition.Eventually;
 import languageTools.program.test.testcondition.Never;
 import languageTools.program.test.testcondition.TestCondition;
@@ -127,8 +127,8 @@ import org.antlr.v4.runtime.tree.ParseTree;
  */
 @SuppressWarnings("rawtypes")
 public class TestValidator extends
-		Validator<MyGOALLexer, Test, TestErrorStrategy, UnitTest> implements
-		TestVisitor {
+Validator<MyGOALLexer, Test, TestErrorStrategy, UnitTest> implements
+TestVisitor {
 	private Test parser;
 	private MASProgram masProgram;
 	private AgentProgram agentProgram;
@@ -434,7 +434,7 @@ public class TestValidator extends
 
 	@Override
 	public DoActionSection visitDoActions(DoActionsContext ctx) {
-		if (ctx == null) {
+		if (ctx.actions() == null) {
 			reportError(TestError.TEST_MISSING_ACTION, ctx);
 			return null;
 		}
@@ -534,18 +534,32 @@ public class TestValidator extends
 			}
 		}
 
-		if (ctx.doActions() == null) {
+		ModuleCallAction module = null;
+		if (ctx.doActions() != null) {
+			DoActionSection actions = visitDoActions(ctx.doActions());
+			if (actions != null && actions.getAction() != null
+					&& actions.getAction().getActions() != null) {
+				for (Action<?> action : actions.getAction().getActions()) {
+					if (module == null && action instanceof ModuleCallAction) {
+						module = (ModuleCallAction) action;
+					} else {
+						reportError(TestError.TEST_INVALID_ACTION, ctx);
+						return null;
+					}
+				}
+			}
+		}
+		if (module == null) {
 			reportError(TestError.TEST_MISSING_ACTION, ctx);
 			return null;
 		}
-		DoActionSection action = visitDoActions(ctx.doActions());
 
 		TestCondition boundary = null;
 		if (ctx.testBoundary() != null) {
 			boundary = visitTestBoundary(ctx.testBoundary());
 		}
 
-		return new EvaluateIn(queries, action, boundary, this.agentProgram);
+		return new EvaluateIn(queries, module, boundary, this.agentProgram);
 	}
 
 	@Override
@@ -578,9 +592,7 @@ public class TestValidator extends
 			return null;
 		}
 
-		if (ctx.ATSTART() != null) {
-			return new AtStart(condition);
-		} else if (ctx.ATEND() != null) {
+		if (ctx.ATEND() != null) {
 			return new AtEnd(condition);
 		} else if (ctx.ALWAYS() != null) {
 			return new Always(condition);

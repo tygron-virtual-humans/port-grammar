@@ -112,7 +112,6 @@ TIMEOUT			: 'timeout';
 IN				: 'in';
 EVALUATE		: 'evaluate';
 ASSERT			: 'assert';
-ATSTART			: 'atstart';
 ATEND			: 'atend';
 EVENTUALLY		: 'eventually';
 UNTIL		    : 'until';
