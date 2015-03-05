@@ -25,6 +25,7 @@ import languageTools.program.Program;
 
 import org.antlr.v4.runtime.ANTLRErrorListener;
 import org.antlr.v4.runtime.ANTLRFileStream;
+import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CommonToken;
 import org.antlr.v4.runtime.CommonTokenStream;
@@ -62,6 +63,11 @@ implements ANTLRErrorListener {
 	 * Name of the file that is validated.
 	 */
 	private final String filename;
+	/**
+	 * Used in i.e. Eclipse: the content of this string are fed into the
+	 * lexer/parser instead of the actual file's contents
+	 */
+	private String override;
 	protected final File source;
 	private Q program;
 	/**
@@ -81,6 +87,10 @@ implements ANTLRErrorListener {
 	public Validator(String filename) {
 		this.filename = filename;
 		this.source = new File(filename);
+	}
+
+	public void override(String content) {
+		this.override = content;
 	}
 
 	protected abstract L getNewLexer(CharStream stream,
@@ -131,8 +141,16 @@ implements ANTLRErrorListener {
 	 *             If the file does not exist.
 	 */
 	private ParseTree parseFile() throws IOException {
-		ANTLRFileStream stream = new ANTLRFileStream(getFilename());
-		stream.name = getFilename();
+		CharStream stream;
+		if (this.override == null) {
+			ANTLRFileStream fileStream = new ANTLRFileStream(getFilename());
+			fileStream.name = this.filename;
+			stream = fileStream;
+		} else {
+			ANTLRInputStream stringStream = new ANTLRInputStream(this.override);
+			stringStream.name = this.filename;
+			stream = stringStream;
+		}
 
 		// Create a lexer that feeds off of input CharStream (also redirects
 		// error listener).
