@@ -23,6 +23,7 @@ import goalhub.krTools.KRFactory;
 
 import java.io.File;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 
 import languageTools.errors.Message;
@@ -56,6 +57,12 @@ public class MASSyntaxErrorTest {
 		this.warnings = validator.getWarnings();
 		this.table = validator.getSymbolTable();
 		this.program = validator.getProgram();
+
+		List<Message> all = new LinkedList<>();
+		all.addAll(this.syntaxerrors);
+		all.addAll(this.errors);
+		all.addAll(this.warnings);
+		System.out.println(this.program.getSourceFile() + ": " + all);
 	}
 
 	@Test
@@ -77,7 +84,7 @@ public class MASSyntaxErrorTest {
 		assertEquals(
 				new File(
 						"src/test/resources/languageTools/analyzer/mas/dummy_environment.jar"),
-						this.program.getEnvironmentfile());
+				this.program.getEnvironmentfile());
 		assertEquals(new HashMap<String, Object>(),
 				this.program.getInitParameters());
 	}

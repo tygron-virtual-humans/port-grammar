@@ -21,6 +21,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 
 import languageTools.errors.Message;
@@ -52,6 +53,12 @@ public class MASValidatorErrorTest {
 		this.errors = validator.getErrors();
 		this.warnings = validator.getWarnings();
 		this.program = validator.getProgram();
+
+		List<Message> all = new LinkedList<>();
+		all.addAll(this.syntaxerrors);
+		all.addAll(this.errors);
+		all.addAll(this.warnings);
+		System.out.println(this.program.getSourceFile() + ": " + all);
 	}
 
 	@Test

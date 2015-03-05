@@ -22,6 +22,7 @@ import static org.junit.Assert.assertTrue;
 import goalhub.krTools.KRFactory;
 
 import java.io.File;
+import java.util.LinkedList;
 import java.util.List;
 
 import languageTools.errors.Message;
@@ -56,6 +57,12 @@ public class MASValidatorWarningTest {
 		this.warnings = validator.getWarnings();
 		this.table = validator.getSymbolTable();
 		this.program = validator.getProgram();
+
+		List<Message> all = new LinkedList<>();
+		all.addAll(this.syntaxerrors);
+		all.addAll(this.errors);
+		all.addAll(this.warnings);
+		System.out.println(this.program.getSourceFile() + ": " + all);
 	}
 
 	/**
@@ -135,7 +142,7 @@ public class MASValidatorWarningTest {
 		assertEquals(
 				new File(
 						"src/test/resources/languageTools/analyzer/mas/dummy_environment.jar"),
-						this.program.getEnvironmentfile());
+				this.program.getEnvironmentfile());
 		assertEquals("value1", this.program.getInitParameters().get("key"));
 	}
 
