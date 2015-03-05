@@ -94,6 +94,7 @@ import languageTools.program.mas.Launch;
 import languageTools.program.mas.LaunchRule;
 import languageTools.program.mas.MASProgram;
 import languageTools.program.test.AgentTest;
+import languageTools.program.test.TestAction;
 import languageTools.program.test.TestCollection;
 import languageTools.program.test.TestMentalStateCondition;
 import languageTools.program.test.UnitTest;
@@ -673,7 +674,7 @@ public class TestValidator extends
 				}
 			}
 		}
-		List<UserSpecAction> actions = new LinkedList<>();
+		List<TestAction> actions = new LinkedList<>();
 		if (ctx.doTest() != null) {
 			for (DoTestContext dt : ctx.doTest()) {
 				List<UserSpecOrModuleCall> calls = visitDoTest(dt);
@@ -681,7 +682,8 @@ public class TestValidator extends
 					Action<?> action = AgentValidator.resolve(call,
 							this.agentProgram);
 					if (action instanceof UserSpecAction) {
-						actions.add((UserSpecAction) action);
+						actions.add(new TestAction((UserSpecAction) action,
+								true)); // TODO: not(do(...))
 					} // TODO: else > error
 				}
 			}
