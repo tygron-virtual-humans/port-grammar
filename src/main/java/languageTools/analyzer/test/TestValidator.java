@@ -127,8 +127,8 @@ import org.antlr.v4.runtime.tree.ParseTree;
  */
 @SuppressWarnings("rawtypes")
 public class TestValidator extends
-		Validator<MyGOALLexer, Test, TestErrorStrategy, UnitTest> implements
-		TestVisitor {
+Validator<MyGOALLexer, Test, TestErrorStrategy, UnitTest> implements
+TestVisitor {
 	private Test parser;
 	private MASProgram masProgram;
 	private AgentProgram agentProgram;
@@ -682,8 +682,8 @@ public class TestValidator extends
 					Action<?> action = AgentValidator.resolve(call,
 							this.agentProgram);
 					if (action instanceof UserSpecAction) {
-						actions.add(new TestAction((UserSpecAction) action,
-								true)); // TODO: not(do(...))
+						actions.add(new TestAction((UserSpecAction) action, dt
+								.NOT() == null));
 					} // TODO: else > error
 				}
 			}
@@ -900,6 +900,7 @@ public class TestValidator extends
 		try {
 			ANTLRInputStream charstream = new ANTLRInputStream(
 					new StringReader(pString));
+			charstream.name = "";
 			GOALLexer lexer = new GOALLexer(charstream);
 			CommonTokenStream stream = new CommonTokenStream(lexer);
 			return new GOAL(stream);
