@@ -116,6 +116,7 @@ ATEND			: 'atend';
 EVENTUALLY		: 'eventually';
 UNTIL		    : 'until';
 WHILE			: 'while';
+REACTTO			: 'reactTo'		{ stayInDefault = true; }; 
 
 StringLiteral
 	: '"' ('\\"' | ~[\r\n"])* '"'

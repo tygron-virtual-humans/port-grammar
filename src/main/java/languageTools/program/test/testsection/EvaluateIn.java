@@ -1,7 +1,7 @@
 package languageTools.program.test.testsection;
 
 import java.nio.channels.Channel;
-import java.util.List;
+import java.util.Set;
 
 import languageTools.program.agent.AgentProgram;
 import languageTools.program.agent.actions.ModuleCallAction;
@@ -34,7 +34,7 @@ import languageTools.program.test.testcondition.TestCondition;
  * @author mpkorstanje
  */
 public class EvaluateIn implements TestSection {
-	private final List<TestCondition> conditions;
+	private final Set<TestCondition> conditions;
 	private final ModuleCallAction module;
 	private final TestCondition boundary;
 
@@ -50,7 +50,7 @@ public class EvaluateIn implements TestSection {
 	 * @param program
 	 *            the AgentProgram source
 	 */
-	public EvaluateIn(List<TestCondition> queries, ModuleCallAction module,
+	public EvaluateIn(Set<TestCondition> queries, ModuleCallAction module,
 			TestCondition boundary, AgentProgram program) {
 		this.conditions = queries;
 		this.module = module;
@@ -62,7 +62,7 @@ public class EvaluateIn implements TestSection {
 	 *
 	 * @return the test conditions evaluated in this section.
 	 */
-	public List<TestCondition> getQueries() {
+	public Set<TestCondition> getQueries() {
 		return this.conditions;
 	}
 

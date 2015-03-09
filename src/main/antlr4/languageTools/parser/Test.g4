@@ -78,9 +78,12 @@ doTest
 	: ('do' PARLIST)
 	| (NOT '(' 'do' PARLIST ')')
 	;
+reactTest
+	: 'reactTo' '(' testMentalStateCondition ',' testMentalStateCondition ')' '.'
+	;
 
 evaluateIn
-	: 'evaluate' '{' testCondition* '}' 'in' doActions testBoundary?
+	: 'evaluate' '{' (testCondition|reactTest)* '}' 'in' doActions testBoundary?
 	;
 
 testCondition

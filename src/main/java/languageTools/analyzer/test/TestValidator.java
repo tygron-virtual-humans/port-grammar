@@ -23,9 +23,11 @@ import java.io.PrintWriter;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import krTools.language.Term;
 import languageTools.analyzer.Validator;
@@ -72,6 +74,7 @@ import languageTools.parser.Test.PostconditionContext;
 import languageTools.parser.Test.PreconditionContext;
 import languageTools.parser.Test.ProgramContext;
 import languageTools.parser.Test.ProgramRuleContext;
+import languageTools.parser.Test.ReactTestContext;
 import languageTools.parser.Test.RuleEvaluationOrderContext;
 import languageTools.parser.Test.SelectorContext;
 import languageTools.parser.Test.TestBoundaryContext;
@@ -523,14 +526,22 @@ TestVisitor {
 
 	@Override
 	public EvaluateIn visitEvaluateIn(EvaluateInContext ctx) {
-		List<TestCondition> queries = new ArrayList<>(ctx.testCondition()
-				.size());
+		Set<TestCondition> queries = new HashSet<>(ctx.testCondition().size());
 		for (TestConditionContext subCtx : ctx.testCondition()) {
 			TestCondition query = visitTestCondition(subCtx);
 			if (query == null) {
 				reportError(TestError.TEST_MISSING_TEST, subCtx);
-			} else {
-				queries.add(query);
+			} else if (!queries.add(query)) {
+				reportError(TestError.TEST_DUPLICATE, subCtx);
+			}
+		}
+		for (ReactTestContext subCtx : ctx.reactTest()) {
+			TestCondition query = visitReactTest(subCtx);
+			System.out.println("WTF: " + query);
+			if (query == null) {
+				reportError(TestError.TEST_MISSING_TEST, subCtx);
+			} else if (!queries.add(query)) {
+				reportError(TestError.TEST_DUPLICATE, subCtx);
 			}
 		}
 
@@ -560,6 +571,23 @@ TestVisitor {
 		}
 
 		return new EvaluateIn(queries, module, boundary, this.agentProgram);
+	}
+
+	@Override
+	public TestCondition visitReactTest(ReactTestContext ctx) {
+		if (ctx.testMentalStateCondition() != null
+				&& ctx.testMentalStateCondition().size() == 2) {
+			TestMentalStateCondition first = visitTestMentalStateCondition(ctx
+					.testMentalStateCondition(0));
+			TestMentalStateCondition second = visitTestMentalStateCondition(ctx
+					.testMentalStateCondition(1));
+			TestCondition returned = new Always(first);
+			TestCondition nested = new Eventually(second);
+			returned.setNestedCondition(nested);
+			return returned;
+		} else {
+			return null;
+		}
 	}
 
 	@Override
