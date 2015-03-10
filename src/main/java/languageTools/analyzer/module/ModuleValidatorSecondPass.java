@@ -390,7 +390,7 @@ public class ModuleValidatorSecondPass {
 											.getSourceInfo()));
 						} else {
 							this.firstPass.reportError(
-									AgentError.ACTION_USED_NEVER_DEFINED,
+									AgentError.ACTION_DOES_NOT_MATCH,
 									action.getSourceInfo(),
 									action.getSignature());
 						}

@@ -50,8 +50,8 @@ public class AgentValidatorErrorTest {
 		// Agent file should not produce any syntax errors
 		assertTrue(this.syntaxerrors.isEmpty());
 
-		// Agent file should produce 2 errors
-		assertEquals(2, this.errors.size());
+		// Agent file should produce errors
+		assertEquals(4, this.errors.size());
 
 		assertEquals(AgentError.ACTION_LABEL_ALREADY_DEFINED, this.errors
 				.get(0).getType());
@@ -69,16 +69,17 @@ public class AgentValidatorErrorTest {
 		// Agent file should have no syntax errors
 		assertTrue(this.syntaxerrors.isEmpty());
 
-		// Agent file should produce 4 errors
-		assertEquals(4, this.errors.size());
+		// Agent file should produce errors
+		assertEquals(5, this.errors.size());
 
 		assertEquals(AgentError.ACTION_USED_NEVER_DEFINED, this.errors.get(0)
 				.getType());
 		assertEquals(AgentError.ACTION_USED_NEVER_DEFINED, this.errors.get(1)
 				.getType());
-		assertEquals(AgentError.MACRO_NOT_DEFINED, this.errors.get(2).getType());
+		assertEquals(AgentError.ACTION_USED_NEVER_DEFINED, this.errors.get(2).getType());
+		assertEquals(AgentError.MACRO_NOT_DEFINED, this.errors.get(3).getType());
 		assertEquals(AgentError.KR_BELIEF_QUERIED_NEVER_DEFINED, this.errors
-				.get(3).getType());
+				.get(4).getType());
 
 		// Agent file should produce 3 warnings
 		assertEquals(3, this.warnings.size());
@@ -426,12 +427,12 @@ public class AgentValidatorErrorTest {
 		// Agent file should have no syntax errors
 		assertTrue(this.syntaxerrors.isEmpty());
 
-		// Agent file should produce 2 errors
-		assertEquals(2, this.errors.size());
+		// Agent file should produce errors
+		assertEquals(3, this.errors.size());
 
-		assertEquals(AgentError.SELECTOR_VAR_NOT_BOUND, this.errors.get(0)
-				.getType());
 		assertEquals(AgentError.SELECTOR_VAR_NOT_BOUND, this.errors.get(1)
+				.getType());
+		assertEquals(AgentError.ACTION_USED_NEVER_DEFINED, this.errors.get(2)
 				.getType());
 
 		// Agent file should produce no warnings

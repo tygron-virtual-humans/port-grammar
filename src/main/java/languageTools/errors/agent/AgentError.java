@@ -124,7 +124,11 @@ public enum AgentError implements ValidatorErrorType {
 	/**
 	 * Send and sendonce actions should have a selector.
 	 */
-	SEND_INVALID_SELECTOR;
+	SEND_INVALID_SELECTOR, 
+	/**
+	 * Action exists but it does not fit the call
+	 */
+	ACTION_DOES_NOT_MATCH;
 
 	private static final ResourceBundle BUNDLE = ResourceBundle
 			.getBundle("languageTools.messages.AgentErrorMessages");
