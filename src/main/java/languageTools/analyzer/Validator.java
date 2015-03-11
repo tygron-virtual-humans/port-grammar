@@ -25,6 +25,7 @@ import languageTools.program.Program;
 
 import org.antlr.v4.runtime.ANTLRErrorListener;
 import org.antlr.v4.runtime.ANTLRFileStream;
+import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CommonToken;
 import org.antlr.v4.runtime.CommonTokenStream;
@@ -57,11 +58,16 @@ import org.apache.commons.io.FilenameUtils;
  * whether the program is valid or not.
  */
 public abstract class Validator<L extends MyLexer<?>, P extends Parser, E extends MyErrorStrategy, Q extends Program>
-		implements ANTLRErrorListener {
+implements ANTLRErrorListener {
 	/**
 	 * Name of the file that is validated.
 	 */
 	private final String filename;
+	/**
+	 * Used in i.e. Eclipse: the content of this string are fed into the
+	 * lexer/parser instead of the actual file's contents
+	 */
+	private String override;
 	protected final File source;
 	private Q program;
 	/**
@@ -81,6 +87,10 @@ public abstract class Validator<L extends MyLexer<?>, P extends Parser, E extend
 	public Validator(String filename) {
 		this.filename = filename;
 		this.source = new File(filename);
+	}
+
+	public void override(String content) {
+		this.override = content;
 	}
 
 	protected abstract L getNewLexer(CharStream stream,
@@ -131,7 +141,16 @@ public abstract class Validator<L extends MyLexer<?>, P extends Parser, E extend
 	 *             If the file does not exist.
 	 */
 	private ParseTree parseFile() throws IOException {
-		ANTLRFileStream stream = new ANTLRFileStream(getFilename());
+		CharStream stream;
+		if (this.override == null) {
+			ANTLRFileStream fileStream = new ANTLRFileStream(getFilename());
+			fileStream.name = this.filename;
+			stream = fileStream;
+		} else {
+			ANTLRInputStream stringStream = new ANTLRInputStream(this.override);
+			stringStream.name = this.filename;
+			stream = stringStream;
+		}
 
 		// Create a lexer that feeds off of input CharStream (also redirects
 		// error listener).
@@ -375,7 +394,7 @@ public abstract class Validator<L extends MyLexer<?>, P extends Parser, E extend
 	public SourceInfo getSourceInfo(ParserRuleContext ctx) {
 		InputStreamPosition pos = new InputStreamPosition(ctx.getStart(),
 				ctx.getStop() == null ? ctx.getStart() : ctx.getStop(),
-				this.source);
+						this.source);
 		return pos;
 	}
 
@@ -587,7 +606,7 @@ public abstract class Validator<L extends MyLexer<?>, P extends Parser, E extend
 	public void reportAmbiguity(Parser recognizer, DFA dfa, int startIndex,
 			int stopIndex, boolean exact, BitSet ambigAlts, ATNConfigSet configs) {
 		System.out
-				.println("Found ambiguous readings of file! Please report this finding and send us this file.");
+		.println("Found ambiguous readings of file! Please report this finding and send us this file.");
 	}
 
 	@Override

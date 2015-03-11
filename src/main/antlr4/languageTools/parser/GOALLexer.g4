@@ -66,7 +66,7 @@ DEFINE			: '#define';
 IF				: 'if';
 THEN			: 'then';
 FORALL			: 'forall';
-DO				: 'do';
+DO				: 'do'			{ stayInDefault = false; };
 LISTALL			: 'listall'		-> pushMode(VAR_PARAMETERS);
 LTRARROW		: '->';
 RTLARROW		: '<-';
@@ -112,12 +112,11 @@ TIMEOUT			: 'timeout';
 IN				: 'in';
 EVALUATE		: 'evaluate';
 ASSERT			: 'assert';
-ATSTART			: 'atstart';
-// ALWAYS:			'always';
-EVENTUALLY		: 'eventually';
 ATEND			: 'atend';
+EVENTUALLY		: 'eventually';
 UNTIL		    : 'until';
 WHILE			: 'while';
+REACTTO			: 'reactTo'		{ stayInDefault = true; }; 
 
 StringLiteral
 	: '"' ('\\"' | ~[\r\n"])* '"'

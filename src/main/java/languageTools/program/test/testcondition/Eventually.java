@@ -1,6 +1,6 @@
 package languageTools.program.test.testcondition;
 
-import languageTools.program.agent.msc.MentalStateCondition;
+import languageTools.program.test.TestMentalStateCondition;
 import languageTools.program.test.testsection.EvaluateIn;
 
 /**
@@ -17,7 +17,7 @@ public class Eventually extends TestCondition {
 	 * @param query
 	 *            to evaluate at the end
 	 */
-	public Eventually(MentalStateCondition query) {
+	public Eventually(TestMentalStateCondition query) {
 		super(query);
 	}
 

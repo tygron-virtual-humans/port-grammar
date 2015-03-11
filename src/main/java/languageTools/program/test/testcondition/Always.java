@@ -1,6 +1,6 @@
 package languageTools.program.test.testcondition;
 
-import languageTools.program.agent.msc.MentalStateCondition;
+import languageTools.program.test.TestMentalStateCondition;
 import languageTools.program.test.testsection.EvaluateIn;
 
 /**
@@ -17,7 +17,7 @@ public class Always extends TestCondition {
 	 * @param query
 	 *            mental state condition to test
 	 */
-	public Always(MentalStateCondition query) {
+	public Always(TestMentalStateCondition query) {
 		super(query);
 	}
 

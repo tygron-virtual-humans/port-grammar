@@ -1,9 +1,10 @@
 package languageTools.program.test.testsection;
 
 import java.nio.channels.Channel;
-import java.util.List;
+import java.util.Set;
 
 import languageTools.program.agent.AgentProgram;
+import languageTools.program.agent.actions.ModuleCallAction;
 import languageTools.program.test.testcondition.TestCondition;
 
 /**
@@ -33,8 +34,8 @@ import languageTools.program.test.testcondition.TestCondition;
  * @author mpkorstanje
  */
 public class EvaluateIn implements TestSection {
-	private final List<TestCondition> conditions;
-	private final DoActionSection action;
+	private final Set<TestCondition> conditions;
+	private final ModuleCallAction module;
 	private final TestCondition boundary;
 
 	/**
@@ -42,17 +43,17 @@ public class EvaluateIn implements TestSection {
 	 *
 	 * @param queries
 	 *            to execute
-	 * @param action
+	 * @param module
 	 *            on which to evaluate queries
 	 * @param boundary
 	 *            an optional boundary on the evaluation (until/while)
 	 * @param program
 	 *            the AgentProgram source
 	 */
-	public EvaluateIn(List<TestCondition> queries, DoActionSection action,
+	public EvaluateIn(Set<TestCondition> queries, ModuleCallAction module,
 			TestCondition boundary, AgentProgram program) {
 		this.conditions = queries;
-		this.action = action;
+		this.module = module;
 		this.boundary = boundary;
 	}
 
@@ -61,17 +62,17 @@ public class EvaluateIn implements TestSection {
 	 *
 	 * @return the test conditions evaluated in this section.
 	 */
-	public List<TestCondition> getQueries() {
+	public Set<TestCondition> getQueries() {
 		return this.conditions;
 	}
 
 	/**
-	 * Returns the action or module on which queries are evaluated.
+	 * Returns the module on which queries are evaluated.
 	 *
-	 * @return the action or module on which queries are evaluated
+	 * @return the module on which queries are evaluated
 	 */
-	public DoActionSection getAction() {
-		return this.action;
+	public ModuleCallAction getAction() {
+		return this.module;
 	}
 
 	/**
@@ -90,11 +91,9 @@ public class EvaluateIn implements TestSection {
 		for (TestCondition query : getQueries()) {
 			str.append(query.toString() + "\n");
 		}
-		str.append("} in ");
-		str.append(this.action.toString());
+		str.append("} in ").append(this.module.toString());
 		if (this.boundary != null) {
-			str.append(" ");
-			str.append(this.boundary.toString());
+			str.append(" ").append(this.boundary.toString());
 		}
 		return str.toString();
 	}

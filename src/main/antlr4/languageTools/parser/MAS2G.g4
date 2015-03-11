@@ -28,9 +28,7 @@ tokens{ HIDDEN }
 
 
 mas
-	: environment?
-	  agentFiles
-	  launchPolicy
+	: (environment | agentFiles | launchPolicy)*
       EOF
 	;
 

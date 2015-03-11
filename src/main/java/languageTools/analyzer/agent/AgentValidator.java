@@ -135,8 +135,8 @@ import org.antlr.v4.runtime.tree.TerminalNode;
  */
 @SuppressWarnings("rawtypes")
 public class AgentValidator extends
-		Validator<MyGOALLexer, GOAL, AgentErrorStrategy, AgentProgram>
-		implements GOALVisitor {
+Validator<MyGOALLexer, GOAL, AgentErrorStrategy, AgentProgram>
+implements GOALVisitor {
 
 	private GOAL parser;
 	private static AgentErrorStrategy strategy = null;
@@ -315,53 +315,106 @@ public class AgentValidator extends
 		List<DatabaseFormula> knowledge = new LinkedList<>();
 		// Imported knowledge
 		if (ctx.krImport() != null) {
-			knowledge.addAll(visitKrImport(ctx.krImport()));
+			boolean hadImport = false;
+			for (KrImportContext kriCtx : ctx.krImport()) {
+				if (hadImport) {
+					reportWarning(AgentWarning.MODULE_DUPLICATE_SECTION, kriCtx);
+				} else {
+					knowledge.addAll(visitKrImport(kriCtx));
+					hadImport = true;
+				}
+			}
 		}
 		// Knowledge
 		if (ctx.knowledge() != null) {
-			knowledge.addAll(visitKnowledge(ctx.knowledge()));
+			boolean hadKnowledge = false;
+			for (KnowledgeContext knowCtx : ctx.knowledge()) {
+				if (hadKnowledge) {
+					reportWarning(AgentWarning.MODULE_DUPLICATE_SECTION,
+							knowCtx);
+				} else {
+					knowledge.addAll(visitKnowledge(knowCtx));
+					hadKnowledge = true;
+				}
+			}
 		}
 		module.setKnowledge(knowledge);
 
 		// Beliefs
 		if (ctx.beliefs() != null) {
-			module.setBeliefs(visitBeliefs(ctx.beliefs()));
+			boolean hadBeliefs = false;
+			for (BeliefsContext belCtx : ctx.beliefs()) {
+				if (hadBeliefs) {
+					reportWarning(AgentWarning.MODULE_DUPLICATE_SECTION, belCtx);
+				} else {
+					module.setBeliefs(visitBeliefs(belCtx));
+					hadBeliefs = true;
+				}
+			}
 		}
 
 		// Goals
 		if (ctx.goals() != null) {
-			module.setGoals(visitGoals(ctx.goals()));
+			boolean hadGoals = false;
+			for (GoalsContext goalCtx : ctx.goals()) {
+				if (hadGoals) {
+					reportWarning(AgentWarning.MODULE_DUPLICATE_SECTION,
+							goalCtx);
+				} else {
+					module.setGoals(visitGoals(goalCtx));
+					hadGoals = true;
+				}
+			}
 		}
 
 		// Program
+		boolean hadProgram = false;
 		if (ctx.program() != null) {
 			// Process rule evaluation order
-			RuleEvaluationOrder order = visitRuleEvaluationOrder(ctx.program()
-					.ruleEvaluationOrder());
-			if (order == null) {
-				order = getDefaultRuleEvaluationOrder(module.getType());
-			}
-			module.setRuleEvaluationOrder(order);
+			for (ProgramContext progCtx : ctx.program()) {
+				if (hadProgram) {
+					reportWarning(AgentWarning.MODULE_DUPLICATE_SECTION,
+							progCtx);
+				} else {
+					RuleEvaluationOrder order = visitRuleEvaluationOrder(progCtx
+							.ruleEvaluationOrder());
+					if (order == null) {
+						order = getDefaultRuleEvaluationOrder(module.getType());
+					}
+					module.setRuleEvaluationOrder(order);
 
-			// Process content of program section
-			Map.Entry<List<Macro>, List<Rule>> program = visitProgram(ctx
-					.program());
-			module.setMacros(program.getKey());
-			module.setRules(program.getValue());
+					// Process content of program section
+					Map.Entry<List<Macro>, List<Rule>> program = visitProgram(progCtx);
+					module.setMacros(program.getKey());
+					module.setRules(program.getValue());
 
-			// Check if program section is empty
-			if (module.getRules().isEmpty() && module.getType() != TYPE.INIT) {
-				reportWarning(AgentWarning.MODULE_EMPTY_PROGRAMSECTION,
-						ctx.program(), module.getNamePhrase());
+					// Check if program section is empty
+					if (module.getRules().isEmpty()) {
+						reportWarning(AgentWarning.MODULE_EMPTY_PROGRAMSECTION,
+								progCtx, module.getNamePhrase());
+					}
+
+					hadProgram = true;
+				}
 			}
-		} else if (module.getType() != TYPE.INIT) {
+		}
+		if (!hadProgram && module.getType() != TYPE.INIT) {
 			reportError(AgentError.MODULE_MISSING_PROGRAM_SECTION, ctx,
 					module.getNamePhrase());
 		}
 
 		// Action specifications
 		if (ctx.actionSpecs() != null) {
-			module.setActionSpecifications(visitActionSpecs(ctx.actionSpecs()));
+			boolean hadSpecs = false;
+			for (ActionSpecsContext specCtx : ctx.actionSpecs()) {
+				if (hadSpecs) {
+					reportWarning(AgentWarning.MODULE_DUPLICATE_SECTION,
+							specCtx);
+				} else {
+					module.setActionSpecifications(visitActionSpecs(specCtx));
+					hadSpecs = true;
+				}
+			}
 		}
 
 		// Add module to program
@@ -655,7 +708,7 @@ public class AgentValidator extends
 
 			Module module = visitNestedRules(ctx.nestedRules());
 			ModuleCallAction action = new ModuleCallAction(module,
-					new ArrayList<Term>(0), getSourceInfo(ctx), kri);
+					new ArrayList<Term>(0), getSourceInfo(ctx),kri);
 			actions = new ActionCombo();
 			actions.addAction(action);
 		}
@@ -853,7 +906,7 @@ public class AgentValidator extends
 			if (op == null) {
 				// Can't figure out which action but don't return null.
 				return new UserSpecOrModuleCall("<missing name>",
-						new ArrayList<Term>(), getSourceInfo(ctx), kri);
+						new ArrayList<Term>(), getSourceInfo(ctx),kri);
 			}
 
 			TerminalNode parlistctx = ctx.PARLIST();
@@ -863,12 +916,11 @@ public class AgentValidator extends
 			if (op.equals(AgentProgram.getTokenName(GOAL.PRINT))) {
 				Term parameter = visit_KR_Term(argument,
 						getSourceInfo(parlistctx));
-				return new PrintAction(parameter, getSourceInfo(parlistctx),
-						kri);
+				return new PrintAction(parameter, getSourceInfo(parlistctx),kri);
 			} else if (op.equals(AgentProgram.getTokenName(GOAL.LOG))) {
 				return new LogAction(parlistctx.getText().substring(1,
 						parlistctx.getText().length() - 1),
-						getSourceInfo(parlistctx), kri);
+						getSourceInfo(parlistctx),kri);
 			} else {
 				// send actions may have initial mood operator; check
 				SentenceMood mood = getMood(argument);
@@ -883,27 +935,27 @@ public class AgentValidator extends
 				if (content != null) {
 					if (op.equals(AgentProgram.getTokenName(GOAL.ADOPT))) {
 						return new AdoptAction(selector, content,
-								getSourceInfo(parlistctx), kri);
+								getSourceInfo(parlistctx),kri);
 					} else if (op.equals(AgentProgram.getTokenName(GOAL.DROP))) {
 						return new DropAction(selector, content,
-								getSourceInfo(parlistctx), kri);
+								getSourceInfo(parlistctx),kri);
 					} else if (op
 							.equals(AgentProgram.getTokenName(GOAL.INSERT))) {
 						return new InsertAction(selector, content,
-								getSourceInfo(parlistctx), kri);
+								getSourceInfo(parlistctx),kri);
 					} else if (op
 							.equals(AgentProgram.getTokenName(GOAL.DELETE))) {
 						return new DeleteAction(selector, content,
-								getSourceInfo(parlistctx), kri);
+								getSourceInfo(parlistctx),kri);
 					} else if (op.equals(AgentProgram.getTokenName(GOAL.SEND))) {
 						checkSendSelector(selector, ctx);
 						return new SendAction(selector, mood, content,
-								getSourceInfo(parlistctx), kri);
+								getSourceInfo(parlistctx),kri);
 					} else if (op.equals(AgentProgram
 							.getTokenName(GOAL.SENDONCE))) {
 						checkSendSelector(selector, ctx);
 						return new SendOnceAction(selector, mood, content,
-								getSourceInfo(parlistctx), kri);
+								getSourceInfo(parlistctx),kri);
 					}
 				}
 				return null;
@@ -912,12 +964,12 @@ public class AgentValidator extends
 			Map.Entry<String, List<Term>> action = visitDeclarationOrCallWithTerms(ctx
 					.declarationOrCallWithTerms());
 			return new UserSpecOrModuleCall(action.getKey(), action.getValue(),
-					getSourceInfo(ctx), kri);
+					getSourceInfo(ctx),kri);
 		} else if (ctx.op.getType() == GOAL.EXITMODULE) {
-			return new ExitModuleAction(getSourceInfo(ctx), kri);
+			return new ExitModuleAction(getSourceInfo(ctx),kri);
 		} else {
 			return new UserSpecOrModuleCall(ctx.op.getText(),
-					new ArrayList<Term>(), getSourceInfo(ctx), kri);
+					new ArrayList<Term>(), getSourceInfo(ctx),kri);
 		}
 	}
 
@@ -1016,7 +1068,7 @@ public class AgentValidator extends
 		// Create action
 		UserSpecAction action = new UserSpecAction(declaration.getKey(),
 				declaration.getValue(), external, precondition, postcondition,
-				getSourceInfo(ctx), kri);
+				getSourceInfo(ctx),kri);
 
 		if (!problem) {
 			// Check use of action parameters and variables in postcondition
@@ -1618,10 +1670,13 @@ public class AgentValidator extends
 	// user is able to refer to the right scope.
 	public static Action<?> resolve(UserSpecOrModuleCall call,
 			AgentProgram program) {
+		if (call == null || program == null) {
+			return null;
+		}
 		for (Module module : program.getModules()) {
 			if (call.getName().equals(module.getName())
 					&& call.getParameters().size() == module.getParameters()
-							.size()) {
+					.size()) {
 				return new ModuleCallAction(module, call.getParameters(),
 						call.getSourceInfo(), program.getKRInterface());
 			}
@@ -1630,12 +1685,12 @@ public class AgentValidator extends
 				UserSpecAction spec = specification.getAction();
 				if (call.getName().equals(spec.getName())
 						&& call.getParameters().size() == spec.getParameters()
-								.size()) {
+						.size()) {
 					return new UserSpecAction(call.getName(),
 							call.getParameters(), spec.getExernal(),
 							((MentalLiteral) spec.getPrecondition()
-									.getSubFormulas().get(1)).getFormula(),
-							spec.getPostcondition(), call.getSourceInfo(),program.getKRInterface());
+									.getSubFormulas().get(0)).getFormula(),
+									spec.getPostcondition(), call.getSourceInfo(), program.getKRInterface());
 				}
 			}
 		}

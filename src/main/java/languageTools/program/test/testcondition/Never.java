@@ -1,6 +1,6 @@
 package languageTools.program.test.testcondition;
 
-import languageTools.program.agent.msc.MentalStateCondition;
+import languageTools.program.test.TestMentalStateCondition;
 import languageTools.program.test.testsection.EvaluateIn;
 
 /**
@@ -18,7 +18,7 @@ public class Never extends TestCondition {
 	 * @param query
 	 *            mental state condition to test
 	 */
-	public Never(MentalStateCondition query) {
+	public Never(TestMentalStateCondition query) {
 		super(query);
 	}
 

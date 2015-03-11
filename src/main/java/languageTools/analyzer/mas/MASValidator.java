@@ -76,8 +76,8 @@ import org.apache.commons.io.FilenameUtils;
  */
 @SuppressWarnings("rawtypes")
 public class MASValidator extends
-Validator<MyMAS2GLexer, MAS2GParser, MASErrorStrategy, MASProgram>
-implements MAS2GVisitor {
+		Validator<MyMAS2GLexer, MAS2GParser, MASErrorStrategy, MASProgram>
+		implements MAS2GVisitor {
 
 	private MAS2GParser parser;
 	private static MASErrorStrategy strategy = null;
@@ -152,21 +152,39 @@ implements MAS2GVisitor {
 
 	@Override
 	public Void visitMas(MasContext ctx) {
-
-		// Check if there is an environment section; if not, there is nothing to
-		// do.
 		if (ctx.environment() != null) {
-			visitEnvironment(ctx.environment());
+			boolean hadEnv = false;
+			for (EnvironmentContext envCtx : ctx.environment()) {
+				if (hadEnv) {
+					reportWarning(MASWarning.SECTION_DUPLICATE, envCtx);
+				} else {
+					visitEnvironment(envCtx);
+					hadEnv = true;
+				}
+			}
 		}
-
 		if (ctx.agentFiles() != null) {
-			visitAgentFiles(ctx.agentFiles());
+			boolean hadFiles = false;
+			for (AgentFilesContext filesCtx : ctx.agentFiles()) {
+				if (hadFiles) {
+					reportWarning(MASWarning.SECTION_DUPLICATE, filesCtx);
+				} else {
+					visitAgentFiles(filesCtx);
+					hadFiles = true;
+				}
+			}
 		}
-
 		if (ctx.launchPolicy() != null) {
-			visitLaunchPolicy(ctx.launchPolicy());
+			boolean hadLaunch = false;
+			for (LaunchPolicyContext launchCtx : ctx.launchPolicy()) {
+				if (hadLaunch) {
+					reportWarning(MASWarning.SECTION_DUPLICATE, launchCtx);
+				} else {
+					visitLaunchPolicy(launchCtx);
+					hadLaunch = true;
+				}
+			}
 		}
-
 		return null; // Java says must return something even when Void
 	}
 
@@ -186,8 +204,7 @@ implements MAS2GVisitor {
 			filename = visitString(ctx.string());
 		}
 		if (filename.isEmpty()) {
-			reportWarning(MASWarning.ENVIRONMENT_NO_REFERENCE,
-					getSourceInfo(ctx));
+			reportWarning(MASWarning.ENVIRONMENT_NO_REFERENCE, ctx);
 		}
 		// file must be located relative to path specified for MAS file
 		String path = getPathRelativeToSourceFile(filename);

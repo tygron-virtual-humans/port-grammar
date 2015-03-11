@@ -71,22 +71,31 @@ doActions
 	;
 
 assertTest
-	: 'assert' mentalStateCondition (':' ( SingleQuotedStringLiteral | StringLiteral ) )?
+	: 'assert' mentalStateCondition (':' (SingleQuotedStringLiteral | StringLiteral) )?
+	;
+	
+doTest
+	: ('do' PARLIST)
+	| (NOT '(' 'do' PARLIST ')')
+	;
+reactTest
+	: 'reactTo' '(' testMentalStateCondition ',' testMentalStateCondition ')' '.'
 	;
 
 evaluateIn
-	: 'evaluate' '{' testCondition* '}' 'in' doActions testBoundary?
+	: 'evaluate' '{' (testCondition|reactTest)* '}' 'in' doActions testBoundary?
 	;
 
 testCondition
 	: testConditionPart ('->' testConditionPart)* '.'
 	;
 testConditionPart
-	: (ATSTART | ALWAYS | NEVER | EVENTUALLY | ATEND) testModule? mentalStateCondition
-	;
-testModule
-    : '[' (declaration | INIT | MAIN | EVENT) ']'
+	: (ATSTART | ALWAYS | NEVER | EVENTUALLY | ATEND) testMentalStateCondition
 	;
 testBoundary
-    : (UNTIL | WHILE) mentalStateCondition
+    : (UNTIL | WHILE) testMentalStateCondition
+	;
+
+testMentalStateCondition
+	: (mentalStateCondition|doTest) (',' (mentalStateCondition|doTest))*
 	;

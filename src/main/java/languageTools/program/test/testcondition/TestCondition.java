@@ -1,6 +1,6 @@
 package languageTools.program.test.testcondition;
 
-import languageTools.program.agent.msc.MentalStateCondition;
+import languageTools.program.test.TestMentalStateCondition;
 
 /**
  * Abstract base for any test condition. Test conditions are evaluated in the
@@ -12,7 +12,7 @@ public abstract class TestCondition {
 	/**
 	 * The mental state condition of the query
 	 */
-	protected final MentalStateCondition query;
+	protected final TestMentalStateCondition query;
 	/**
 	 * An optional nested condition (... -> ...)
 	 */
@@ -21,7 +21,7 @@ public abstract class TestCondition {
 	/**
 	 * @return the mental state condition of the query
 	 */
-	public MentalStateCondition getQuery() {
+	public TestMentalStateCondition getQuery() {
 		return this.query;
 	}
 
@@ -46,7 +46,7 @@ public abstract class TestCondition {
 	 * @param query
 	 *            A mental state condition.
 	 */
-	public TestCondition(MentalStateCondition query) {
+	public TestCondition(TestMentalStateCondition query) {
 		this.query = query;
 	}
 
@@ -71,10 +71,47 @@ public abstract class TestCondition {
 		str.append(getOperator());
 		str.append(" ");
 		str.append(this.query.toString());
-		if (hasNestedCondition()) {
+		if (this.nested != null) {
 			str.append(" -> ");
 			// str.append(this.nested.toString());
 		}
 		return str.toString();
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result
+				+ ((getOperator() == null) ? 0 : getOperator().hashCode());
+		result = prime * result
+				+ ((this.query == null) ? 0 : this.query.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null || getClass() != obj.getClass()) {
+			return false;
+		}
+		TestCondition other = (TestCondition) obj;
+		if (getOperator() == null) {
+			if (other.getOperator() != null) {
+				return false;
+			}
+		} else if (!getOperator().equals(other.getOperator())) {
+			return false;
+		}
+		if (this.query == null) {
+			if (other.getQuery() != null) {
+				return false;
+			}
+		} else if (!this.query.equals(other.getQuery())) {
+			return false;
+		}
+		return true;
 	}
 }

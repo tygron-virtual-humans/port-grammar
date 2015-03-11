@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import goalhub.krTools.KRFactory;
 
+import java.util.LinkedList;
 import java.util.List;
 
 import krTools.errors.exceptions.KRInitFailedException;
@@ -40,6 +41,12 @@ public class AgentValidatorErrorTest {
 		this.errors = validator.getErrors();
 		this.warnings = validator.getWarnings();
 		this.program = validator.getProgram();
+
+		List<Message> all = new LinkedList<>();
+		all.addAll(this.syntaxerrors);
+		all.addAll(this.errors);
+		all.addAll(this.warnings);
+		System.out.println(this.program.getSourceFile() + ": " + all);
 	}
 
 	@Test

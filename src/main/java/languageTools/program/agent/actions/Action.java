@@ -57,7 +57,7 @@ import languageTools.program.agent.msc.MentalStateCondition;
  * </p>
  */
 public abstract class Action<Parameter extends Expression> implements
-		Expression {
+Expression {
 
 	/**
 	 * The name of the action.
@@ -223,7 +223,7 @@ public abstract class Action<Parameter extends Expression> implements
 	 */
 	@Override
 	public Substitution mgu(Expression expr) {
-		Substitution substitution;
+		Substitution substitution = null;
 		Action<?> other = (Action<?>) expr;
 
 		if (getParameters().size() != other.getParameters().size()) {
@@ -241,7 +241,6 @@ public abstract class Action<Parameter extends Expression> implements
 					other.getParameters().get(i));
 			substitution = substitution.combine(mgu);
 		}
-
 		return substitution;
 	}
 

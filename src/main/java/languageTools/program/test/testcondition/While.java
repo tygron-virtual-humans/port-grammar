@@ -1,6 +1,6 @@
 package languageTools.program.test.testcondition;
 
-import languageTools.program.agent.msc.MentalStateCondition;
+import languageTools.program.test.TestMentalStateCondition;
 
 /**
  * While operator. When the mental state condition evaluated by this operator
@@ -16,7 +16,7 @@ public class While extends TestCondition {
 	 * @param query
 	 *            to evaluate
 	 */
-	public While(MentalStateCondition query) {
+	public While(TestMentalStateCondition query) {
 		super(query);
 	}
 
