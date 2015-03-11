@@ -17,6 +17,7 @@
 
 package languageTools.program.agent.actions;
 
+import krTools.KRInterface;
 import krTools.language.Substitution;
 import krTools.language.Term;
 import krTools.parser.SourceInfo;
@@ -41,9 +42,10 @@ public class ExitModuleAction extends Action<Term> {
 	 * Creates an {@link ExitModuleAction} that forces an exit from the current
 	 * (non-anonymous) module, i.e., the highest non-anonymous modules on the
 	 * (implicit) module stack; all higher anonymous modules are also exited.
+	 * @param kri the {@link KRInterface}
 	 */
-	public ExitModuleAction(SourceInfo info) {
-		super(AgentProgram.getTokenName(GOAL.EXITMODULE), info);
+	public ExitModuleAction(SourceInfo info, KRInterface kri) {
+		super(AgentProgram.getTokenName(GOAL.EXITMODULE), info, kri);
 	}
 
 	@Override

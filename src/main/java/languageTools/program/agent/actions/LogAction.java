@@ -17,6 +17,7 @@
 
 package languageTools.program.agent.actions;
 
+import krTools.KRInterface;
 import krTools.language.Substitution;
 import krTools.language.Term;
 import krTools.parser.SourceInfo;
@@ -44,9 +45,10 @@ public class LogAction extends Action<Term> {
 	 *
 	 * @param argument
 	 *            The argument that determines what needs to be logged.
+	 *            @param kri the {@link KRInterface}
 	 */
-	public LogAction(String argument, SourceInfo info) {
-		super(AgentProgram.getTokenName(GOAL.LOG), info);
+	public LogAction(String argument, SourceInfo info, KRInterface kri) {
+		super(AgentProgram.getTokenName(GOAL.LOG), info, kri);
 		this.argument = argument;
 	}
 

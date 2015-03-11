@@ -17,6 +17,7 @@
 
 package languageTools.program.agent.actions;
 
+import krTools.KRInterface;
 import krTools.language.Substitution;
 import krTools.language.Update;
 import krTools.parser.SourceInfo;
@@ -54,10 +55,12 @@ public class SendOnceAction extends MentalAction {
 	 *            The {@link SentenceMood} of the message.
 	 * @param content
 	 *            The content of the message.
+	 * @param kr
+	 *            the {@link KRInterface}
 	 */
 	public SendOnceAction(Selector selector, SentenceMood mood, Update content,
-			SourceInfo info) {
-		super(AgentProgram.getTokenName(GOAL.SENDONCE), selector, info);
+			SourceInfo info, KRInterface kr) {
+		super(AgentProgram.getTokenName(GOAL.SENDONCE), selector, info, kr);
 		addParameter(content);
 		this.mood = mood;
 	}
@@ -89,7 +92,7 @@ public class SendOnceAction extends MentalAction {
 	public SendOnceAction applySubst(Substitution substitution) {
 		return new SendOnceAction(getSelector().applySubst(substitution),
 				getMood(), getParameters().get(0).applySubst(substitution),
-				getSourceInfo());
+				getSourceInfo(), getKRInterface());
 	}
 
 	/**

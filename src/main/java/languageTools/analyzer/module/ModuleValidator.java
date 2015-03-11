@@ -594,7 +594,7 @@ GOALVisitor {
 
 			Module module = visitNestedRules(ctx.nestedRules());
 			ModuleCallAction action = new ModuleCallAction(module,
-					new ArrayList<Term>(0), getSourceInfo(ctx));
+					new ArrayList<Term>(0), getSourceInfo(ctx),kri);
 			actions = new ActionCombo();
 			actions.addAction(action);
 		}
@@ -792,7 +792,7 @@ GOALVisitor {
 			if (op == null) {
 				// Can't figure out which action but don't return null.
 				return new UserSpecOrModuleCall("<missing name>",
-						new ArrayList<Term>(), getSourceInfo(ctx));
+						new ArrayList<Term>(), getSourceInfo(ctx),kri);
 			}
 
 			String argument = removeLeadTrailCharacters(ctx.PARLIST().getText());
@@ -800,11 +800,11 @@ GOALVisitor {
 			// Handle cases
 			if (op.equals(AgentProgram.getTokenName(GOAL.PRINT))) {
 				Term parameter = visit_KR_Term(argument, getSourceInfo(ctx));
-				return new PrintAction(parameter, getSourceInfo(ctx));
+				return new PrintAction(parameter, getSourceInfo(ctx),kri);
 			} else if (op.equals(AgentProgram.getTokenName(GOAL.LOG))) {
 				return new LogAction(ctx.PARLIST().getText()
 						.substring(1, ctx.PARLIST().getText().length() - 1),
-						getSourceInfo(ctx));
+						getSourceInfo(ctx),kri);
 			} else {
 				// send actions may have initial mood operator; check
 				SentenceMood mood = getMood(argument);
@@ -818,27 +818,27 @@ GOALVisitor {
 				if (content != null) {
 					if (op.equals(AgentProgram.getTokenName(GOAL.ADOPT))) {
 						return new AdoptAction(selector, content,
-								getSourceInfo(ctx));
+								getSourceInfo(ctx),kri);
 					} else if (op.equals(AgentProgram.getTokenName(GOAL.DROP))) {
 						return new DropAction(selector, content,
-								getSourceInfo(ctx));
+								getSourceInfo(ctx),kri);
 					} else if (op
 							.equals(AgentProgram.getTokenName(GOAL.INSERT))) {
 						return new InsertAction(selector, content,
-								getSourceInfo(ctx));
+								getSourceInfo(ctx),kri);
 					} else if (op
 							.equals(AgentProgram.getTokenName(GOAL.DELETE))) {
 						return new DeleteAction(selector, content,
-								getSourceInfo(ctx));
+								getSourceInfo(ctx),kri);
 					} else if (op.equals(AgentProgram.getTokenName(GOAL.SEND))) {
 						checkSendSelector(selector, ctx);
 						return new SendAction(selector, mood, content,
-								getSourceInfo(ctx));
+								getSourceInfo(ctx),kri);
 					} else if (op.equals(AgentProgram
 							.getTokenName(GOAL.SENDONCE))) {
 						checkSendSelector(selector, ctx);
 						return new SendOnceAction(selector, mood, content,
-								getSourceInfo(ctx));
+								getSourceInfo(ctx),kri);
 					}
 				}
 				return null;
@@ -847,12 +847,12 @@ GOALVisitor {
 			Map.Entry<String, List<Term>> action = visitDeclarationOrCallWithTerms(ctx
 					.declarationOrCallWithTerms());
 			return new UserSpecOrModuleCall(action.getKey(), action.getValue(),
-					getSourceInfo(ctx));
+					getSourceInfo(ctx),kri);
 		} else if (ctx.op.getType() == GOAL.EXITMODULE) {
-			return new ExitModuleAction(getSourceInfo(ctx));
+			return new ExitModuleAction(getSourceInfo(ctx),kri);
 		} else {
 			return new UserSpecOrModuleCall(ctx.op.getText(),
-					new ArrayList<Term>(), getSourceInfo(ctx));
+					new ArrayList<Term>(), getSourceInfo(ctx),kri);
 		}
 	}
 
@@ -949,7 +949,7 @@ GOALVisitor {
 		// Create action
 		UserSpecAction action = new UserSpecAction(declaration.getKey(),
 				declaration.getValue(), external, precondition, postcondition,
-				getSourceInfo(ctx));
+				getSourceInfo(ctx),kri);
 
 		if (!problem) {
 			// Check use of action parameters and variables in postcondition

@@ -17,6 +17,7 @@
 
 package languageTools.program.agent.actions;
 
+import krTools.KRInterface;
 import krTools.language.Substitution;
 import krTools.language.Update;
 import krTools.parser.SourceInfo;
@@ -53,9 +54,10 @@ public class DeleteAction extends MentalAction {
 	 * @param update
 	 *            The {@link Update} to be removed from to the
 	 *            {@link BeliefBase}.
+	 *            @param kr the {@link KRInterface}
 	 */
-	public DeleteAction(Selector selector, Update update, SourceInfo info) {
-		super(AgentProgram.getTokenName(GOAL.DELETE), selector, info);
+	public DeleteAction(Selector selector, Update update, SourceInfo info, KRInterface kr) {
+		super(AgentProgram.getTokenName(GOAL.DELETE), selector, info,kr);
 		addParameter(update);
 	}
 
@@ -70,7 +72,7 @@ public class DeleteAction extends MentalAction {
 	public DeleteAction applySubst(Substitution substitution) {
 		return new DeleteAction(getSelector().applySubst(substitution),
 				getParameters().get(0).applySubst(substitution),
-				getSourceInfo());
+				getSourceInfo(), getKRInterface());
 	}
 
 }

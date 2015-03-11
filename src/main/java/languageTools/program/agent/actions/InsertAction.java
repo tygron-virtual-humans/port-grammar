@@ -17,6 +17,7 @@
 
 package languageTools.program.agent.actions;
 
+import krTools.KRInterface;
 import krTools.language.Substitution;
 import krTools.language.Update;
 import krTools.parser.SourceInfo;
@@ -37,8 +38,8 @@ public class InsertAction extends MentalAction {
 	 * @param update
 	 *            The {@link Update} to be inserted.
 	 */
-	public InsertAction(Selector selector, Update update, SourceInfo info) {
-		super(AgentProgram.getTokenName(GOAL.INSERT), selector, info);
+	public InsertAction(Selector selector, Update update, SourceInfo info, KRInterface kr) {
+		super(AgentProgram.getTokenName(GOAL.INSERT), selector, info, kr);
 		addParameter(update);
 	}
 
@@ -52,7 +53,7 @@ public class InsertAction extends MentalAction {
 	@Override
 	public InsertAction applySubst(Substitution substitution) {
 		return new InsertAction(this.getSelector().applySubst(substitution),
-				getUpdate().applySubst(substitution), getSourceInfo());
+				getUpdate().applySubst(substitution), getSourceInfo(), getKRInterface());
 	}
 
 }

@@ -71,7 +71,7 @@ public abstract class Action<Parameter extends Expression> implements
 	 * The knowledge representation interface used for representing the action's
 	 * parameters and pre- and post-conditions.
 	 */
-	private KRInterface kri;
+	private final KRInterface kri;
 	/**
 	 * Source info about this object.
 	 */
@@ -82,13 +82,19 @@ public abstract class Action<Parameter extends Expression> implements
 	 *
 	 * @param name
 	 *            The name of the action.
-	 * @param kri
+	 * @param info
+	 *            the source info of this parsed object.
+	 * @param kr
 	 *            The kr interface used for representing the action's
 	 *            parameters.
 	 */
-	public Action(String name, SourceInfo info) {
+	public Action(String name, SourceInfo info, KRInterface kr) {
+		if (kr == null) {
+			throw new NullPointerException("BUG kr=null");
+		}
 		this.name = name;
 		this.info = info;
+		this.kri = kr;
 	}
 
 	/**
@@ -128,16 +134,6 @@ public abstract class Action<Parameter extends Expression> implements
 	 */
 	public KRInterface getKRInterface() {
 		return this.kri;
-	}
-
-	/**
-	 * Sets the KR interface.
-	 *
-	 * @param kri
-	 *            A KR interface.
-	 */
-	public void setKRInterface(KRInterface kri) {
-		this.kri = kri;
 	}
 
 	/**
@@ -230,21 +226,20 @@ public abstract class Action<Parameter extends Expression> implements
 		Substitution substitution;
 		Action<?> other = (Action<?>) expr;
 
-		if (!getParameters().isEmpty()
-				&& getParameters().size() == other.getParameters().size()) {
-			// Get mgu for first parameter
-			substitution = getParameters().get(0).mgu(
-					other.getParameters().get(0));
-			// Get mgu's for remaining parameters
-			for (int i = 1; i < getParameters().size() && substitution != null; i++) {
-				Substitution mgu = getParameters().get(i).mgu(
-						other.getParameters().get(i));
-				substitution = substitution.combine(mgu);
-			}
+		if (getParameters().size() != other.getParameters().size()) {
+			return null;
+		}
+		if (getParameters().isEmpty()) {
+			return this.kri.getSubstitution(new LinkedHashMap<Var, Term>());
+		}
 
-		} else {
-			substitution = this.kri
-					.getSubstitution(new LinkedHashMap<Var, Term>());
+		// Get mgu for first parameter
+		substitution = getParameters().get(0).mgu(other.getParameters().get(0));
+		// Get mgu's for remaining parameters
+		for (int i = 1; i < getParameters().size() && substitution != null; i++) {
+			Substitution mgu = getParameters().get(i).mgu(
+					other.getParameters().get(i));
+			substitution = substitution.combine(mgu);
 		}
 
 		return substitution;

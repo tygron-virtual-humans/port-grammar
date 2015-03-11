@@ -18,21 +18,27 @@
 package languageTools.analyzer.agent;
 
 import java.io.File;
+import java.io.NotActiveException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
+import krTools.KRInterface;
 import krTools.language.DatabaseFormula;
+import krTools.language.Expression;
 import krTools.language.Query;
 import krTools.language.Substitution;
 import krTools.language.Term;
 import krTools.language.Update;
 import krTools.language.Var;
+import krTools.parser.SourceInfo;
 import languageTools.analyzer.module.ModuleValidator;
 import languageTools.errors.ParserError.SyntaxError;
 import languageTools.errors.agent.AgentError;
@@ -417,29 +423,19 @@ public class AgentValidatorSecondPass {
 					if (symbol instanceof ModuleSymbol) {
 						Module target = ((ModuleSymbol) symbol).getModule();
 						resolved.add(new ModuleCallAction(target, call
-								.getParameters(), action.getSourceInfo()));
+								.getParameters(), action.getSourceInfo(), program.getKRInterface()));
 					} else { // must be ActionSymbol
-						ActionSpecification spec = ((ActionSymbol) symbol)
+						ActionSpecification spec1 = ((ActionSymbol) symbol)
 								.getActionSpecification();
-						Substitution unifier = getUnifier(spec.getAction()
-								.getParameters(),
-								((UserSpecOrModuleCall) action).getParameters());
-						Query pre = ((MentalLiteral) spec.getPreCondition()
-								.getSubFormulas().get(0)).getFormula();
-						Update post = spec.getPostCondition();
-						if (unifier != null && pre != null && post != null) {
-							// TODO: standardize apart vars in pre- and
-							// post-condition
-							List<Term> instantiated = new ArrayList<>();
-							for (Term term : spec.getAction().getParameters()) {
-								instantiated.add(term.applySubst(unifier));
-							}
-							resolved.add(new UserSpecAction(action.getName(),
-									instantiated,
-									spec.getAction().getExernal(), pre
-											.applySubst(unifier), post
-											.applySubst(unifier), action
-											.getSourceInfo()));
+						Substitution uniqueSub = makeTermVarsUnique(getFreeVars(spec1.getAction().getParameters()),
+								call.getFreeVar());
+						ActionSpecification fixedSpec = spec1.applySubst(uniqueSub);
+						// find the substi that matches the call to the spec.
+						// This substi is now used to bring the spec into the form fitting the call.
+						Substitution unifier = fixedSpec.getAction().mgu(action);
+
+						if (unifier!=null) {
+							resolved.add(fixedSpec.applySubst(unifier).getAction());
 						} else {
 							this.firstPass.reportError(
 									AgentError.ACTION_DOES_NOT_MATCH,
@@ -491,17 +487,21 @@ public class AgentValidatorSecondPass {
 								AgentError.MACRO_NOT_DEFINED,
 								formula.getSourceInfo(), signature);
 					} else {
-						List<Term> macroFormalPars = symbol.getMacro()
-								.getParameters();
-						List<Term> macroParsUsed = ((Macro) formula)
-								.getParameters();
 						// Assumes that formal parameters are all variables
 						// TODO: standardize variables in definition apart from
 						// other variables that occur in rule condition
-						Substitution substitution = getUnifier(macroFormalPars,
-								macroParsUsed);
-						MentalStateCondition instantiatedDf = symbol.getMacro()
-								.getDefinition().applySubst(substitution);
+						// TODO #3430. This is quick fix.
+						MacroExpression spec = new MacroExpression(symbol.getMacro());
+						MacroExpression call = new MacroExpression(((Macro) formula));
+						
+						Substitution uniqueSub = makeTermVarsUnique(spec.getFreeVar(),
+								call.getFreeVar());
+						MacroExpression fixedSpec = (MacroExpression)spec.applySubst(uniqueSub);
+						
+						Substitution substitution = fixedSpec.mgu(call);
+						MacroExpression fixedMacroExp = (MacroExpression) fixedSpec.applySubst(substitution);
+						MentalStateCondition instantiatedDf = fixedMacroExp.getMacro().
+								getDefinition();
 						((Macro) formula).setDefinition(instantiatedDf);
 					}
 				}
@@ -518,6 +518,83 @@ public class AgentValidatorSecondPass {
 			}
 		}
 		return macroLabelsUsed;
+	}
+
+	/**
+	 * Mechanism to make a Macro a standard expression. Don't know why it isn't
+	 * yet...
+	 */
+	private class MacroExpression implements Expression {
+
+		final protected Macro macro;
+
+		public MacroExpression(Macro m) {
+			macro = m;
+		}
+		
+		public Macro getMacro() {
+			return macro;
+		}
+
+		@Override
+		public String getSignature() {
+			return macro.getSignature();
+		}
+
+		@Override
+		public boolean isVar() {
+			return false;
+		}
+
+		@Override
+		public boolean isClosed() {
+			throw new RuntimeException("NOT IMPLEMENTED");
+		}
+
+		@Override
+		public Set<Var> getFreeVar() {
+			return macro.getFreeVar();
+		}
+
+		@Override
+		public Expression applySubst(Substitution substitution) {
+			return new MacroExpression(macro.applySubst(substitution));
+		}
+
+		@Override
+		public Substitution mgu(Expression expr) {
+			Substitution substitution;
+			MacroExpression other = (MacroExpression) expr;
+
+			if (!macro.getParameters().isEmpty()
+					&& macro.getParameters().size() == other.getParameters().size()) {
+				// Get mgu for first parameter
+				substitution = macro.getParameters().get(0).mgu(
+						other.getParameters().get(0));
+				// Get mgu's for remaining parameters
+				for (int i = 1; i < macro.getParameters().size() && substitution != null; i++) {
+					Substitution mgu = macro.getParameters().get(i).mgu(
+							other.getParameters().get(i));
+					substitution = substitution.combine(mgu);
+				}
+
+			} else {
+				substitution = program.getKRInterface()
+						.getSubstitution(new LinkedHashMap<Var, Term>());
+			}
+
+			return substitution;
+		}
+
+		private List<Term> getParameters() {
+			return macro.getParameters();
+		}
+
+		@Override
+		public SourceInfo getSourceInfo() {
+			return macro.getSourceInfo();
+		}
+
 	}
 
 	/**
@@ -794,30 +871,82 @@ public class AgentValidatorSecondPass {
 		return literals;
 	}
 
+//	/**
+//	 * Computes a unifier for the two lists of parameters. Assumes that both
+//	 * lists have equal length.
+//	 *
+//	 * @param formalParameters
+//	 *            List of terms. This is the spec side of the action.
+//	 * @param instantiatedParameters
+//	 *            List of terms. This is the caller side of the action. Note
+//	 *            that this need not be completely instantiated.
+//	 * @return Most general unifier, i.e., a {@link Substitution}, that unifies
+//	 *         parameters in both lists, or {@code null} if no unifier exists.
+//	 */
+//	private Substitution getUnifier1(Expression specification, Expression call) {
+//		Substitution uniqueSub = makeTermVarsUnique(specification.getFreeVar(),
+//				call.getFreeVar());
+//
+//		Expression fixedSpec = specification.applySubst(uniqueSub);
+//
+//		return fixedSpec.mgu(call);
+//
+//		// Iterator<Term> formal = formalParameters.iterator();
+//		// Iterator<Term> instantiated = instantiatedParameters.iterator();
+//		//
+//		// Substitution substitution = this.program.getKRInterface()
+//		// .getSubstitution(new HashMap<Var, Term>());
+//		//
+//		//
+//		// if (formal.hasNext()) {
+//		// substitution = formal.next().mgu(instantiated.next());
+//		// while (formal.hasNext() && substitution != null) {
+//		// substitution = substitution.combine(formal.next().mgu(
+//		// instantiated.next()));
+//		// }
+//		// }
+//		// return substitution;
+//	}
+
 	/**
-	 * Computes a unifier for the two lists of parameters. Assumes that both
-	 * lists have equal length.
-	 *
-	 * @param formalParameters
-	 *            List of terms.
-	 * @param instantiatedParameters
-	 *            List of terms.
-	 * @return Most general unifier, i.e., a {@link Substitution}, that unifies
-	 *         parameters in both lists, or {@code null} if no unifier exists.
+	 * get free vars of a list of terms.
+	 * 
+	 * @param terms
+	 * @return
 	 */
-	private Substitution getUnifier(List<Term> formalParameters,
-			List<Term> instantiatedParameters) {
-		Iterator<Term> formal = formalParameters.iterator();
-		Iterator<Term> instantiated = instantiatedParameters.iterator();
-		Substitution substitution = this.program.getKRInterface()
-				.getSubstitution(new HashMap<Var, Term>());
-		if (formal.hasNext()) {
-			substitution = formal.next().mgu(instantiated.next());
-			while (formal.hasNext() && substitution != null) {
-				substitution = substitution.combine(formal.next().mgu(
-						instantiated.next()));
-			}
+	Set<Var> getFreeVars(List<Term> terms) {
+		Set<Var> vars = new HashSet<Var>();
+		for (Term t : terms) {
+			vars.addAll(t.getFreeVar());
 		}
-		return substitution;
+		return vars;
+	}
+
+	/**
+	 * Get a substitution that we can apply to term, such that it will not use
+	 * given varsInUse.
+	 * 
+	 * @param varsToBeMadeUnique
+	 *            vars that have to be renamed if occuring iin the varsInUse
+	 *            list.
+	 * @param varsInUse
+	 *            set of {@link Var}s that are in use
+	 * @return
+	 */
+	private Substitution makeTermVarsUnique(Set<Var> varsToBeMadeUnique,
+			Set<Var> varsInUse) {
+		Set<Var> varsToRename = sharedVariables(varsToBeMadeUnique, varsInUse);
+		Map<Var, Term> subst = new HashMap<Var, Term>();
+		for (Var var : varsToRename) {
+			subst.put(var, var.getVariant(varsInUse));
+		}
+		return program.getKRInterface().getSubstitution(subst);
+	}
+
+	private Set<Var> sharedVariables(Set<Var> t1, Set<Var> varsInUse) {
+		Set<Var> sharedVars = new HashSet<Var>();
+		sharedVars.addAll(t1);
+		sharedVars.retainAll(varsInUse);
+		return sharedVars;
 	}
 }

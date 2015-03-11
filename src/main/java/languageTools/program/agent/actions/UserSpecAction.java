@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import krTools.KRInterface;
 import krTools.language.Query;
 import krTools.language.Substitution;
 import krTools.language.Term;
@@ -77,10 +78,13 @@ public class UserSpecAction extends Action<Term> {
 	 *            environment or not. {@code true} indicates that action should
 	 *            be sent to environment; {@code false} indicates that action
 	 *            should not be sent to environment.
+	 * @param kr
+	 *            the {@link KRInterface}
 	 */
 	public UserSpecAction(String name, List<Term> parameters, boolean external,
-			Query precondition, Update postcondition, SourceInfo info) {
-		super(name, info);
+			Query precondition, Update postcondition, SourceInfo info,
+			KRInterface kr) {
+		super(name, info, kr);
 
 		for (Term parameter : parameters) {
 			addParameter(parameter);
@@ -140,8 +144,9 @@ public class UserSpecAction extends Action<Term> {
 		Query precondition = this.precondition.applySubst(substitution);
 		Update postcondition = this.postcondition.applySubst(substitution);
 
-		return new UserSpecAction(getName(), parameters, this.external,
-				precondition, postcondition, getSourceInfo());
+		UserSpecAction spec = new UserSpecAction(getName(), parameters,
+				this.external, precondition, postcondition, getSourceInfo(), getKRInterface());
+		return spec;
 	}
 
 }

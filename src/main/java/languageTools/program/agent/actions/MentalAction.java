@@ -19,6 +19,7 @@ package languageTools.program.agent.actions;
 
 import java.util.Set;
 
+import krTools.KRInterface;
 import krTools.language.Update;
 import krTools.language.Var;
 import krTools.parser.SourceInfo;
@@ -61,9 +62,12 @@ public abstract class MentalAction extends Action<Update> {
 	 * @param selector
 	 *            The selector indicating on which mental model(s) this action
 	 *            should be executed.
+	 * @param kri
+	 *            the {@link KRInterface}
 	 */
-	protected MentalAction(String name, Selector selector, SourceInfo info) {
-		super(name, info);
+	protected MentalAction(String name, Selector selector, SourceInfo info,
+			KRInterface kri) {
+		super(name, info, kri);
 		this.selector = selector;
 	}
 

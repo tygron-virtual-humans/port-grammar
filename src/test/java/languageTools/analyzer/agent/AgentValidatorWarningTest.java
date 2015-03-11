@@ -52,7 +52,7 @@ public class AgentValidatorWarningTest {
 		assertEquals(2, this.errors.size());
 		assertEquals(AgentError.ACTIONSPEC_DUPLICATE_PARAMETER, this.errors
 				.get(0).getType());
-		assertEquals(AgentError.ACTION_USED_NEVER_DEFINED, this.errors.get(1)
+		assertEquals(AgentError.ACTION_DOES_NOT_MATCH, this.errors.get(1)
 				.getType());
 
 		// Agent file should produce 1 warning

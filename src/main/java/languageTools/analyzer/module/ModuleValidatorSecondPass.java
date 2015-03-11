@@ -365,7 +365,7 @@ public class ModuleValidatorSecondPass {
 					if (symbol instanceof ModuleSymbol) {
 						Module target = ((ModuleSymbol) symbol).getModule();
 						resolved.add(new ModuleCallAction(target, call
-								.getParameters(), action.getSourceInfo()));
+								.getParameters(), action.getSourceInfo(), program.getKRInterface()));
 					} else { // must be ActionSymbol
 						ActionSpecification spec = ((ActionSymbol) symbol)
 								.getActionSpecification();
@@ -387,7 +387,7 @@ public class ModuleValidatorSecondPass {
 									spec.getAction().getExernal(), pre
 											.applySubst(unifier), post
 											.applySubst(unifier), action
-											.getSourceInfo()));
+											.getSourceInfo(), program.getKRInterface()));
 						} else {
 							this.firstPass.reportError(
 									AgentError.ACTION_DOES_NOT_MATCH,
