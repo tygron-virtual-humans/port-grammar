@@ -1,23 +1,26 @@
 package languageTools.program.test;
 
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
+import languageTools.program.agent.msc.MentalFormula;
 import languageTools.program.agent.msc.MentalStateCondition;
 
 public class TestMentalStateCondition {
-	private final List<MentalStateCondition> conditions;
+	private final MentalStateCondition conditions;
 	private final List<TestAction> actions;
 
 	public TestMentalStateCondition(List<MentalStateCondition> conditions,
 			List<TestAction> actions) {
-		this.conditions = (conditions == null) ? new ArrayList<MentalStateCondition>(
-				0) : conditions;
-		this.actions = (actions == null) ? new ArrayList<TestAction>(0)
-						: actions;
+		List<MentalFormula> formulas = new LinkedList<>();
+		for (final MentalStateCondition condition : conditions) {
+			formulas.addAll(condition.getSubFormulas());
+		}
+		this.conditions = new MentalStateCondition(formulas);
+		this.actions = actions;
 	}
 
-	public List<MentalStateCondition> getConditions() {
+	public MentalStateCondition getConditions() {
 		return this.conditions;
 	}
 
@@ -37,13 +40,11 @@ public class TestMentalStateCondition {
 				builder.append(", ").append(action.toString());
 			}
 		}
-		for (MentalStateCondition condition : this.conditions) {
-			if (first) {
-				builder.append(condition.toString());
-				first = false;
-			} else {
-				builder.append(", ").append(condition.toString());
-			}
+		if (first) {
+			builder.append(this.conditions.toString());
+			first = false;
+		} else {
+			builder.append(", ").append(this.conditions.toString());
 		}
 		return builder.toString();
 	}
