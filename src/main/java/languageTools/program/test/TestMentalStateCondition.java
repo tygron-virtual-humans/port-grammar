@@ -1,50 +1,51 @@
 package languageTools.program.test;
 
-import java.util.LinkedList;
-import java.util.List;
-
-import languageTools.program.agent.msc.MentalFormula;
 import languageTools.program.agent.msc.MentalStateCondition;
 
 public class TestMentalStateCondition {
-	private final MentalStateCondition conditions;
-	private final List<TestAction> actions;
+	private final MentalStateCondition condition;
+	private final TestAction action;
+	private final boolean actionFirst;
 
-	public TestMentalStateCondition(List<MentalStateCondition> conditions,
-			List<TestAction> actions) {
-		List<MentalFormula> formulas = new LinkedList<>();
-		for (final MentalStateCondition condition : conditions) {
-			formulas.addAll(condition.getSubFormulas());
-		}
-		this.conditions = new MentalStateCondition(formulas);
-		this.actions = actions;
+	public TestMentalStateCondition(MentalStateCondition condition,
+			TestAction action) {
+		this.condition = condition;
+		this.action = action;
+		this.actionFirst = (condition == null) ? true : false;
 	}
 
-	public MentalStateCondition getConditions() {
-		return this.conditions;
+	public TestMentalStateCondition(TestAction action,
+			MentalStateCondition condition) {
+		this.condition = condition;
+		this.action = action;
+		this.actionFirst = (action == null) ? false : true;
 	}
 
-	public List<TestAction> getActions() {
-		return this.actions;
+	public MentalStateCondition getCondition() {
+		return this.condition;
+	}
+
+	public TestAction getAction() {
+		return this.action;
+	}
+
+	public boolean isActionFirst() {
+		return this.actionFirst;
 	}
 
 	@Override
 	public String toString() {
-		boolean first = true;
 		final StringBuilder builder = new StringBuilder();
-		for (TestAction action : this.actions) {
-			if (first) {
-				builder.append(action.toString());
-				first = false;
-			} else {
-				builder.append(", ").append(action.toString());
+		if (this.actionFirst) {
+			builder.append(this.action.toString());
+			if (this.condition != null) {
+				builder.append(", ").append(this.condition.toString());
 			}
-		}
-		if (first) {
-			builder.append(this.conditions.toString());
-			first = false;
-		} else {
-			builder.append(", ").append(this.conditions.toString());
+		} else if (this.condition != null) {
+			builder.append(this.condition.toString());
+			if (this.action != null) {
+				builder.append(", ").append(this.action.toString());
+			}
 		}
 		return builder.toString();
 	}
@@ -54,9 +55,9 @@ public class TestMentalStateCondition {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result
-				+ ((this.actions == null) ? 0 : this.actions.hashCode());
+				+ ((this.action == null) ? 0 : this.action.hashCode());
 		result = prime * result
-				+ ((this.conditions == null) ? 0 : this.conditions.hashCode());
+				+ ((this.condition == null) ? 0 : this.condition.hashCode());
 		return result;
 	}
 
@@ -69,18 +70,18 @@ public class TestMentalStateCondition {
 			return false;
 		}
 		TestMentalStateCondition other = (TestMentalStateCondition) obj;
-		if (this.actions == null) {
-			if (other.actions != null) {
+		if (this.action == null) {
+			if (other.action != null) {
 				return false;
 			}
-		} else if (!this.actions.equals(other.actions)) {
+		} else if (!this.action.equals(other.getAction())) {
 			return false;
 		}
-		if (this.conditions == null) {
-			if (other.conditions != null) {
+		if (this.condition == null) {
+			if (other.condition != null) {
 				return false;
 			}
-		} else if (!this.conditions.equals(other.conditions)) {
+		} else if (!this.condition.equals(other.getCondition())) {
 			return false;
 		}
 		return true;

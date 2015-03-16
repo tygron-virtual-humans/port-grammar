@@ -97,5 +97,5 @@ testBoundary
 	;
 
 testMentalStateCondition
-	: (mentalStateCondition|doTest) (',' (mentalStateCondition|doTest))*
+	: (mentalStateCondition (',' doTest)?) | (doTest (',' mentalStateCondition)?)
 	;

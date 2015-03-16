@@ -660,19 +660,25 @@ TestVisitor {
 	}
 
 	@Override
-	public List<UserSpecOrModuleCall> visitDoTest(DoTestContext ctx) {
-		List<UserSpecOrModuleCall> calls = new LinkedList<>();
+	public UserSpecOrModuleCall visitDoTest(DoTestContext ctx) {
+		UserSpecOrModuleCall call = null;
 		if (ctx.PARLIST() != null) {
 			List<Map.Entry<String, List<Term>>> actions = visitPARLIST(ctx
 					.PARLIST().getText(), ctx);
 			for (Map.Entry<String, List<Term>> action : actions) {
 				if (action != null) {
-					calls.add(new UserSpecOrModuleCall(action.getKey(), action
-							.getValue(), getSourceInfo(ctx),null)); 
+					if (call == null) {
+						call = new UserSpecOrModuleCall(action.getKey(),
+								action.getValue(), getSourceInfo(ctx), null);
+					} else {
+						reportError(TestError.TEST_DUPLICATE_ACTION,
+								ctx.PARLIST());
+						break;
+					}
 				}
 			}
 		}
-		return calls;
+		return call;
 	}
 
 	public List<Map.Entry<String, List<Term>>> visitPARLIST(String parlist,
@@ -705,30 +711,39 @@ TestVisitor {
 	@Override
 	public TestMentalStateCondition visitTestMentalStateCondition(
 			TestMentalStateConditionContext ctx) {
-		List<MentalStateCondition> conditions = new LinkedList<>();
+		InputStreamPosition first = null;
+		MentalStateCondition condition = null;
 		if (ctx.mentalStateCondition() != null) {
-			for (MentalStateConditionContext msc : ctx.mentalStateCondition()) {
-				MentalStateCondition condition = visitMentalStateCondition(msc);
-				if (condition != null) {
-					conditions.add(condition);
-				}
+			condition = visitMentalStateCondition(ctx.mentalStateCondition());
+			if (condition != null) {
+				first = (InputStreamPosition) getSourceInfo(ctx
+						.mentalStateCondition());
 			}
 		}
-		List<TestAction> actions = new LinkedList<>();
+		InputStreamPosition second = null;
+		TestAction testaction = null;
 		if (ctx.doTest() != null) {
-			for (DoTestContext dt : ctx.doTest()) {
-				List<UserSpecOrModuleCall> calls = visitDoTest(dt);
-				for (UserSpecOrModuleCall call : calls) {
-					Action<?> action = AgentValidator.resolve(call,
-							this.agentProgram);
-					if (action instanceof UserSpecAction) {
-						actions.add(new TestAction((UserSpecAction) action, dt
-								.NOT() == null));
-					} // TODO: else > error
-				}
+			UserSpecOrModuleCall call = visitDoTest(ctx.doTest());
+			Action<?> action = AgentValidator.resolve(call, this.agentProgram);
+			if (action instanceof UserSpecAction) {
+				testaction = new TestAction((UserSpecAction) action, ctx
+						.doTest().NOT() == null);
+				second = (InputStreamPosition) getSourceInfo(ctx.doTest());
+			} else {
+				reportError(TestError.TEST_INVALID_ACTION, ctx.doTest());
 			}
 		}
-		return new TestMentalStateCondition(conditions, actions);
+		if (first == null) {
+			return new TestMentalStateCondition(testaction, condition);
+		} else if (second == null) {
+			return new TestMentalStateCondition(condition, testaction);
+		} else {
+			if (first.compareTo(second) > 0) {
+				return new TestMentalStateCondition(testaction, condition);
+			} else {
+				return new TestMentalStateCondition(condition, testaction);
+			}
+		}
 	}
 
 	// THE FUNCTIONS BELOW ARE UNUSED...
