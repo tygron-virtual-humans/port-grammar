@@ -134,8 +134,8 @@ import org.antlr.v4.runtime.tree.ParseTree;
  */
 @SuppressWarnings("rawtypes")
 public class ModuleValidator extends
-Validator<MyGOALLexer, GOAL, AgentErrorStrategy, Module> implements
-GOALVisitor {
+		Validator<MyGOALLexer, GOAL, AgentErrorStrategy, Module> implements
+		GOALVisitor {
 
 	private GOAL parser;
 	private static AgentErrorStrategy strategy = null;
@@ -645,7 +645,7 @@ GOALVisitor {
 
 			Module module = visitNestedRules(ctx.nestedRules());
 			ModuleCallAction action = new ModuleCallAction(module,
-					new ArrayList<Term>(0), getSourceInfo(ctx),kri);
+					new ArrayList<Term>(0), getSourceInfo(ctx), this.kri);
 			actions = new ActionCombo();
 			actions.addAction(action);
 		}
@@ -843,7 +843,7 @@ GOALVisitor {
 			if (op == null) {
 				// Can't figure out which action but don't return null.
 				return new UserSpecOrModuleCall("<missing name>",
-						new ArrayList<Term>(), getSourceInfo(ctx),kri);
+						new ArrayList<Term>(), getSourceInfo(ctx), this.kri);
 			}
 
 			String argument = removeLeadTrailCharacters(ctx.PARLIST().getText());
@@ -851,11 +851,11 @@ GOALVisitor {
 			// Handle cases
 			if (op.equals(AgentProgram.getTokenName(GOAL.PRINT))) {
 				Term parameter = visit_KR_Term(argument, getSourceInfo(ctx));
-				return new PrintAction(parameter, getSourceInfo(ctx),kri);
+				return new PrintAction(parameter, getSourceInfo(ctx), this.kri);
 			} else if (op.equals(AgentProgram.getTokenName(GOAL.LOG))) {
 				return new LogAction(ctx.PARLIST().getText()
 						.substring(1, ctx.PARLIST().getText().length() - 1),
-						getSourceInfo(ctx),kri);
+						getSourceInfo(ctx), this.kri);
 			} else {
 				// send actions may have initial mood operator; check
 				SentenceMood mood = getMood(argument);
@@ -869,27 +869,27 @@ GOALVisitor {
 				if (content != null) {
 					if (op.equals(AgentProgram.getTokenName(GOAL.ADOPT))) {
 						return new AdoptAction(selector, content,
-								getSourceInfo(ctx),kri);
+								getSourceInfo(ctx), this.kri);
 					} else if (op.equals(AgentProgram.getTokenName(GOAL.DROP))) {
 						return new DropAction(selector, content,
-								getSourceInfo(ctx),kri);
+								getSourceInfo(ctx), this.kri);
 					} else if (op
 							.equals(AgentProgram.getTokenName(GOAL.INSERT))) {
 						return new InsertAction(selector, content,
-								getSourceInfo(ctx),kri);
+								getSourceInfo(ctx), this.kri);
 					} else if (op
 							.equals(AgentProgram.getTokenName(GOAL.DELETE))) {
 						return new DeleteAction(selector, content,
-								getSourceInfo(ctx),kri);
+								getSourceInfo(ctx), this.kri);
 					} else if (op.equals(AgentProgram.getTokenName(GOAL.SEND))) {
 						checkSendSelector(selector, ctx);
 						return new SendAction(selector, mood, content,
-								getSourceInfo(ctx),kri);
+								getSourceInfo(ctx), this.kri);
 					} else if (op.equals(AgentProgram
 							.getTokenName(GOAL.SENDONCE))) {
 						checkSendSelector(selector, ctx);
 						return new SendOnceAction(selector, mood, content,
-								getSourceInfo(ctx),kri);
+								getSourceInfo(ctx), this.kri);
 					}
 				}
 				return null;
@@ -898,12 +898,12 @@ GOALVisitor {
 			Map.Entry<String, List<Term>> action = visitDeclarationOrCallWithTerms(ctx
 					.declarationOrCallWithTerms());
 			return new UserSpecOrModuleCall(action.getKey(), action.getValue(),
-					getSourceInfo(ctx),kri);
+					getSourceInfo(ctx), this.kri);
 		} else if (ctx.op.getType() == GOAL.EXITMODULE) {
-			return new ExitModuleAction(getSourceInfo(ctx),kri);
+			return new ExitModuleAction(getSourceInfo(ctx), this.kri);
 		} else {
 			return new UserSpecOrModuleCall(ctx.op.getText(),
-					new ArrayList<Term>(), getSourceInfo(ctx),kri);
+					new ArrayList<Term>(), getSourceInfo(ctx), this.kri);
 		}
 	}
 
@@ -1000,7 +1000,7 @@ GOALVisitor {
 		// Create action
 		UserSpecAction action = new UserSpecAction(declaration.getKey(),
 				declaration.getValue(), external, precondition, postcondition,
-				getSourceInfo(ctx),kri);
+				getSourceInfo(ctx), this.kri);
 
 		if (!problem) {
 			// Check use of action parameters and variables in postcondition
@@ -1351,18 +1351,9 @@ GOALVisitor {
 		for (SourceInfo error : parser.getErrors()) {
 			// ignore null errors; we cannot make anything out of those...
 			if (error != null) {
-				int line = info.getLineNumber() + error.getLineNumber() - 1;
-				int charpos;
-				// Assumes KR parser starts line counting from 1
-				if (error.getLineNumber() > 1) {
-					charpos = error.getCharacterPosition();
-				} else {
-					charpos = info.getCharacterPosition()
-							+ error.getCharacterPosition();
-				}
-
-				InputStreamPosition pos = new InputStreamPosition(line,
-						charpos, 0, 0, info.getSource());
+				InputStreamPosition pos = new InputStreamPosition(
+						error.getLineNumber(), error.getCharacterPosition(), 0,
+						0, error.getSource());
 				reportError(SyntaxError.EMBEDDED_LANGUAGE_ERROR, pos,
 						error.getMessage());
 			}
