@@ -1408,13 +1408,15 @@ implements GOALVisitor {
 	 * @param parser
 	 *            The parser that generated the errors.
 	 */
-	private void reportEmbeddedLanguageErrors(Parser parser) {
+	private void reportEmbeddedLanguageErrors(Parser parser, SourceInfo info) {
 		for (SourceInfo error : parser.getErrors()) {
 			// ignore null errors; we cannot make anything out of those...
 			if (error != null) {
 				InputStreamPosition pos = new InputStreamPosition(
-						error.getLineNumber(), error.getCharacterPosition(), 0,
-						0, error.getSource());
+						error.getLineNumber(), error.getCharacterPosition(),
+						info.getStartIndex() + error.getStartIndex(),
+						info.getStopIndex() + error.getStopIndex(),
+						error.getSource());
 				reportError(SyntaxError.EMBEDDED_LANGUAGE_ERROR, pos,
 						error.getMessage());
 			}
@@ -1448,7 +1450,7 @@ implements GOALVisitor {
 			formulas = parser.parseDBFs();
 
 			// Add errors from parser for embedded language to our own
-			reportEmbeddedLanguageErrors(parser);
+			reportEmbeddedLanguageErrors(parser, info);
 		} catch (ParserException e) {
 			// Report problem, and try to continue with parsing the rest of the
 			// source.
@@ -1483,7 +1485,7 @@ implements GOALVisitor {
 			update = parser.parseUpdate();
 
 			// Add errors from parser for embedded language to our own
-			reportEmbeddedLanguageErrors(parser);
+			reportEmbeddedLanguageErrors(parser, info);
 		} catch (ParserException e) {
 			// Report problem, and try to continue with parsing the rest of the
 			// source.
@@ -1518,7 +1520,7 @@ implements GOALVisitor {
 			queries = parser.parseQueries();
 
 			// Add errors from parser for embedded language to our own
-			reportEmbeddedLanguageErrors(parser);
+			reportEmbeddedLanguageErrors(parser, info);
 		} catch (ParserException e) {
 			// Report problem, return, and try to continue with parsing the rest
 			// of the source.
@@ -1549,7 +1551,7 @@ implements GOALVisitor {
 			query = parser.parseQuery();
 
 			// Add errors from parser for embedded language to our own
-			reportEmbeddedLanguageErrors(parser);
+			reportEmbeddedLanguageErrors(parser, info);
 		} catch (ParserException e) {
 			// Report problem, return, and try to continue with parsing the rest
 			// of the source.
@@ -1581,7 +1583,7 @@ implements GOALVisitor {
 			term = parser.parseTerm();
 
 			// Add errors from parser for embedded language to our own
-			reportEmbeddedLanguageErrors(parser);
+			reportEmbeddedLanguageErrors(parser, info);
 		} catch (ParserException e) {
 			// Report problem, return, and try to continue with parsing the rest
 			// of the source.
@@ -1612,7 +1614,7 @@ implements GOALVisitor {
 			parameters = parser.parseTerms();
 
 			// Add errors from parser for embedded language to our own
-			reportEmbeddedLanguageErrors(parser);
+			reportEmbeddedLanguageErrors(parser, info);
 		} catch (ParserException e) {
 			// Report problem, return, and try to continue with parsing the rest
 			// of the source.
@@ -1642,7 +1644,7 @@ implements GOALVisitor {
 		Var var = parser.parseVar();
 
 		// Add errors from parser for embedded language to our own
-		reportEmbeddedLanguageErrors(parser);
+		reportEmbeddedLanguageErrors(parser, info);
 
 		return var;
 	}

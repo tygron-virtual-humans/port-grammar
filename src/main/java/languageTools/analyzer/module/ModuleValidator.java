@@ -1352,8 +1352,10 @@ public class ModuleValidator extends
 			// ignore null errors; we cannot make anything out of those...
 			if (error != null) {
 				InputStreamPosition pos = new InputStreamPosition(
-						error.getLineNumber(), error.getCharacterPosition(), 0,
-						0, error.getSource());
+						error.getLineNumber(), error.getCharacterPosition(),
+						info.getStartIndex() + error.getStartIndex(),
+						info.getStopIndex() + error.getStopIndex(),
+						error.getSource());
 				reportError(SyntaxError.EMBEDDED_LANGUAGE_ERROR, pos,
 						error.getMessage());
 			}
