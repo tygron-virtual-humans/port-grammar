@@ -90,7 +90,7 @@ testCondition
 	: testConditionPart ('->' testConditionPart)* '.'
 	;
 testConditionPart
-	: (ATSTART | ALWAYS | NEVER | EVENTUALLY | ATEND) testMentalStateCondition
+	: (ALWAYS | NEVER | EVENTUALLY | ATEND) testMentalStateCondition
 	;
 testBoundary
     : (UNTIL | WHILE) testMentalStateCondition
