@@ -134,8 +134,8 @@ import org.antlr.v4.runtime.tree.ParseTree;
  */
 @SuppressWarnings("rawtypes")
 public class ModuleValidator extends
-		Validator<MyGOALLexer, GOAL, AgentErrorStrategy, Module> implements
-		GOALVisitor {
+Validator<MyGOALLexer, GOAL, AgentErrorStrategy, Module> implements
+GOALVisitor {
 
 	private GOAL parser;
 	private static AgentErrorStrategy strategy = null;
@@ -495,8 +495,8 @@ public class ModuleValidator extends
 			try {
 				String content = new String(Files.readAllBytes(Paths.get(file
 						.getPath())));
-				imported = visit_KR_DBFs(removeLeadTrailCharacters(content),
-						new InputStreamPosition(0, 0, 0, 0, file));
+				imported = visit_KR_DBFs(content, new InputStreamPosition(0, 0,
+						0, 0, file));
 			} catch (Exception e) {
 				// Convert stack trace to string
 				StringWriter sw = new StringWriter();
@@ -862,7 +862,8 @@ public class ModuleValidator extends
 				if (mood == null) { // set default mood
 					mood = SentenceMood.INDICATIVE;
 				} else { // remove mood operator from content
-					argument = argument.substring(1);
+					int opIndex = argument.indexOf(mood.toString());
+					argument = argument.trim().substring(opIndex + 1);
 				}
 				// Parse content using KR parser
 				Update content = visit_KR_Update(argument, getSourceInfo(ctx));
@@ -1231,15 +1232,17 @@ public class ModuleValidator extends
 	 * @return Mood operator, if message starts with operator, {@code null}
 	 *         otherwise.
 	 */
-	private SentenceMood getMood(String msg) {
-		if (msg.startsWith("!")) {
+	public SentenceMood getMood(String msg) {
+		String trimmed = msg.trim();
+		if (trimmed.startsWith("!")) {
 			return SentenceMood.IMPERATIVE;
-		} else if (msg.startsWith("?")) {
+		} else if (trimmed.startsWith("?")) {
 			return SentenceMood.INTERROGATIVE;
-		} else if (msg.startsWith(":")) {
+		} else if (trimmed.startsWith(":")) {
 			return SentenceMood.INDICATIVE;
+		} else {
+			return null;
 		}
-		return null;
 	}
 
 	/**
