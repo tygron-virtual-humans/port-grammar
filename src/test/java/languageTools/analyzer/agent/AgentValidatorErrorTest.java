@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import goalhub.krTools.KRFactory;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -13,17 +14,14 @@ import languageTools.errors.ParserError.SyntaxError;
 import languageTools.errors.agent.AgentError;
 import languageTools.errors.agent.AgentWarning;
 import languageTools.program.agent.AgentProgram;
-import languageTools.symbolTable.SymbolTable;
 
 import org.junit.Test;
 
 public class AgentValidatorErrorTest {
-
-	List<Message> syntaxerrors;
-	List<Message> errors;
-	List<Message> warnings;
-	SymbolTable table;
-	AgentProgram program;
+	private List<Message> syntaxerrors;
+	private List<Message> errors;
+	private List<Message> warnings;
+	private AgentProgram program;
 
 	/**
 	 * Creates validator, calls validate, and initializes relevant fields.
@@ -37,9 +35,9 @@ public class AgentValidatorErrorTest {
 		validator.setKRInterface(KRFactory.getDefaultInterface());
 		validator.validate();
 
-		this.syntaxerrors = validator.getSyntaxErrors();
-		this.errors = validator.getErrors();
-		this.warnings = validator.getWarnings();
+		this.syntaxerrors = new ArrayList<Message>(validator.getSyntaxErrors());
+		this.errors = new ArrayList<Message>(validator.getErrors());
+		this.warnings = new ArrayList<Message>(validator.getWarnings());
 		this.program = validator.getProgram();
 
 		List<Message> all = new LinkedList<>();
@@ -79,22 +77,22 @@ public class AgentValidatorErrorTest {
 		// Agent file should produce errors
 		assertEquals(4, this.errors.size());
 
-		assertEquals(AgentError.ACTION_USED_NEVER_DEFINED, this.errors.get(0)
-				.getType());
-		assertEquals(AgentError.ACTION_USED_NEVER_DEFINED, this.errors.get(1)
-				.getType());
-		assertEquals(AgentError.MACRO_NOT_DEFINED, this.errors.get(2).getType());
 		assertEquals(AgentError.KR_BELIEF_QUERIED_NEVER_DEFINED, this.errors
-				.get(3).getType());
+				.get(0).getType());
+		assertEquals(AgentError.MACRO_NOT_DEFINED, this.errors.get(1).getType());
+		assertEquals(AgentError.ACTION_USED_NEVER_DEFINED, this.errors.get(2)
+				.getType());
+		assertEquals(AgentError.ACTION_USED_NEVER_DEFINED, this.errors.get(3)
+				.getType());
 
 		// Agent file should produce 3 warnings
 		assertEquals(3, this.warnings.size());
 
-		assertEquals(AgentWarning.ACTION_NEVER_USED, this.warnings.get(0)
+		assertEquals(AgentWarning.MACRO_NEVER_USED, this.warnings.get(0)
 				.getType());
-		assertEquals(AgentWarning.MODULE_NEVER_USED, this.warnings.get(1)
+		assertEquals(AgentWarning.ACTION_NEVER_USED, this.warnings.get(1)
 				.getType());
-		assertEquals(AgentWarning.MACRO_NEVER_USED, this.warnings.get(2)
+		assertEquals(AgentWarning.MODULE_NEVER_USED, this.warnings.get(2)
 				.getType());
 	}
 

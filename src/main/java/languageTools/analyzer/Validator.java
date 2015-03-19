@@ -4,11 +4,12 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import krTools.parser.SourceInfo;
 import languageTools.errors.Message;
@@ -74,9 +75,9 @@ public abstract class Validator<L extends MyLexer<?>, P extends Parser, E extend
 	 * Lexer generated tokens.
 	 */
 	private CommonTokenStream tokens;
-	private List<Message> syntaxErrors = new ArrayList<Message>();
-	private List<Message> errors = new ArrayList<Message>();
-	private List<Message> warnings = new ArrayList<Message>();
+	private final SortedSet<Message> syntaxErrors = new TreeSet<Message>();
+	private final SortedSet<Message> errors = new TreeSet<Message>();
+	private final SortedSet<Message> warnings = new TreeSet<Message>();
 
 	/**
 	 * Creates the validator.
@@ -232,11 +233,6 @@ public abstract class Validator<L extends MyLexer<?>, P extends Parser, E extend
 	 * errors and warnings.
 	 */
 	public String report() {
-		// Sort errors on line and position numbers
-		this.syntaxErrors = sort(this.syntaxErrors);
-		this.errors = sort(this.errors);
-		this.warnings = sort(this.warnings);
-
 		StringBuilder report = new StringBuilder();
 		// Report parsing errors
 		report.append("\n");
@@ -285,7 +281,7 @@ public abstract class Validator<L extends MyLexer<?>, P extends Parser, E extend
 	/**
 	 * @return The list of semantic (validation) errors found during validation.
 	 */
-	public List<Message> getSyntaxErrors() {
+	public SortedSet<Message> getSyntaxErrors() {
 		return this.syntaxErrors;
 	}
 
@@ -310,7 +306,7 @@ public abstract class Validator<L extends MyLexer<?>, P extends Parser, E extend
 	/**
 	 * @return The list of semantic (validation) errors found during validation.
 	 */
-	public List<Message> getErrors() {
+	public SortedSet<Message> getErrors() {
 		return this.errors;
 	}
 
@@ -394,7 +390,7 @@ public abstract class Validator<L extends MyLexer<?>, P extends Parser, E extend
 	/**
 	 * @return The list of warnings found during validation.
 	 */
-	public List<Message> getWarnings() {
+	public SortedSet<Message> getWarnings() {
 		return this.warnings;
 	}
 
@@ -506,9 +502,9 @@ public abstract class Validator<L extends MyLexer<?>, P extends Parser, E extend
 		case TOKENRECOGNITIONERROR:
 			// Check if this and last error were both token recognition errors;
 			// if so, merge them
-			int last = this.syntaxErrors.size() - 1;
-			if (last >= 0 && this.syntaxErrors.get(last).getType().equals(type)) {
-				Message error = this.syntaxErrors.get(last);
+			if (!this.syntaxErrors.isEmpty()
+					&& this.syntaxErrors.last().getType().equals(type)) {
+				Message error = this.syntaxErrors.last();
 				// Use old input stream position, but first get new stop index
 				int stop = pos.getStopIndex();
 				pos = (InputStreamPosition) error.getSource();
@@ -516,7 +512,7 @@ public abstract class Validator<L extends MyLexer<?>, P extends Parser, E extend
 				// Concatenate symbols that were not recognized
 				text = error.getArguments()[0] + text;
 				// Remove previous error
-				this.syntaxErrors.remove(last);
+				this.syntaxErrors.remove(this.syntaxErrors.last());
 			}
 			break;
 		case UNTERMINATEDSTRINGLITERAL:
@@ -644,62 +640,6 @@ public abstract class Validator<L extends MyLexer<?>, P extends Parser, E extend
 	 */
 	protected String getPathRelativeToSourceFile(String filename) {
 		return FilenameUtils.getFullPath(getFilename()).concat(filename);
-	}
-
-	/**
-	 * Sorts a list of messages on line and position numbers.
-	 *
-	 * @param messages
-	 *            A list of messages.
-	 */
-	private List<Message> sort(List<Message> messages) {
-		List<Message> sorted = new ArrayList<>();
-		Iterator<Message> msgIterator = messages.iterator();
-		Message msg;
-		int i;
-
-		// Add elements in right place
-		while (msgIterator.hasNext()) {
-			msg = msgIterator.next();
-			i = 0;
-			// add messages without source info to the front of the list
-			if (msg.getSource() != null) {
-				// skip messages in list without source info
-				while (i < sorted.size() && sorted.get(i).getSource() == null) {
-					i++;
-				}
-				while (i < sorted.size()
-						&& before(sorted.get(i).getSource(), msg.getSource())) {
-					i++;
-				}
-			}
-			sorted.add(i, msg);
-		}
-
-		return sorted;
-	}
-
-	/**
-	 * @param info1
-	 *            A source info object.
-	 * @param info2
-	 *            A source info object.
-	 * @return {@code true} if source position of info1 object occurs before
-	 *         position of info2 object.
-	 */
-	private boolean before(SourceInfo info1, SourceInfo info2) {
-		boolean source = (info1.getSource().getName()
-				.compareTo(info2.getSource().getName()) < 0);
-		boolean sourceEqual = (info1.getSource().getName()
-				.compareTo(info2.getSource().getName()) == 0);
-		boolean lineNr = sourceEqual
-				&& (info1.getLineNumber() < info2.getLineNumber());
-		boolean lineNrEqual = (info1.getLineNumber() == info2.getLineNumber());
-		boolean position = sourceEqual
-				&& lineNrEqual
-				&& (info1.getCharacterPosition() < info2.getCharacterPosition());
-
-		return source || lineNr || position;
 	}
 
 	/**

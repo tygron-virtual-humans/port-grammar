@@ -8,11 +8,7 @@ import languageTools.parser.InputStreamPosition;
 
 import org.antlr.v4.runtime.tree.TerminalNode;
 
-public abstract class Message implements Serializable {
-
-	/**
-	 *
-	 */
+public abstract class Message implements Serializable, Comparable<Message> {
 	private static final long serialVersionUID = 6396169798566643352L;
 	private SourceInfo source = null;
 
@@ -85,17 +81,15 @@ public abstract class Message implements Serializable {
 	public boolean equals(Object obj) {
 		if (this == obj) {
 			return true;
-		} else if (obj == null) {
-			return false;
-		} else if (!(obj instanceof Message)) {
+		} else if (obj == null || !(obj instanceof Message)) {
 			return false;
 		} else {
 			Message other = (Message) obj;
-			if (this.getSource() == null) {
+			if (getSource() == null) {
 				if (other.getSource() != null) {
 					return false;
 				}
-			} else if (!this.getSource().equals(other.getSource())) {
+			} else if (!getSource().equals(other.getSource())) {
 				return false;
 			}
 			if (this.type == null) {
@@ -113,12 +107,45 @@ public abstract class Message implements Serializable {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		// TODO: How to map getSource() to int??? Replace 17 with that
-		// expression!
-		result = prime * result + ((getSource() == null) ? 0 : 17);
+		result = prime * result
+				+ ((this.source == null) ? 0 : this.source.hashCode());
 		result = prime * result
 				+ ((this.type == null) ? 0 : this.type.hashCode());
 		return result;
 	}
 
+	@Override
+	public int compareTo(Message other) {
+		if (equals(other)) {
+			return 0;
+		} else if (other.getSource() == null) {
+			return (this.source == null) ? 0 : -1;
+		} else if (this.source == null) {
+			return 1;
+		} else {
+			return before(this.source, other.getSource()) ? -1 : 1;
+		}
+	}
+
+	/**
+	 * @param info1
+	 *            A source info object.
+	 * @param info2
+	 *            A source info object.
+	 * @return {@code true} if source position of info1 object occurs before
+	 *         position of info2 object.
+	 */
+	private boolean before(SourceInfo info1, SourceInfo info2) {
+		boolean source = (info1.getSource().getName()
+				.compareTo(info2.getSource().getName()) < 0);
+		boolean sourceEqual = (info1.getSource().getName()
+				.compareTo(info2.getSource().getName()) == 0);
+		boolean lineNr = sourceEqual
+				&& (info1.getLineNumber() < info2.getLineNumber());
+		boolean lineNrEqual = (info1.getLineNumber() == info2.getLineNumber());
+		boolean position = sourceEqual
+				&& lineNrEqual
+				&& (info1.getCharacterPosition() < info2.getCharacterPosition());
+		return source || lineNr || position;
+	}
 }

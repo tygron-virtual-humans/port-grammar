@@ -221,7 +221,7 @@ TestVisitor {
 				createMas.validate();
 				this.masProgram = createMas.getProgram();
 				if (!this.masProgram.isValid()) {
-					List<Message> masErrors = createMas.getErrors();
+					Set<Message> masErrors = createMas.getErrors();
 					masErrors.addAll(createMas.getSyntaxErrors());
 					reportError(TestError.MAS_INVALID, ctx.masFile(),
 							masFile.getPath(), masErrors.toString());
@@ -240,7 +240,7 @@ TestVisitor {
 				if (agent.isValid()) {
 					getProgram().addAgent(agent);
 				} else {
-					List<Message> agentErrors = createAgent.getErrors();
+					Set<Message> agentErrors = createAgent.getErrors();
 					agentErrors.addAll(createAgent.getSyntaxErrors());
 					reportError(TestError.AGENT_INVALID, ctx.masFile(),
 							agentFile.getPath(), agentErrors.toString());
@@ -455,7 +455,7 @@ TestVisitor {
 		AgentValidator sub = new AgentValidator("inline-action");
 		sub.setKRInterface(this.agentProgram.getKRInterface());
 		ActionCombo subcombo = sub.visitActions(comboContext);
-		List<Message> errors = sub.getErrors();
+		Set<Message> errors = sub.getErrors();
 		errors.addAll(sub.getSyntaxErrors());
 
 		if (errors.isEmpty()) {
@@ -515,7 +515,7 @@ TestVisitor {
 		sub.setKRInterface(this.agentProgram.getKRInterface());
 		MentalStateCondition condition = sub
 				.visitMentalStateCondition(conditionContext);
-		List<Message> errors = sub.getErrors();
+		Set<Message> errors = sub.getErrors();
 		errors.addAll(sub.getSyntaxErrors());
 
 		if (!errors.isEmpty()) {
@@ -699,7 +699,7 @@ TestVisitor {
 			}
 		}
 
-		List<Message> errors = sub.getErrors();
+		Set<Message> errors = sub.getErrors();
 		errors.addAll(sub.getSyntaxErrors());
 		if (!errors.isEmpty()) {
 			reportError(TestError.TEST_INVALID_ACTION, ctx);

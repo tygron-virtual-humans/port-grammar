@@ -29,7 +29,7 @@ import org.antlr.v4.runtime.Token;
  * number index and character position on that line.
  */
 public class InputStreamPosition implements SourceInfo,
-		Comparable<InputStreamPosition> {
+Comparable<InputStreamPosition> {
 
 	/**
 	 * The name or description of the file or other stream this
@@ -76,7 +76,7 @@ public class InputStreamPosition implements SourceInfo,
 	public InputStreamPosition(Token token, int index, File source) {
 		this(token.getLine(), token.getCharPositionInLine(), index, token
 				.getText() == null ? index : index + token.getText().length(),
-				source);
+						source);
 	}
 
 	/**
@@ -126,6 +126,7 @@ public class InputStreamPosition implements SourceInfo,
 	/**
 	 * @return The (token) startindex of the character that this marker marks.
 	 */
+	@Override
 	public int getStartIndex() {
 		return this.startIndex;
 	}
@@ -133,6 +134,7 @@ public class InputStreamPosition implements SourceInfo,
 	/**
 	 * @return The (token) stopindex of the character that this marker marks.
 	 */
+	@Override
 	public int getStopIndex() {
 		return this.stopIndex;
 	}
@@ -211,44 +213,40 @@ public class InputStreamPosition implements SourceInfo,
 			return false;
 		}
 		InputStreamPosition that = (InputStreamPosition) other;
-
 		if (this.lineNumber != that.lineNumber) {
 			return false;
 		} else if (this.characterPosition != that.characterPosition) {
 			return false;
 		}
-
 		if (this.source == null) {
-			return this.source == null;
+			return that.source == null;
 		} else {
 			return this.source.getAbsoluteFile().equals(
-					this.source.getAbsoluteFile());
+					that.source.getAbsoluteFile());
 		}
 	}
 
 	@Override
 	public int compareTo(InputStreamPosition o) {
 		// ASSUMES the two ISPs being compared are in the same file.
-
 		// first order by line number
 		if (this.lineNumber < o.lineNumber) {
 			return -1;
 		} else if (this.lineNumber > o.lineNumber) {
 			return 1;
 		} else
-		// then by character position
-		if (this.characterPosition < o.characterPosition) {
-			return -1;
-		} else if (this.characterPosition > o.characterPosition) {
-			return 1;
-		} else {
-			return 0;
-		}
+			// then by character position
+			if (this.characterPosition < o.characterPosition) {
+				return -1;
+			} else if (this.characterPosition > o.characterPosition) {
+				return 1;
+			} else {
+				return 0;
+			}
 	}
 
 	@Override
 	public String getMessage() {
 		return new String();
 	}
-
 }
