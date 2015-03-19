@@ -862,8 +862,9 @@ public class ModuleValidator extends
 				if (mood == null) { // set default mood
 					mood = SentenceMood.INDICATIVE;
 				} else { // remove mood operator from content
+					argument = argument.trim();
 					int opIndex = argument.indexOf(mood.toString());
-					argument = argument.trim().substring(opIndex + 1);
+					argument = argument.substring(opIndex + 1);
 				}
 				// Parse content using KR parser
 				Update content = visit_KR_Update(argument, getSourceInfo(ctx));
