@@ -134,8 +134,8 @@ import org.antlr.v4.runtime.tree.ParseTree;
  */
 @SuppressWarnings("rawtypes")
 public class ModuleValidator extends
-		Validator<MyGOALLexer, GOAL, AgentErrorStrategy, Module> implements
-		GOALVisitor {
+Validator<MyGOALLexer, GOAL, AgentErrorStrategy, Module> implements
+GOALVisitor {
 
 	private GOAL parser;
 	private static AgentErrorStrategy strategy = null;
@@ -862,7 +862,6 @@ public class ModuleValidator extends
 				if (mood == null) { // set default mood
 					mood = SentenceMood.INDICATIVE;
 				} else { // remove mood operator from content
-					argument = argument.trim();
 					int opIndex = argument.indexOf(mood.toString());
 					argument = argument.substring(opIndex + 1);
 				}
@@ -1054,8 +1053,7 @@ public class ModuleValidator extends
 
 	@Override
 	public Query visitPrecondition(PreconditionContext ctx) {
-		String krFragment = removeLeadTrailCharacters(ctx.KR_BLOCK().getText())
-				.trim();
+		String krFragment = removeLeadTrailCharacters(ctx.KR_BLOCK().getText());
 		if (krFragment.isEmpty()) {
 			reportWarning(AgentWarning.ACTIONSPEC_MISSING_PRE, ctx);
 		}
@@ -1064,8 +1062,7 @@ public class ModuleValidator extends
 
 	@Override
 	public Update visitPostcondition(PostconditionContext ctx) {
-		String krFragment = removeLeadTrailCharacters(ctx.KR_BLOCK().getText())
-				.trim();
+		String krFragment = removeLeadTrailCharacters(ctx.KR_BLOCK().getText());
 		if (krFragment.isEmpty()) {
 			reportWarning(AgentWarning.ACTIONSPEC_MISSING_POST, ctx);
 		}

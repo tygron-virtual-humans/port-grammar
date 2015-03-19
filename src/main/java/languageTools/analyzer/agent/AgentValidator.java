@@ -139,8 +139,8 @@ import org.antlr.v4.runtime.tree.TerminalNode;
  */
 @SuppressWarnings("rawtypes")
 public class AgentValidator extends
-		Validator<MyGOALLexer, GOAL, AgentErrorStrategy, AgentProgram>
-		implements GOALVisitor {
+Validator<MyGOALLexer, GOAL, AgentErrorStrategy, AgentProgram>
+implements GOALVisitor {
 
 	private GOAL parser;
 	private static AgentErrorStrategy strategy = null;
@@ -1116,8 +1116,7 @@ public class AgentValidator extends
 
 	@Override
 	public Query visitPrecondition(PreconditionContext ctx) {
-		String krFragment = removeLeadTrailCharacters(ctx.KR_BLOCK().getText())
-				.trim();
+		String krFragment = removeLeadTrailCharacters(ctx.KR_BLOCK().getText());
 		if (krFragment.isEmpty()) {
 			reportWarning(AgentWarning.ACTIONSPEC_MISSING_PRE, ctx);
 		}
@@ -1126,8 +1125,7 @@ public class AgentValidator extends
 
 	@Override
 	public Update visitPostcondition(PostconditionContext ctx) {
-		String krFragment = removeLeadTrailCharacters(ctx.KR_BLOCK().getText())
-				.trim();
+		String krFragment = removeLeadTrailCharacters(ctx.KR_BLOCK().getText());
 		if (krFragment.isEmpty()) {
 			reportWarning(AgentWarning.ACTIONSPEC_MISSING_POST, ctx);
 		}
@@ -1662,7 +1660,7 @@ public class AgentValidator extends
 		for (Module module : program.getModules()) {
 			if (call.getName().equals(module.getName())
 					&& call.getParameters().size() == module.getParameters()
-							.size()) {
+					.size()) {
 				return new ModuleCallAction(module, call.getParameters(),
 						call.getSourceInfo(), program.getKRInterface());
 			}
@@ -1671,13 +1669,13 @@ public class AgentValidator extends
 				UserSpecAction spec = specification.getAction();
 				if (call.getName().equals(spec.getName())
 						&& call.getParameters().size() == spec.getParameters()
-								.size()) {
+						.size()) {
 					return new UserSpecAction(call.getName(),
 							call.getParameters(), spec.getExernal(),
 							((MentalLiteral) spec.getPrecondition()
 									.getSubFormulas().get(0)).getFormula(),
-							spec.getPostcondition(), call.getSourceInfo(),
-							program.getKRInterface());
+									spec.getPostcondition(), call.getSourceInfo(),
+									program.getKRInterface());
 				}
 			}
 		}
