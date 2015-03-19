@@ -134,8 +134,8 @@ import org.antlr.v4.runtime.tree.ParseTree;
  */
 @SuppressWarnings("rawtypes")
 public class ModuleValidator extends
-Validator<MyGOALLexer, GOAL, AgentErrorStrategy, Module> implements
-GOALVisitor {
+		Validator<MyGOALLexer, GOAL, AgentErrorStrategy, Module> implements
+		GOALVisitor {
 
 	private GOAL parser;
 	private static AgentErrorStrategy strategy = null;

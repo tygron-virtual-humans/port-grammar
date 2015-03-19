@@ -365,7 +365,8 @@ public class ModuleValidatorSecondPass {
 					if (symbol instanceof ModuleSymbol) {
 						Module target = ((ModuleSymbol) symbol).getModule();
 						resolved.add(new ModuleCallAction(target, call
-								.getParameters(), action.getSourceInfo(), program.getKRInterface()));
+								.getParameters(), action.getSourceInfo(),
+								this.program.getKRInterface()));
 					} else { // must be ActionSymbol
 						ActionSpecification spec = ((ActionSymbol) symbol)
 								.getActionSpecification();
@@ -385,9 +386,10 @@ public class ModuleValidatorSecondPass {
 							resolved.add(new UserSpecAction(action.getName(),
 									instantiated,
 									spec.getAction().getExernal(), pre
-											.applySubst(unifier), post
-											.applySubst(unifier), action
-											.getSourceInfo(), program.getKRInterface()));
+									.applySubst(unifier), post
+									.applySubst(unifier), action
+									.getSourceInfo(), this.program
+											.getKRInterface()));
 						} else {
 							this.firstPass.reportError(
 									AgentError.ACTION_DOES_NOT_MATCH,
@@ -403,8 +405,8 @@ public class ModuleValidatorSecondPass {
 			} else if (action instanceof ModuleCallAction) {
 				// must be anonymous module
 				actionLabelsUsed
-						.addAll(resolveModuleActionRefs(((ModuleCallAction) action)
-								.getTarget()));
+				.addAll(resolveModuleActionRefs(((ModuleCallAction) action)
+						.getTarget()));
 				resolved.add(action);
 			} else {
 				resolved.add(action);
@@ -460,9 +462,9 @@ public class ModuleValidatorSecondPass {
 				if (((ModuleCallAction) rule.getAction().getActions().get(0))
 						.getTarget().getType() == TYPE.ANONYMOUS) {
 					macroLabelsUsed
-							.addAll(resolveModuleMacroRefs(((ModuleCallAction) rule
-									.getAction().getActions().get(0))
-									.getTarget()));
+					.addAll(resolveModuleMacroRefs(((ModuleCallAction) rule
+							.getAction().getActions().get(0))
+							.getTarget()));
 				}
 			}
 		}
@@ -512,7 +514,7 @@ public class ModuleValidatorSecondPass {
 				}
 				unbound.addAll(free);
 				unbound.removeAll(newscope); // CHECK why is this in the
-												// loop?
+				// loop?
 			}
 
 			if (!unbound.isEmpty()) {
@@ -526,7 +528,7 @@ public class ModuleValidatorSecondPass {
 	/**
 	 * Get the mood of the given action. Assumes action is {@link SendAction} or
 	 * {@link SendOnceAction}. Helper function to get around #3433
-	 * 
+	 *
 	 * @param action
 	 * @return mood of the given action.
 	 */

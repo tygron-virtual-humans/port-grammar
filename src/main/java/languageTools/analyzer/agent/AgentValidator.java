@@ -161,7 +161,6 @@ public class AgentValidator extends
 	private final SymbolTable actionSymbols = new SymbolTable();
 	private Scope varSymbols = new SymbolTable();
 
-
 	public AgentValidator(String filename) {
 		super(filename);
 	}
@@ -169,7 +168,7 @@ public class AgentValidator extends
 	public AgentValidator(String filename, AgentProgram program) {
 		super(filename, program);
 	}
-	
+
 	@Override
 	protected ParseTree startParser() {
 		return this.parser.modules();
@@ -206,8 +205,6 @@ public class AgentValidator extends
 	public Scope getVarSymbols() {
 		return this.varSymbols;
 	}
-
-
 
 	/**
 	 * Validation of agent program resolves references to action, macro, and
@@ -555,8 +552,8 @@ public class AgentValidator extends
 			try {
 				String content = new String(Files.readAllBytes(Paths.get(file
 						.getPath())));
-				imported = visit_KR_DBFs(removeLeadTrailCharacters(content),
-						new InputStreamPosition(0, 0, 0, 0, file));
+				imported = visit_KR_DBFs(content, new InputStreamPosition(0, 0,
+						0, 0, file));
 			} catch (Exception e) {
 				// Convert stack trace to string
 				StringWriter sw = new StringWriter();
@@ -667,8 +664,9 @@ public class AgentValidator extends
 		}
 
 		// Add macro to symbol table
-		if (!getProgram().getMacros().define(new MacroSymbol(macro.getSignature(),
-				macro, getSourceInfo(ctx)))) {
+		if (!getProgram().getMacros()
+				.define(new MacroSymbol(macro.getSignature(), macro,
+						getSourceInfo(ctx)))) {
 			// report duplicate use of macro symbol
 			reportError(AgentError.MACRO_DUPLICATE_NAME, ctx,
 					macro.getSignature());
@@ -1296,14 +1294,16 @@ public class AgentValidator extends
 	 *         otherwise.
 	 */
 	public SentenceMood getMood(String msg) {
-		if (msg.startsWith("!")) {
+		String trimmed = msg.trim();
+		if (trimmed.startsWith("!")) {
 			return SentenceMood.IMPERATIVE;
-		} else if (msg.startsWith("?")) {
+		} else if (trimmed.startsWith("?")) {
 			return SentenceMood.INTERROGATIVE;
-		} else if (msg.startsWith(":")) {
+		} else if (trimmed.startsWith(":")) {
 			return SentenceMood.INDICATIVE;
+		} else {
+			return null;
 		}
-		return null;
 	}
 
 	/**
