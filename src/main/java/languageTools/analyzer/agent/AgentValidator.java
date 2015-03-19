@@ -558,8 +558,8 @@ implements GOALVisitor {
 			try {
 				String content = new String(Files.readAllBytes(Paths.get(file
 						.getPath())));
-				imported = visit_KR_DBFs(removeLeadTrailCharacters(content),
-						new InputStreamPosition(0, 0, 0, 0, file));
+				imported = visit_KR_DBFs(content, new InputStreamPosition(0, 0,
+						0, 0, file));
 			} catch (Exception e) {
 				// Convert stack trace to string
 				StringWriter sw = new StringWriter();
@@ -928,7 +928,8 @@ implements GOALVisitor {
 				if (mood == null) { // set default mood
 					mood = SentenceMood.INDICATIVE;
 				} else { // remove mood operator from content
-					argument = argument.substring(1);
+					int opIndex = argument.indexOf(mood.toString());
+					argument = argument.trim().substring(opIndex + 1);
 				}
 				// Parse content using KR parser
 				Update content = visit_KR_Update(argument,
@@ -1299,14 +1300,16 @@ implements GOALVisitor {
 	 *         otherwise.
 	 */
 	public SentenceMood getMood(String msg) {
-		if (msg.startsWith("!")) {
+		String trimmed = msg.trim();
+		if (trimmed.startsWith("!")) {
 			return SentenceMood.IMPERATIVE;
-		} else if (msg.startsWith("?")) {
+		} else if (trimmed.startsWith("?")) {
 			return SentenceMood.INTERROGATIVE;
-		} else if (msg.startsWith(":")) {
+		} else if (trimmed.startsWith(":")) {
 			return SentenceMood.INDICATIVE;
+		} else {
+			return null;
 		}
-		return null;
 	}
 
 	/**

@@ -76,10 +76,10 @@ public class AgentSyntaxErrorTest {
 		assertEquals(SyntaxError.MISSINGTOKEN, this.syntaxerrors.get(0)
 				.getType());
 
-		// Agent file should produce 1 error
+		// Agent file should produce no errors
 		assertTrue(this.errors.isEmpty());
 
-		// Agent file should produce no warnings
+		// Agent file should produce 1 warning
 		assertEquals(1, this.warnings.size());
 
 		assertEquals(AgentWarning.MODULE_NEVER_USED, this.warnings.get(0)
@@ -90,4 +90,13 @@ public class AgentSyntaxErrorTest {
 		assertEquals("<missing ID>", this.program.getModules().get(1).getName());
 	}
 
+	@Test
+	public void test_CORRECT() throws KRInitFailedException {
+		setup("src/test/resources/languageTools/analyzer/agent/test.goal");
+
+		// Agent file should not produce any errors or warnings
+		assertTrue(this.syntaxerrors.isEmpty());
+		assertTrue(this.errors.isEmpty());
+		assertTrue(this.warnings.isEmpty());
+	}
 }
