@@ -132,11 +132,15 @@ import org.antlr.v4.runtime.tree.TerminalNode;
 
 /**
  * Validates an agent or module file and constructs an agent program or module.
+ * DOC explain what is validated. How to use. What happens if filename does not
+ * validate. How to validate just one term instead of a whole program.
+ * Apparently it does not validate everything as there also is
+ * {@link AgentValidatorSecondPass}.
  */
 @SuppressWarnings("rawtypes")
 public class AgentValidator extends
-Validator<MyGOALLexer, GOAL, AgentErrorStrategy, AgentProgram>
-implements GOALVisitor {
+		Validator<MyGOALLexer, GOAL, AgentErrorStrategy, AgentProgram>
+		implements GOALVisitor {
 
 	private GOAL parser;
 	private static AgentErrorStrategy strategy = null;
@@ -156,18 +160,16 @@ implements GOALVisitor {
 	 */
 	private final SymbolTable actionSymbols = new SymbolTable();
 	private Scope varSymbols = new SymbolTable();
-	private final SymbolTable macroSymbols = new SymbolTable();
 
-	/**
-	 * Creates validator for file with file name.
-	 *
-	 * @param filename
-	 *            Name of a file.
-	 */
+
 	public AgentValidator(String filename) {
 		super(filename);
 	}
 
+	public AgentValidator(String filename, AgentProgram program) {
+		super(filename, program);
+	}
+	
 	@Override
 	protected ParseTree startParser() {
 		return this.parser.modules();
@@ -205,12 +207,7 @@ implements GOALVisitor {
 		return this.varSymbols;
 	}
 
-	/**
-	 * @return Symbol table with macro symbols.
-	 */
-	public SymbolTable getMacroSymbols() {
-		return this.macroSymbols;
-	}
+
 
 	/**
 	 * Validation of agent program resolves references to action, macro, and
@@ -558,8 +555,8 @@ implements GOALVisitor {
 			try {
 				String content = new String(Files.readAllBytes(Paths.get(file
 						.getPath())));
-				imported = visit_KR_DBFs(content, new InputStreamPosition(0, 0,
-						0, 0, file));
+				imported = visit_KR_DBFs(removeLeadTrailCharacters(content),
+						new InputStreamPosition(0, 0, 0, 0, file));
 			} catch (Exception e) {
 				// Convert stack trace to string
 				StringWriter sw = new StringWriter();
@@ -670,7 +667,7 @@ implements GOALVisitor {
 		}
 
 		// Add macro to symbol table
-		if (!this.macroSymbols.define(new MacroSymbol(macro.getSignature(),
+		if (!getProgram().getMacros().define(new MacroSymbol(macro.getSignature(),
 				macro, getSourceInfo(ctx)))) {
 			// report duplicate use of macro symbol
 			reportError(AgentError.MACRO_DUPLICATE_NAME, ctx,
@@ -928,8 +925,7 @@ implements GOALVisitor {
 				if (mood == null) { // set default mood
 					mood = SentenceMood.INDICATIVE;
 				} else { // remove mood operator from content
-					int opIndex = argument.indexOf(mood.toString());
-					argument = argument.trim().substring(opIndex + 1);
+					argument = argument.substring(1);
 				}
 				// Parse content using KR parser
 				Update content = visit_KR_Update(argument,
@@ -1300,16 +1296,14 @@ implements GOALVisitor {
 	 *         otherwise.
 	 */
 	public SentenceMood getMood(String msg) {
-		String trimmed = msg.trim();
-		if (trimmed.startsWith("!")) {
+		if (msg.startsWith("!")) {
 			return SentenceMood.IMPERATIVE;
-		} else if (trimmed.startsWith("?")) {
+		} else if (msg.startsWith("?")) {
 			return SentenceMood.INTERROGATIVE;
-		} else if (trimmed.startsWith(":")) {
+		} else if (msg.startsWith(":")) {
 			return SentenceMood.INDICATIVE;
-		} else {
-			return null;
 		}
+		return null;
 	}
 
 	/**
@@ -1668,7 +1662,7 @@ implements GOALVisitor {
 		for (Module module : program.getModules()) {
 			if (call.getName().equals(module.getName())
 					&& call.getParameters().size() == module.getParameters()
-					.size()) {
+							.size()) {
 				return new ModuleCallAction(module, call.getParameters(),
 						call.getSourceInfo(), program.getKRInterface());
 			}
@@ -1677,13 +1671,13 @@ implements GOALVisitor {
 				UserSpecAction spec = specification.getAction();
 				if (call.getName().equals(spec.getName())
 						&& call.getParameters().size() == spec.getParameters()
-						.size()) {
+								.size()) {
 					return new UserSpecAction(call.getName(),
 							call.getParameters(), spec.getExernal(),
 							((MentalLiteral) spec.getPrecondition()
 									.getSubFormulas().get(0)).getFormula(),
-									spec.getPostcondition(), call.getSourceInfo(),
-									program.getKRInterface());
+							spec.getPostcondition(), call.getSourceInfo(),
+							program.getKRInterface());
 				}
 			}
 		}

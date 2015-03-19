@@ -21,10 +21,19 @@ import krTools.parser.SourceInfo;
 import languageTools.program.agent.msc.Macro;
 import languageTools.symbolTable.Symbol;
 
+/**
+ * Groups the signature (name), Macro object and its source info together. 
+ */
 public class MacroSymbol extends Symbol {
 
 	private final Macro macro;
 
+	/**
+	 * CHECK why is {@link SourceInfo} separate as Macro already provides SourceInfo and name?
+	 * @param name
+	 * @param macro
+	 * @param info
+	 */
 	public MacroSymbol(String name, Macro macro, SourceInfo info) {
 		super(name, info);
 		this.macro = macro;

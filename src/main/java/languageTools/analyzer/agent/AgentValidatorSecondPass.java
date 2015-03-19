@@ -30,7 +30,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.naming.NamingException;
+
 import krTools.KRInterface;
+import krTools.errors.exceptions.ParserException;
 import krTools.language.DatabaseFormula;
 import krTools.language.Expression;
 import krTools.language.Query;
@@ -72,6 +75,11 @@ import languageTools.symbolTable.agent.ActionSymbol;
 import languageTools.symbolTable.agent.MacroSymbol;
 import languageTools.symbolTable.agent.ModuleSymbol;
 
+/**
+ * DOC
+ *
+ * Macros are connected to their definitions.
+ */
 public class AgentValidatorSecondPass {
 
 	/**
@@ -97,7 +105,6 @@ public class AgentValidatorSecondPass {
 	 * Symbol tables built during first pass.
 	 */
 	private final SymbolTable actionSymbols;
-	private final SymbolTable macroSymbols;
 
 	private final Set<String> actionLabelsUsed = new HashSet<>();
 	private final Set<String> macroLabelsUsed = new HashSet<>();
@@ -154,11 +161,10 @@ public class AgentValidatorSecondPass {
 	 * @param firstPass
 	 *            The validator object that executed the first pass.
 	 */
-	protected AgentValidatorSecondPass(AgentValidator firstPass) {
+	public AgentValidatorSecondPass(AgentValidator firstPass) {
 		this.firstPass = firstPass;
 		this.program = firstPass.getProgram();
 		this.actionSymbols = firstPass.getActionSymbols();
-		this.macroSymbols = firstPass.getMacroSymbols();
 	}
 
 	/**
@@ -239,12 +245,14 @@ public class AgentValidatorSecondPass {
 		}
 
 		// Report unused macro definitions
-		Set<String> macrosDefined = this.macroSymbols.getNames();
+		/** make new set as Set#getNames() will be backed up by the original set and modifying it will
+		 * change the set of defined macros. */
+		Set<String> macrosDefined = new HashSet<String>( program.getMacros().getNames());
 		// Remove labels that are used
 		macrosDefined.removeAll(this.macroLabelsUsed);
 		// Report unused
 		for (String df : macrosDefined) {
-			Symbol symbol = this.macroSymbols.resolve(df);
+			Symbol symbol = program.getMacros().resolve(df);
 			this.firstPass.reportWarning(AgentWarning.MACRO_NEVER_USED,
 					symbol.getSourceInfo(), df);
 		}
@@ -423,19 +431,25 @@ public class AgentValidatorSecondPass {
 					if (symbol instanceof ModuleSymbol) {
 						Module target = ((ModuleSymbol) symbol).getModule();
 						resolved.add(new ModuleCallAction(target, call
-								.getParameters(), action.getSourceInfo(), program.getKRInterface()));
+								.getParameters(), action.getSourceInfo(),
+								program.getKRInterface()));
 					} else { // must be ActionSymbol
 						ActionSpecification spec1 = ((ActionSymbol) symbol)
 								.getActionSpecification();
-						Substitution uniqueSub = makeTermVarsUnique(getFreeVars(spec1.getAction().getParameters()),
+						Substitution uniqueSub = program.makeTermVarsUnique(
+								getFreeVars(spec1.getAction().getParameters()),
 								call.getFreeVar());
-						ActionSpecification fixedSpec = spec1.applySubst(uniqueSub);
+						ActionSpecification fixedSpec = spec1
+								.applySubst(uniqueSub);
 						// find the substi that matches the call to the spec.
-						// This substi is now used to bring the spec into the form fitting the call.
-						Substitution unifier = fixedSpec.getAction().mgu(action);
+						// This substi is now used to bring the spec into the
+						// form fitting the call.
+						Substitution unifier = fixedSpec.getAction()
+								.mgu(action);
 
-						if (unifier!=null) {
-							resolved.add(fixedSpec.applySubst(unifier).getAction());
+						if (unifier != null) {
+							resolved.add(fixedSpec.applySubst(unifier)
+									.getAction());
 						} else {
 							this.firstPass.reportError(
 									AgentError.ACTION_DOES_NOT_MATCH,
@@ -473,129 +487,33 @@ public class AgentValidatorSecondPass {
 	 * @return Set of macro signatures that are used in module.
 	 */
 	private Set<String> resolveModuleMacroRefs(Module module) {
-		Set<String> macroLabelsUsed = new HashSet<>();
+		Set<String> macroLabels = new HashSet<>();
 		for (Rule rule : module.getRules()) {
-			// Resolve references to macros
-			for (MentalFormula formula : rule.getCondition().getSubFormulas()) {
-				if (formula instanceof Macro) {
-					String signature = ((Macro) formula).getSignature();
-					macroLabelsUsed.add(signature);
-					MacroSymbol symbol = (MacroSymbol) this.macroSymbols
-							.resolve(signature);
-					if (symbol == null) {
-						this.firstPass.reportError(
-								AgentError.MACRO_NOT_DEFINED,
-								formula.getSourceInfo(), signature);
-					} else {
-						// Assumes that formal parameters are all variables
-						// TODO: standardize variables in definition apart from
-						// other variables that occur in rule condition
-						// TODO #3430. This is quick fix.
-						MacroExpression spec = new MacroExpression(symbol.getMacro());
-						MacroExpression call = new MacroExpression(((Macro) formula));
-						
-						Substitution uniqueSub = makeTermVarsUnique(spec.getFreeVar(),
-								call.getFreeVar());
-						MacroExpression fixedSpec = (MacroExpression)spec.applySubst(uniqueSub);
-						
-						Substitution substitution = fixedSpec.mgu(call);
-						MacroExpression fixedMacroExp = (MacroExpression) fixedSpec.applySubst(substitution);
-						MentalStateCondition instantiatedDf = fixedMacroExp.getMacro().
-								getDefinition();
-						((Macro) formula).setDefinition(instantiatedDf);
-					}
-				}
+			try {
+				macroLabels.addAll(program.resolve(rule.getCondition()));
+			} catch (ParserException e) {
+				/* HACK how to get the correct source info here? We can't attach the 
+				original Macro to the exception. */
+				this.firstPass.reportError(AgentError.MACRO_NOT_DEFINED,
+						e.getSourceInfo(), e.getMessage());
+
 			}
+
+			// Resolve references to macros
 			if (!rule.getAction().getActions().isEmpty()
 					&& rule.getAction().getActions().get(0) instanceof ModuleCallAction) {
 				if (((ModuleCallAction) rule.getAction().getActions().get(0))
 						.getTarget().getType() == TYPE.ANONYMOUS) {
-					macroLabelsUsed
+					macroLabels
 							.addAll(resolveModuleMacroRefs(((ModuleCallAction) rule
 									.getAction().getActions().get(0))
 									.getTarget()));
 				}
 			}
 		}
-		return macroLabelsUsed;
+		return macroLabels;
 	}
 
-	/**
-	 * Mechanism to make a Macro a standard expression. Don't know why it isn't
-	 * yet...
-	 */
-	private class MacroExpression implements Expression {
-
-		final protected Macro macro;
-
-		public MacroExpression(Macro m) {
-			macro = m;
-		}
-		
-		public Macro getMacro() {
-			return macro;
-		}
-
-		@Override
-		public String getSignature() {
-			return macro.getSignature();
-		}
-
-		@Override
-		public boolean isVar() {
-			return false;
-		}
-
-		@Override
-		public boolean isClosed() {
-			throw new RuntimeException("NOT IMPLEMENTED");
-		}
-
-		@Override
-		public Set<Var> getFreeVar() {
-			return macro.getFreeVar();
-		}
-
-		@Override
-		public Expression applySubst(Substitution substitution) {
-			return new MacroExpression(macro.applySubst(substitution));
-		}
-
-		@Override
-		public Substitution mgu(Expression expr) {
-			Substitution substitution;
-			MacroExpression other = (MacroExpression) expr;
-
-			if (!macro.getParameters().isEmpty()
-					&& macro.getParameters().size() == other.getParameters().size()) {
-				// Get mgu for first parameter
-				substitution = macro.getParameters().get(0).mgu(
-						other.getParameters().get(0));
-				// Get mgu's for remaining parameters
-				for (int i = 1; i < macro.getParameters().size() && substitution != null; i++) {
-					Substitution mgu = macro.getParameters().get(i).mgu(
-							other.getParameters().get(i));
-					substitution = substitution.combine(mgu);
-				}
-
-			} else {
-				substitution = program.getKRInterface()
-						.getSubstitution(new LinkedHashMap<Var, Term>());
-			}
-
-			return substitution;
-		}
-
-		private List<Term> getParameters() {
-			return macro.getParameters();
-		}
-
-		@Override
-		public SourceInfo getSourceInfo() {
-			return macro.getSourceInfo();
-		}
-
-	}
 
 	/**
 	 * Reports error if variables in a rule have not been bound. FIXME Duplicate
@@ -871,42 +789,44 @@ public class AgentValidatorSecondPass {
 		return literals;
 	}
 
-//	/**
-//	 * Computes a unifier for the two lists of parameters. Assumes that both
-//	 * lists have equal length.
-//	 *
-//	 * @param formalParameters
-//	 *            List of terms. This is the spec side of the action.
-//	 * @param instantiatedParameters
-//	 *            List of terms. This is the caller side of the action. Note
-//	 *            that this need not be completely instantiated.
-//	 * @return Most general unifier, i.e., a {@link Substitution}, that unifies
-//	 *         parameters in both lists, or {@code null} if no unifier exists.
-//	 */
-//	private Substitution getUnifier1(Expression specification, Expression call) {
-//		Substitution uniqueSub = makeTermVarsUnique(specification.getFreeVar(),
-//				call.getFreeVar());
-//
-//		Expression fixedSpec = specification.applySubst(uniqueSub);
-//
-//		return fixedSpec.mgu(call);
-//
-//		// Iterator<Term> formal = formalParameters.iterator();
-//		// Iterator<Term> instantiated = instantiatedParameters.iterator();
-//		//
-//		// Substitution substitution = this.program.getKRInterface()
-//		// .getSubstitution(new HashMap<Var, Term>());
-//		//
-//		//
-//		// if (formal.hasNext()) {
-//		// substitution = formal.next().mgu(instantiated.next());
-//		// while (formal.hasNext() && substitution != null) {
-//		// substitution = substitution.combine(formal.next().mgu(
-//		// instantiated.next()));
-//		// }
-//		// }
-//		// return substitution;
-//	}
+	// /**
+	// * Computes a unifier for the two lists of parameters. Assumes that both
+	// * lists have equal length.
+	// *
+	// * @param formalParameters
+	// * List of terms. This is the spec side of the action.
+	// * @param instantiatedParameters
+	// * List of terms. This is the caller side of the action. Note
+	// * that this need not be completely instantiated.
+	// * @return Most general unifier, i.e., a {@link Substitution}, that
+	// unifies
+	// * parameters in both lists, or {@code null} if no unifier exists.
+	// */
+	// private Substitution getUnifier1(Expression specification, Expression
+	// call) {
+	// Substitution uniqueSub = makeTermVarsUnique(specification.getFreeVar(),
+	// call.getFreeVar());
+	//
+	// Expression fixedSpec = specification.applySubst(uniqueSub);
+	//
+	// return fixedSpec.mgu(call);
+	//
+	// // Iterator<Term> formal = formalParameters.iterator();
+	// // Iterator<Term> instantiated = instantiatedParameters.iterator();
+	// //
+	// // Substitution substitution = this.program.getKRInterface()
+	// // .getSubstitution(new HashMap<Var, Term>());
+	// //
+	// //
+	// // if (formal.hasNext()) {
+	// // substitution = formal.next().mgu(instantiated.next());
+	// // while (formal.hasNext() && substitution != null) {
+	// // substitution = substitution.combine(formal.next().mgu(
+	// // instantiated.next()));
+	// // }
+	// // }
+	// // return substitution;
+	// }
 
 	/**
 	 * get free vars of a list of terms.
@@ -922,31 +842,7 @@ public class AgentValidatorSecondPass {
 		return vars;
 	}
 
-	/**
-	 * Get a substitution that we can apply to term, such that it will not use
-	 * given varsInUse.
-	 * 
-	 * @param varsToBeMadeUnique
-	 *            vars that have to be renamed if occuring iin the varsInUse
-	 *            list.
-	 * @param varsInUse
-	 *            set of {@link Var}s that are in use
-	 * @return
-	 */
-	private Substitution makeTermVarsUnique(Set<Var> varsToBeMadeUnique,
-			Set<Var> varsInUse) {
-		Set<Var> varsToRename = sharedVariables(varsToBeMadeUnique, varsInUse);
-		Map<Var, Term> subst = new HashMap<Var, Term>();
-		for (Var var : varsToRename) {
-			subst.put(var, var.getVariant(varsInUse));
-		}
-		return program.getKRInterface().getSubstitution(subst);
-	}
 
-	private Set<Var> sharedVariables(Set<Var> t1, Set<Var> varsInUse) {
-		Set<Var> sharedVars = new HashSet<Var>();
-		sharedVars.addAll(t1);
-		sharedVars.retainAll(varsInUse);
-		return sharedVars;
-	}
+
+
 }
