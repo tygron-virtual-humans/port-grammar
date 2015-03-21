@@ -31,6 +31,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import krTools.KRInterface;
 import krTools.errors.exceptions.ParserException;
@@ -134,8 +135,8 @@ import org.antlr.v4.runtime.tree.ParseTree;
  */
 @SuppressWarnings("rawtypes")
 public class ModuleValidator extends
-		Validator<MyGOALLexer, GOAL, AgentErrorStrategy, Module> implements
-		GOALVisitor {
+Validator<MyGOALLexer, GOAL, AgentErrorStrategy, Module> implements
+GOALVisitor {
 
 	private GOAL parser;
 	private static AgentErrorStrategy strategy = null;
@@ -860,8 +861,8 @@ public class ModuleValidator extends
 				if (mood == null) { // set default mood
 					mood = SentenceMood.INDICATIVE;
 				} else { // remove mood operator from content
-					argument = argument.replaceFirst("\\" + mood.toString(),
-							" "); // keep correct indexes
+					argument = argument.replaceFirst(// keep indexes
+							Pattern.quote(mood.toString()), " ");
 				}
 				// Parse content using KR parser
 				Update content = visit_KR_Update(argument, getSourceInfo(ctx));
