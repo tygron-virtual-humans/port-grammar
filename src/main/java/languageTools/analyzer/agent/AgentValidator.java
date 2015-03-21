@@ -139,8 +139,8 @@ import org.antlr.v4.runtime.tree.TerminalNode;
  */
 @SuppressWarnings("rawtypes")
 public class AgentValidator extends
-		Validator<MyGOALLexer, GOAL, AgentErrorStrategy, AgentProgram>
-		implements GOALVisitor {
+Validator<MyGOALLexer, GOAL, AgentErrorStrategy, AgentProgram>
+implements GOALVisitor {
 
 	private GOAL parser;
 	private static AgentErrorStrategy strategy = null;
@@ -588,7 +588,7 @@ public class AgentValidator extends
 
 		// Check that goals (queries) are closed and can be used as updates, if
 		// not remove them
-		List<Query> errors = new ArrayList<Query>();
+		List<Query> errors = new LinkedList<Query>();
 		for (Query dbf : dbfs) {
 			/*
 			 * if (!dbf.isClosed()) {
@@ -610,7 +610,7 @@ public class AgentValidator extends
 	@Override
 	public Map.Entry<List<Macro>, List<Rule>> visitProgram(ProgramContext ctx) {
 		// Process macro definitions
-		List<Macro> macros = new ArrayList<Macro>();
+		List<Macro> macros = new ArrayList<Macro>(ctx.macroDef().size());
 		for (MacroDefContext macrodf : ctx.macroDef()) {
 			Macro macro = visitMacroDef(macrodf);
 			if (macro != null) {
@@ -619,7 +619,7 @@ public class AgentValidator extends
 		}
 
 		// Process program rules
-		List<Rule> rules = new ArrayList<Rule>();
+		List<Rule> rules = new ArrayList<Rule>(ctx.programRule().size());
 		for (ProgramRuleContext programRule : ctx.programRule()) {
 			Rule rule = visitProgramRule(programRule);
 			if (rule != null) {
@@ -754,7 +754,7 @@ public class AgentValidator extends
 	@Override
 	public MentalStateCondition visitMentalStateCondition(
 			MentalStateConditionContext ctx) {
-		List<MentalFormula> formulas = new ArrayList<MentalFormula>();
+		List<MentalFormula> formulas = new LinkedList<MentalFormula>();
 
 		// Check if something bad happened, and if so, whether we still can
 		// report anything sensible
@@ -828,8 +828,7 @@ public class AgentValidator extends
 		String op = visitMentalOperator(ctx.mentalOperator());
 
 		// Get condition
-		String krFragment = ctx.PARLIST().getText();
-		krFragment = krFragment.substring(1, krFragment.length() - 1);
+		String krFragment = removeLeadTrailCharacters(ctx.PARLIST().getText());
 		Query query = visit_KR_Query(krFragment, getSourceInfo(ctx));
 
 		// If no query was returned, we cannot return a literal that we can use
@@ -901,7 +900,7 @@ public class AgentValidator extends
 			if (op == null) {
 				// Can't figure out which action but don't return null.
 				return new UserSpecOrModuleCall("<missing name>",
-						new ArrayList<Term>(), getSourceInfo(ctx), this.kri);
+						new ArrayList<Term>(0), getSourceInfo(ctx), this.kri);
 			}
 
 			TerminalNode parlistctx = ctx.PARLIST();
@@ -914,8 +913,8 @@ public class AgentValidator extends
 				return new PrintAction(parameter, getSourceInfo(parlistctx),
 						this.kri);
 			} else if (op.equals(AgentProgram.getTokenName(GOAL.LOG))) {
-				return new LogAction(parlistctx.getText().substring(1,
-						parlistctx.getText().length() - 1),
+				return new LogAction(
+						removeLeadTrailCharacters(parlistctx.getText()),
 						getSourceInfo(parlistctx), this.kri);
 			} else {
 				// send actions may have initial mood operator; check
@@ -923,8 +922,8 @@ public class AgentValidator extends
 				if (mood == null) { // set default mood
 					mood = SentenceMood.INDICATIVE;
 				} else { // remove mood operator from content
-					int opIndex = argument.indexOf(mood.toString());
-					argument = argument.substring(opIndex + 1);
+					argument = argument.replaceFirst("\\" + mood.toString(),
+							" "); // keep correct indexes
 				}
 				// Parse content using KR parser
 				Update content = visit_KR_Update(argument,
@@ -966,7 +965,7 @@ public class AgentValidator extends
 			return new ExitModuleAction(getSourceInfo(ctx), this.kri);
 		} else {
 			return new UserSpecOrModuleCall(ctx.op.getText(),
-					new ArrayList<Term>(), getSourceInfo(ctx), this.kri);
+					new ArrayList<Term>(0), getSourceInfo(ctx), this.kri);
 		}
 	}
 
@@ -995,7 +994,7 @@ public class AgentValidator extends
 
 	@Override
 	public Module visitNestedRules(NestedRulesContext ctx) {
-		List<Rule> rules = new ArrayList<Rule>();
+		List<Rule> rules = new ArrayList<Rule>(ctx.programRule().size());
 		for (ProgramRuleContext programRule : ctx.programRule()) {
 			Rule rule = visitProgramRule(programRule);
 			if (rule != null) {
@@ -1004,7 +1003,7 @@ public class AgentValidator extends
 		}
 		Module module = new Module("", TYPE.ANONYMOUS, this.kri,
 				getSourceInfo(ctx));
-		module.setParameters(new ArrayList<Term>());
+		module.setParameters(new ArrayList<Term>(0));
 		module.setRuleEvaluationOrder(getDefaultRuleEvaluationOrder(module
 				.getType()));
 		module.setRules(rules);
@@ -1017,7 +1016,8 @@ public class AgentValidator extends
 
 	@Override
 	public List<ActionSpecification> visitActionSpecs(ActionSpecsContext ctx) {
-		List<ActionSpecification> specs = new ArrayList<ActionSpecification>();
+		List<ActionSpecification> specs = new ArrayList<ActionSpecification>(
+				ctx.actionSpec().size());
 		for (ActionSpecContext context : ctx.actionSpec()) {
 			ActionSpecification spec = visitActionSpec(context);
 			if (spec != null) { // ignore if not OK
@@ -1062,12 +1062,12 @@ public class AgentValidator extends
 		}
 		problem |= (postcondition == null);
 
-		// Create action
-		UserSpecAction action = new UserSpecAction(declaration.getKey(),
-				declaration.getValue(), external, precondition, postcondition,
-				getSourceInfo(ctx), this.kri);
-
 		if (!problem) {
+			// Create action
+			UserSpecAction action = new UserSpecAction(declaration.getKey(),
+					declaration.getValue(), external, precondition,
+					postcondition, getSourceInfo(ctx), this.kri);
+
 			// Check use of action parameters and variables in postcondition
 			Set<Var> actionParsNotUsed = action.getFreeVar();
 			actionParsNotUsed.removeAll(postcondition.getFreeVar());
@@ -1085,33 +1085,30 @@ public class AgentValidator extends
 			 * reportError(AgentError.POSTCONDITION_UNBOUND_VARIABLE,
 			 * ctx.postcondition(), prettyPrintSet(postVarNotBound)); }
 			 */
-		}
 
-		// Create action specification
-		ActionSpecification spec = new ActionSpecification(action);
+			// Create action specification
+			ActionSpecification spec = new ActionSpecification(action);
 
-		// Define symbol
-		if (!this.actionSymbols.define(new ActionSymbol(action.getSignature(),
-				spec, getSourceInfo(ctx)))) {
-			// Report duplicate action label
-			Symbol symbol = this.actionSymbols.resolve(action.getSignature());
-			String specifiedAs = null;
-			if (symbol instanceof ActionSymbol) {
-				specifiedAs = "action";
-			} else if (symbol instanceof ModuleSymbol) {
-				specifiedAs = "module";
+			// Define symbol
+			if (!this.actionSymbols.define(new ActionSymbol(action
+					.getSignature(), spec, getSourceInfo(ctx)))) {
+				// Report duplicate action label
+				Symbol symbol = this.actionSymbols.resolve(action
+						.getSignature());
+				String specifiedAs = null;
+				if (symbol instanceof ActionSymbol) {
+					specifiedAs = "action";
+				} else if (symbol instanceof ModuleSymbol) {
+					specifiedAs = "module";
+				}
+				if (specifiedAs != null) {
+					reportError(AgentError.ACTION_LABEL_ALREADY_DEFINED, ctx,
+							"Action " + action.getSignature(), specifiedAs);
+				}
 			}
-			if (specifiedAs != null) {
-				reportError(AgentError.ACTION_LABEL_ALREADY_DEFINED, ctx,
-						"Action " + action.getSignature(), specifiedAs);
-			}
-		}
-
-		// Don't pass on null values as part of action spec
-		if (problem) {
-			return null;
-		} else {
 			return spec;
+		} else {
+			return null;
 		}
 	}
 
@@ -1148,7 +1145,7 @@ public class AgentValidator extends
 		if (ctx.PARLIST() != null) {
 			parameters = visitVARLIST(ctx.PARLIST().getText(), ctx);
 		} else {
-			parameters = new ArrayList<Term>();
+			parameters = new ArrayList<Term>(0);
 		}
 
 		return new AbstractMap.SimpleEntry<String, List<Term>>(name, parameters);
@@ -1158,7 +1155,7 @@ public class AgentValidator extends
 	public Map.Entry<String, List<Term>> visitDeclarationOrCallWithTerms(
 			DeclarationOrCallWithTermsContext ctx) {
 		String name = null;
-		List<Term> parameters = new ArrayList<Term>();
+		List<Term> parameters = new ArrayList<Term>(0);
 
 		// Get functor name
 		if (ctx.ID() != null) {
@@ -1206,15 +1203,13 @@ public class AgentValidator extends
 	 * @return List of terms.
 	 */
 	public List<Term> visitPARLIST(String pars, ParserRuleContext ctx) {
-		// Strip brackets
-		pars = removeLeadTrailCharacters(pars);
-
-		List<Term> parameters = visit_KR_Terms(pars, getSourceInfo(ctx));
+		List<Term> parameters = visit_KR_Terms(removeLeadTrailCharacters(pars),
+				getSourceInfo(ctx));
 
 		// If no parameters were returned, return the empty list to avoid a
 		// cascade of errors.
 		if (parameters == null) {
-			parameters = new ArrayList<Term>();
+			parameters = new ArrayList<Term>(0);
 		}
 
 		/*
@@ -1437,7 +1432,7 @@ public class AgentValidator extends
 	 */
 	public List<DatabaseFormula> visit_KR_DBFs(String krFragment,
 			SourceInfo info) {
-		List<DatabaseFormula> formulas = new ArrayList<DatabaseFormula>();
+		List<DatabaseFormula> formulas = new ArrayList<DatabaseFormula>(0);
 
 		// Get the formulas
 		try {
@@ -1454,7 +1449,7 @@ public class AgentValidator extends
 		}
 
 		if (formulas == null) {
-			return new ArrayList<DatabaseFormula>();
+			return new ArrayList<DatabaseFormula>(0);
 		}
 
 		return formulas;
@@ -1503,7 +1498,7 @@ public class AgentValidator extends
 	 * @return A {@link List<Query>}.
 	 */
 	public List<Query> visit_KR_Queries(String krFragment, SourceInfo info) {
-		List<Query> queries = new ArrayList<Query>();
+		List<Query> queries = new ArrayList<Query>(0);
 
 		if (krFragment.isEmpty()) {
 			return queries;
@@ -1661,7 +1656,7 @@ public class AgentValidator extends
 		for (Module module : program.getModules()) {
 			if (call.getName().equals(module.getName())
 					&& call.getParameters().size() == module.getParameters()
-							.size()) {
+					.size()) {
 				return new ModuleCallAction(module, call.getParameters(),
 						call.getSourceInfo(), program.getKRInterface());
 			}
@@ -1670,13 +1665,13 @@ public class AgentValidator extends
 				UserSpecAction spec = specification.getAction();
 				if (call.getName().equals(spec.getName())
 						&& call.getParameters().size() == spec.getParameters()
-								.size()) {
+						.size()) {
 					return new UserSpecAction(call.getName(),
 							call.getParameters(), spec.getExernal(),
 							((MentalLiteral) spec.getPrecondition()
 									.getSubFormulas().get(0)).getFormula(),
-							spec.getPostcondition(), call.getSourceInfo(),
-							program.getKRInterface());
+									spec.getPostcondition(), call.getSourceInfo(),
+									program.getKRInterface());
 				}
 			}
 		}

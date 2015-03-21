@@ -134,8 +134,8 @@ import org.antlr.v4.runtime.tree.ParseTree;
  */
 @SuppressWarnings("rawtypes")
 public class ModuleValidator extends
-Validator<MyGOALLexer, GOAL, AgentErrorStrategy, Module> implements
-GOALVisitor {
+		Validator<MyGOALLexer, GOAL, AgentErrorStrategy, Module> implements
+		GOALVisitor {
 
 	private GOAL parser;
 	private static AgentErrorStrategy strategy = null;
@@ -531,7 +531,7 @@ GOALVisitor {
 
 		// Check that goals (queries) are closed and can be used as updates, if
 		// not remove them
-		List<Query> errors = new ArrayList<Query>();
+		List<Query> errors = new LinkedList<Query>();
 		for (Query dbf : dbfs) {
 			/*
 			 * if (!dbf.isClosed()) {
@@ -553,7 +553,7 @@ GOALVisitor {
 	@Override
 	public Map.Entry<List<Macro>, List<Rule>> visitProgram(ProgramContext ctx) {
 		// Process macro definitions
-		List<Macro> macros = new ArrayList<Macro>();
+		List<Macro> macros = new ArrayList<Macro>(ctx.macroDef().size());
 		for (MacroDefContext macrodf : ctx.macroDef()) {
 			Macro macro = visitMacroDef(macrodf);
 			if (macro != null) {
@@ -562,7 +562,7 @@ GOALVisitor {
 		}
 
 		// Process program rules
-		List<Rule> rules = new ArrayList<Rule>();
+		List<Rule> rules = new ArrayList<Rule>(ctx.programRule().size());
 		for (ProgramRuleContext programRule : ctx.programRule()) {
 			Rule rule = visitProgramRule(programRule);
 			if (rule != null) {
@@ -696,7 +696,7 @@ GOALVisitor {
 	@Override
 	public MentalStateCondition visitMentalStateCondition(
 			MentalStateConditionContext ctx) {
-		List<MentalFormula> formulas = new ArrayList<MentalFormula>();
+		List<MentalFormula> formulas = new LinkedList<MentalFormula>();
 
 		// Check if something bad happened, and if so, whether we still can
 		// report anything sensible
@@ -770,8 +770,7 @@ GOALVisitor {
 		String op = visitMentalOperator(ctx.mentalOperator());
 
 		// Get condition
-		String krFragment = ctx.PARLIST().getText();
-		krFragment = krFragment.substring(1, krFragment.length() - 1);
+		String krFragment = removeLeadTrailCharacters(ctx.PARLIST().getText());
 		Query query = visit_KR_Query(krFragment, getSourceInfo(ctx));
 
 		// If no query was returned, we cannot return a literal that we can use
@@ -843,7 +842,7 @@ GOALVisitor {
 			if (op == null) {
 				// Can't figure out which action but don't return null.
 				return new UserSpecOrModuleCall("<missing name>",
-						new ArrayList<Term>(), getSourceInfo(ctx), this.kri);
+						new ArrayList<Term>(0), getSourceInfo(ctx), this.kri);
 			}
 
 			String argument = removeLeadTrailCharacters(ctx.PARLIST().getText());
@@ -853,17 +852,16 @@ GOALVisitor {
 				Term parameter = visit_KR_Term(argument, getSourceInfo(ctx));
 				return new PrintAction(parameter, getSourceInfo(ctx), this.kri);
 			} else if (op.equals(AgentProgram.getTokenName(GOAL.LOG))) {
-				return new LogAction(ctx.PARLIST().getText()
-						.substring(1, ctx.PARLIST().getText().length() - 1),
-						getSourceInfo(ctx), this.kri);
+				return new LogAction(removeLeadTrailCharacters(ctx.PARLIST()
+						.getText()), getSourceInfo(ctx), this.kri);
 			} else {
 				// send actions may have initial mood operator; check
 				SentenceMood mood = getMood(argument);
 				if (mood == null) { // set default mood
 					mood = SentenceMood.INDICATIVE;
 				} else { // remove mood operator from content
-					int opIndex = argument.indexOf(mood.toString());
-					argument = argument.substring(opIndex + 1);
+					argument = argument.replaceFirst("\\" + mood.toString(),
+							" "); // keep correct indexes
 				}
 				// Parse content using KR parser
 				Update content = visit_KR_Update(argument, getSourceInfo(ctx));
@@ -904,7 +902,7 @@ GOALVisitor {
 			return new ExitModuleAction(getSourceInfo(ctx), this.kri);
 		} else {
 			return new UserSpecOrModuleCall(ctx.op.getText(),
-					new ArrayList<Term>(), getSourceInfo(ctx), this.kri);
+					new ArrayList<Term>(0), getSourceInfo(ctx), this.kri);
 		}
 	}
 
@@ -933,7 +931,7 @@ GOALVisitor {
 
 	@Override
 	public Module visitNestedRules(NestedRulesContext ctx) {
-		List<Rule> rules = new ArrayList<Rule>();
+		List<Rule> rules = new ArrayList<Rule>(ctx.programRule().size());
 		for (ProgramRuleContext programRule : ctx.programRule()) {
 			Rule rule = visitProgramRule(programRule);
 			if (rule != null) {
@@ -942,7 +940,7 @@ GOALVisitor {
 		}
 		Module module = new Module("", TYPE.ANONYMOUS, this.kri,
 				getSourceInfo(ctx));
-		module.setParameters(new ArrayList<Term>());
+		module.setParameters(new ArrayList<Term>(0));
 		module.setRules(rules);
 
 		// Remove variable scope for this module again.
@@ -953,7 +951,8 @@ GOALVisitor {
 
 	@Override
 	public List<ActionSpecification> visitActionSpecs(ActionSpecsContext ctx) {
-		List<ActionSpecification> specs = new ArrayList<ActionSpecification>();
+		List<ActionSpecification> specs = new ArrayList<ActionSpecification>(
+				ctx.actionSpec().size());
 		for (ActionSpecContext context : ctx.actionSpec()) {
 			ActionSpecification spec = visitActionSpec(context);
 			if (spec != null) { // ignore if not OK
@@ -998,12 +997,12 @@ GOALVisitor {
 		}
 		problem |= (postcondition == null);
 
-		// Create action
-		UserSpecAction action = new UserSpecAction(declaration.getKey(),
-				declaration.getValue(), external, precondition, postcondition,
-				getSourceInfo(ctx), this.kri);
-
 		if (!problem) {
+			// Create action
+			UserSpecAction action = new UserSpecAction(declaration.getKey(),
+					declaration.getValue(), external, precondition,
+					postcondition, getSourceInfo(ctx), this.kri);
+
 			// Check use of action parameters and variables in postcondition
 			Set<Var> actionParsNotUsed = action.getFreeVar();
 			actionParsNotUsed.removeAll(postcondition.getFreeVar());
@@ -1021,33 +1020,30 @@ GOALVisitor {
 			 * reportError(AgentError.POSTCONDITION_UNBOUND_VARIABLE,
 			 * ctx.postcondition(), prettyPrintSet(postVarNotBound)); }
 			 */
-		}
 
-		// Create action specification
-		ActionSpecification spec = new ActionSpecification(action);
+			// Create action specification
+			ActionSpecification spec = new ActionSpecification(action);
 
-		// Define symbol
-		if (!this.actionSymbols.define(new ActionSymbol(action.getSignature(),
-				spec, getSourceInfo(ctx)))) {
-			// Report duplicate action label
-			Symbol symbol = this.actionSymbols.resolve(action.getSignature());
-			String specifiedAs = null;
-			if (symbol instanceof ActionSymbol) {
-				specifiedAs = "action";
-			} else if (symbol instanceof ModuleSymbol) {
-				specifiedAs = "module";
+			// Define symbol
+			if (!this.actionSymbols.define(new ActionSymbol(action
+					.getSignature(), spec, getSourceInfo(ctx)))) {
+				// Report duplicate action label
+				Symbol symbol = this.actionSymbols.resolve(action
+						.getSignature());
+				String specifiedAs = null;
+				if (symbol instanceof ActionSymbol) {
+					specifiedAs = "action";
+				} else if (symbol instanceof ModuleSymbol) {
+					specifiedAs = "module";
+				}
+				if (specifiedAs != null) {
+					reportError(AgentError.ACTION_LABEL_ALREADY_DEFINED, ctx,
+							"Action " + action.getSignature(), specifiedAs);
+				}
 			}
-			if (specifiedAs != null) {
-				reportError(AgentError.ACTION_LABEL_ALREADY_DEFINED, ctx,
-						"Action " + action.getSignature(), specifiedAs);
-			}
-		}
-
-		// Don't pass on null values as part of action spec
-		if (problem) {
-			return null;
-		} else {
 			return spec;
+		} else {
+			return null;
 		}
 	}
 
@@ -1084,7 +1080,7 @@ GOALVisitor {
 		if (ctx.PARLIST() != null) {
 			parameters = visitVARLIST(ctx.PARLIST().getText(), ctx);
 		} else {
-			parameters = new ArrayList<Term>();
+			parameters = new ArrayList<Term>(0);
 		}
 
 		return new AbstractMap.SimpleEntry<String, List<Term>>(name, parameters);
@@ -1094,7 +1090,7 @@ GOALVisitor {
 	public Map.Entry<String, List<Term>> visitDeclarationOrCallWithTerms(
 			DeclarationOrCallWithTermsContext ctx) {
 		String name = null;
-		List<Term> parameters = new ArrayList<Term>();
+		List<Term> parameters = new ArrayList<Term>(0);
 
 		// Get functor name
 		if (ctx.ID() != null) {
@@ -1142,27 +1138,23 @@ GOALVisitor {
 	 * @return List of terms.
 	 */
 	public List<Term> visitPARLIST(String pars, ParserRuleContext ctx) {
-		// Strip brackets
-		pars = pars.substring(1, pars.length() - 1);
-
-		List<Term> parameters = visit_KR_Terms(pars, getSourceInfo(ctx));
+		List<Term> parameters = visit_KR_Terms(removeLeadTrailCharacters(pars),
+				getSourceInfo(ctx));
 
 		// If no parameters were returned, return the empty list to avoid a
 		// cascade of errors.
 		if (parameters == null) {
-			parameters = new ArrayList<Term>();
+			parameters = new ArrayList<Term>(0);
 		}
 
-		for (Term node : parameters) {
-			// KR specific check: cannot use Prolog anonymous variable as
-			// parameter
-			/*
-			 * if (this.kri.getName().equals(KRFactory.SWI_PROLOG) FIXME CANNOT
-			 * USE PROLOGTERM HERE && ((PrologTerm) node).isAnonymousVar()) {
-			 * reportError(AgentError.PROLOG_ANONYMOUS_VARIABLE, ctx,
-			 * node.toString()); }
-			 */
-		}
+		/*
+		 * for (Term node : parameters) { FIXME cannot use PrologTerm here // KR
+		 * specific check: cannot use Prolog anonymous variable as // parameter
+		 * if (this.kri.getName().equals(KRFactory.SWI_PROLOG) && ((PrologTerm)
+		 * node).isAnonymousVar()) {
+		 * reportError(AgentError.PROLOG_ANONYMOUS_VARIABLE, ctx,
+		 * node.toString()); } }
+		 */
 
 		return parameters;
 	}
@@ -1380,7 +1372,7 @@ GOALVisitor {
 	 */
 	private List<DatabaseFormula> visit_KR_DBFs(String krFragment,
 			SourceInfo info) {
-		List<DatabaseFormula> formulas = new ArrayList<DatabaseFormula>();
+		List<DatabaseFormula> formulas = new ArrayList<DatabaseFormula>(0);
 
 		// Get the formulas
 		try {
@@ -1397,7 +1389,7 @@ GOALVisitor {
 		}
 
 		if (formulas == null) {
-			return new ArrayList<DatabaseFormula>();
+			return new ArrayList<DatabaseFormula>(0);
 		}
 
 		return formulas;
@@ -1444,7 +1436,7 @@ GOALVisitor {
 	 * @return A {@link List<Query>}.
 	 */
 	private List<Query> visit_KR_Queries(String krFragment, SourceInfo info) {
-		List<Query> queries = new ArrayList<Query>();
+		List<Query> queries = new ArrayList<Query>(0);
 
 		if (krFragment.isEmpty()) {
 			return queries;
