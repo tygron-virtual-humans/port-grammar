@@ -76,8 +76,8 @@ import org.apache.commons.io.FilenameUtils;
  */
 @SuppressWarnings("rawtypes")
 public class MASValidator extends
-		Validator<MyMAS2GLexer, MAS2GParser, MASErrorStrategy, MASProgram>
-		implements MAS2GVisitor {
+Validator<MyMAS2GLexer, MAS2GParser, MASErrorStrategy, MASProgram>
+implements MAS2GVisitor {
 
 	private MAS2GParser parser;
 	private static MASErrorStrategy strategy = null;
@@ -206,14 +206,16 @@ public class MASValidator extends
 		if (filename.isEmpty()) {
 			reportWarning(MASWarning.ENVIRONMENT_NO_REFERENCE, ctx);
 		}
-		// file must be located relative to path specified for MAS file
-		String path = getPathRelativeToSourceFile(filename);
-		File environmentfile = new File(path);
+		File environmentfile = new File(filename);
+		if (!environmentfile.isAbsolute()) {
+			// relative to path specified for MAS file
+			environmentfile = new File(getPathRelativeToSourceFile(filename));
+		}
 
 		// If extension is "jar", the file must exist;
 		// otherwise it can be a reference to an existing environment.
 		String ext = FilenameUtils.getExtension(filename);
-		if (ext.equals("jar") && !environmentfile.exists()) {
+		if (ext.equals("jar") && !environmentfile.isFile()) {
 			reportError(MASError.ENVIRONMENT_COULDNOT_FIND, ctx,
 					environmentfile.getPath());
 		} else {
@@ -377,20 +379,20 @@ public class MASValidator extends
 
 		// Get agent file name
 		String path = visitString(ctx.string());
-		String filename = FilenameUtils.getName(path);
-		// File must be located relative to path specified for MAS file
-		File file = new File(getPathRelativeToSourceFile(path));
+		File file = new File(path);
+		if (!file.isAbsolute()) {
+			// relative to path specified for MAS file
+			file = new File(getPathRelativeToSourceFile(path));
+		}
 
 		// Check file extension
 		String ext = FilenameUtils.getExtension(path);
 		if (Extension.getFileExtension(file) != Extension.GOAL) {
 			problem = reportError(MASError.AGENTFILE_OTHER_EXTENSION,
 					ctx.string(), ext);
-		} else {
-			if (!file.exists()) {
-				problem = reportError(MASError.AGENTFILE_COULDNOT_FIND,
-						ctx.string(), file.getPath());
-			}
+		} else if (!file.isFile()) {
+			problem = reportError(MASError.AGENTFILE_COULDNOT_FIND,
+					ctx.string(), file.getPath());
 		}
 
 		// Get (optional) parameters
@@ -411,7 +413,7 @@ public class MASValidator extends
 		if (parameters.containsKey("name")) {
 			agentName = parameters.get("name");
 		} else {
-			agentName = FilenameUtils.getBaseName(filename);
+			agentName = FilenameUtils.getBaseName(FilenameUtils.getName(path));
 		}
 
 		// Add agent symbol to symbol table for later reference (if key does not
