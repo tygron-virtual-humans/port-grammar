@@ -76,8 +76,8 @@ import org.apache.commons.io.FilenameUtils;
  */
 @SuppressWarnings("rawtypes")
 public class MASValidator extends
-		Validator<MyMAS2GLexer, MAS2GParser, MASErrorStrategy, MASProgram>
-		implements MAS2GVisitor {
+Validator<MyMAS2GLexer, MAS2GParser, MASErrorStrategy, MASProgram>
+implements MAS2GVisitor {
 
 	private MAS2GParser parser;
 	private static MASErrorStrategy strategy = null;
@@ -673,12 +673,17 @@ public class MASValidator extends
 		if (ctx.StringLiteral() != null) {
 			for (TerminalNode literal : ctx.StringLiteral()) {
 				String[] parts = literal.getText().split("(?<!\\\\)\"", 0);
-				str += parts[1].replace("\\\"", "\"");
+				if (parts.length > 1) {
+					str += parts[1].replace("\\\"", "\"");
+				}
 			}
-		} else if (ctx.SingleQuotedStringLiteral() != null) {
+		}
+		if (ctx.SingleQuotedStringLiteral() != null) {
 			for (TerminalNode literal : ctx.SingleQuotedStringLiteral()) {
 				String[] parts = literal.getText().split("(?<!\\\\)'", 0);
-				str += parts[1].replace("\\'", "'");
+				if (parts.length > 1) {
+					str += parts[1].replace("\\'", "'");
+				}
 			}
 		}
 		return str;

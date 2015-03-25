@@ -145,22 +145,19 @@ INT
 
 fragment DIGIT: [0-9];
 
+fragment EscapedQuote: '\\"';
 StringLiteral
-	: '"' ('\\"' | ~[\r\n"])* '"'
+	: '"' (EscapedQuote | ~[\r\n\\"])* '"'
 	;
-UnterminatedStringLiteral
-	: '"' ('\\"' | ~[\r\n"])*
-	;
-	
+
+fragment EscapedSingleQuote: '\\\'';
 SingleQuotedStringLiteral
-	: '\'' ('\\"' | ~[\r\n\'])* '\''
-	;
-UnterminatedSingelQuotedStringLiteral
-	: '\'' ('\\"' | ~[\r\n\'])*
+	: '\'' (EscapedSingleQuote | ~[\r\n\\\'])* '\''
 	;
 
 AGENTFILENAME
-	: '"' ~[ \t\f\r\n?%*:|"<>]+ '.goal"'
+	: ('"' ~[ \t\f\r\n?%*:|"<>]+ '.goal"')
+	| ('\'' ~[ \t\f\r\n?%*:|\'<>]+ '.goal\'')
 	;
 
 // White space and comments.

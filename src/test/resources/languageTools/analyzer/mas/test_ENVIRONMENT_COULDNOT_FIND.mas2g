@@ -1,9 +1,9 @@
 environment{
-	env = "dummy.jar".
+	env = "dummy\"test\".jar".
 	init = [key=value].
 }
 agentfiles{
-	"template.goal".
+	'template.goal'.
 }
 
 launchpolicy{

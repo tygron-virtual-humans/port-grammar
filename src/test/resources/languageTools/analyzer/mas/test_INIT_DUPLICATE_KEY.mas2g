@@ -1,6 +1,6 @@
 environment{
 	env = "dummy_environment.jar".
-	init = [key=value1, key=value2].
+	init = [key='value1', key='\'value2\''].
 }
 
 agentfiles{

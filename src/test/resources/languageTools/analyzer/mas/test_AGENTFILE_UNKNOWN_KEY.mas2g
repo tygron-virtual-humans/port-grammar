@@ -1,5 +1,5 @@
 agentfiles{
-	"template.goal" [name = empty, unknownkey = '????', language = swiprolog].
+	"template.goal" [name = empty, unknownkey = test, language = swiprolog].
 }
 
 launchpolicy{
