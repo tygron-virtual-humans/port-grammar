@@ -147,12 +147,12 @@ fragment DIGIT: [0-9];
 
 fragment EscapedQuote: '\\"';
 StringLiteral
-	: '"' (EscapedQuote | ~[\r\n\\"])* '"'
+	: '"' (EscapedQuote | ~[\r\n"])* '"'
 	;
 
 fragment EscapedSingleQuote: '\\\'';
 SingleQuotedStringLiteral
-	: '\'' (EscapedSingleQuote | ~[\r\n\\\'])* '\''
+	: '\'' (EscapedSingleQuote | ~[\r\n\'])* '\''
 	;
 
 AGENTFILENAME
