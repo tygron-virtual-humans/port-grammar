@@ -130,8 +130,8 @@ import org.antlr.v4.runtime.tree.ParseTree;
  */
 @SuppressWarnings("rawtypes")
 public class TestValidator extends
-Validator<MyGOALLexer, Test, TestErrorStrategy, UnitTest> implements
-TestVisitor {
+		Validator<MyGOALLexer, Test, TestErrorStrategy, UnitTest> implements
+		TestVisitor {
 	private Test parser;
 	private MASProgram masProgram;
 	private AgentProgram agentProgram;
@@ -537,7 +537,6 @@ TestVisitor {
 		}
 		for (ReactTestContext subCtx : ctx.reactTest()) {
 			TestCondition query = visitReactTest(subCtx);
-			System.out.println("WTF: " + query);
 			if (query == null) {
 				reportError(TestError.TEST_MISSING_TEST, subCtx);
 			} else if (!queries.add(query)) {
