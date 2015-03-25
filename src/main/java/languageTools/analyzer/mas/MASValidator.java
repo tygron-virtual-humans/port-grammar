@@ -76,8 +76,8 @@ import org.apache.commons.io.FilenameUtils;
  */
 @SuppressWarnings("rawtypes")
 public class MASValidator extends
-Validator<MyMAS2GLexer, MAS2GParser, MASErrorStrategy, MASProgram>
-implements MAS2GVisitor {
+		Validator<MyMAS2GLexer, MAS2GParser, MASErrorStrategy, MASProgram>
+		implements MAS2GVisitor {
 
 	private MAS2GParser parser;
 	private static MASErrorStrategy strategy = null;
@@ -299,16 +299,7 @@ implements MAS2GVisitor {
 			return Integer.parseInt(ctx.INT().getText());
 		}
 		if (ctx.string() != null) {
-			// TODO: what is the logic here?
-			String text = ctx.string().getText();
-			String[] parts = text.split("(?<!\\\\)\"", 0);
-			return parts[1].replace("\\\"", "\"");
-		}
-		if (ctx.SingleQuotedStringLiteral() != null) {
-			// TODO: what is the logic here?
-			String text = ctx.SingleQuotedStringLiteral().getText();
-			String[] parts = text.split("(?<!\\\\)'", 0);
-			return parts[1].replace("\\'", "'");
+			return visitString(ctx.string());
 		}
 
 		// We did not recognize a valid initialization parameter.
@@ -679,9 +670,16 @@ implements MAS2GVisitor {
 	@Override
 	public String visitString(StringContext ctx) {
 		String str = "";
-
-		for (TerminalNode node : ctx.StringLiteral()) {
-			str += removeLeadTrailCharacters(node.getText());
+		if (ctx.StringLiteral() != null) {
+			for (TerminalNode literal : ctx.StringLiteral()) {
+				String[] parts = literal.getText().split("(?<!\\\\)\"", 0);
+				str += parts[1].replace("\\\"", "\"");
+			}
+		} else if (ctx.SingleQuotedStringLiteral() != null) {
+			for (TerminalNode literal : ctx.SingleQuotedStringLiteral()) {
+				String[] parts = literal.getText().split("(?<!\\\\)'", 0);
+				str += parts[1].replace("\\'", "'");
+			}
 		}
 		return str;
 	}

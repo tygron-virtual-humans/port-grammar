@@ -55,7 +55,6 @@ constant
 	: ID 
 	| INT
 	| FLOAT
-	| SingleQuotedStringLiteral
 	| string
 	;
 
@@ -119,7 +118,8 @@ entityConstraint
 	;
 	
 string
-	: StringLiteral ('+' StringLiteral)*
+	: (StringLiteral ('+' StringLiteral)*)
+	| (SingleQuotedStringLiteral ('+' SingleQuotedStringLiteral)*)
 	;
 
 // LEXER
