@@ -140,8 +140,8 @@ import org.antlr.v4.runtime.tree.TerminalNode;
  */
 @SuppressWarnings("rawtypes")
 public class AgentValidator extends
-Validator<MyGOALLexer, GOAL, AgentErrorStrategy, AgentProgram>
-implements GOALVisitor {
+		Validator<MyGOALLexer, GOAL, AgentErrorStrategy, AgentProgram>
+		implements GOALVisitor {
 
 	private GOAL parser;
 	private static AgentErrorStrategy strategy = null;
@@ -931,25 +931,31 @@ implements GOALVisitor {
 						getSourceInfo(parlistctx));
 				if (content != null) {
 					if (op.equals(AgentProgram.getTokenName(GOAL.ADOPT))) {
+						checkEmpty(content, getSourceInfo(parlistctx), false);
 						return new AdoptAction(selector, content,
 								getSourceInfo(parlistctx), this.kri);
 					} else if (op.equals(AgentProgram.getTokenName(GOAL.DROP))) {
+						checkEmpty(content, getSourceInfo(parlistctx), false);
 						return new DropAction(selector, content,
 								getSourceInfo(parlistctx), this.kri);
 					} else if (op
 							.equals(AgentProgram.getTokenName(GOAL.INSERT))) {
+						checkEmpty(content, getSourceInfo(parlistctx), true);
 						return new InsertAction(selector, content,
 								getSourceInfo(parlistctx), this.kri);
 					} else if (op
 							.equals(AgentProgram.getTokenName(GOAL.DELETE))) {
+						checkEmpty(content, getSourceInfo(parlistctx), false);
 						return new DeleteAction(selector, content,
 								getSourceInfo(parlistctx), this.kri);
 					} else if (op.equals(AgentProgram.getTokenName(GOAL.SEND))) {
+						checkEmpty(content, getSourceInfo(parlistctx), true);
 						checkSendSelector(selector, ctx);
 						return new SendAction(selector, mood, content,
 								getSourceInfo(parlistctx), this.kri);
 					} else if (op.equals(AgentProgram
 							.getTokenName(GOAL.SENDONCE))) {
+						checkEmpty(content, getSourceInfo(parlistctx), true);
 						checkSendSelector(selector, ctx);
 						return new SendOnceAction(selector, mood, content,
 								getSourceInfo(parlistctx), this.kri);
@@ -967,6 +973,17 @@ implements GOALVisitor {
 		} else {
 			return new UserSpecOrModuleCall(ctx.op.getText(),
 					new ArrayList<Term>(0), getSourceInfo(ctx), this.kri);
+		}
+	}
+
+	private void checkEmpty(Update content, SourceInfo info,
+			boolean allowNegative) {
+		boolean addEmpty = content.getAddList().isEmpty();
+		boolean deleteEmpty = content.getDeleteList().isEmpty();
+		if (addEmpty && deleteEmpty) {
+			reportError(AgentError.UPDATE_EMPTY, info);
+		} else if (!allowNegative && !deleteEmpty) {
+			reportError(AgentError.UPDATE_NEGATIVE, info);
 		}
 	}
 
@@ -1657,7 +1674,7 @@ implements GOALVisitor {
 		for (Module module : program.getModules()) {
 			if (call.getName().equals(module.getName())
 					&& call.getParameters().size() == module.getParameters()
-					.size()) {
+							.size()) {
 				return new ModuleCallAction(module, call.getParameters(),
 						call.getSourceInfo(), program.getKRInterface());
 			}
@@ -1666,13 +1683,13 @@ implements GOALVisitor {
 				UserSpecAction spec = specification.getAction();
 				if (call.getName().equals(spec.getName())
 						&& call.getParameters().size() == spec.getParameters()
-						.size()) {
+								.size()) {
 					return new UserSpecAction(call.getName(),
 							call.getParameters(), spec.getExernal(),
 							((MentalLiteral) spec.getPrecondition()
 									.getSubFormulas().get(0)).getFormula(),
-									spec.getPostcondition(), call.getSourceInfo(),
-									program.getKRInterface());
+							spec.getPostcondition(), call.getSourceInfo(),
+							program.getKRInterface());
 				}
 			}
 		}
