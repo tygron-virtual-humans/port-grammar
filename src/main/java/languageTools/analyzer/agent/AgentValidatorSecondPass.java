@@ -456,8 +456,8 @@ public class AgentValidatorSecondPass {
 			} else if (action instanceof ModuleCallAction) {
 				// must be anonymous module
 				actionLabelsUsed
-						.addAll(resolveModuleActionRefs(((ModuleCallAction) action)
-								.getTarget()));
+				.addAll(resolveModuleActionRefs(((ModuleCallAction) action)
+						.getTarget()));
 				resolved.add(action);
 			} else {
 				resolved.add(action);
@@ -498,9 +498,9 @@ public class AgentValidatorSecondPass {
 				if (((ModuleCallAction) rule.getAction().getActions().get(0))
 						.getTarget().getType() == TYPE.ANONYMOUS) {
 					macroLabels
-							.addAll(resolveModuleMacroRefs(((ModuleCallAction) rule
-									.getAction().getActions().get(0))
-									.getTarget()));
+					.addAll(resolveModuleMacroRefs(((ModuleCallAction) rule
+							.getAction().getActions().get(0))
+							.getTarget()));
 				}
 			}
 		}
@@ -531,8 +531,8 @@ public class AgentValidatorSecondPass {
 				// condition
 				Set<Term> newscope = new HashSet<Term>(localScope);
 				newscope.addAll(rule.getCondition().getFreeVar());
-				Set<Var> unbound = new HashSet<>();
 				for (Action<?> action : rule.getAction().getActions()) {
+					Set<Var> unbound = new HashSet<>();
 					Set<Var> free = new HashSet<Var>();
 					if (action instanceof ModuleCallAction) {
 						checkVariablesBound(
@@ -547,13 +547,13 @@ public class AgentValidatorSecondPass {
 						free = action.getFreeVar();
 					}
 					unbound.addAll(free);
-					unbound.removeAll(newscope); // CHECK why is this here?
-				}
-				if (!unbound.isEmpty()) {
-					this.firstPass.reportError(
-							AgentError.RULE_VARIABLE_NOT_BOUND, unbound
-									.iterator().next().getSourceInfo(),
-							this.firstPass.prettyPrintSet(unbound));
+					unbound.removeAll(newscope);
+					if (!unbound.isEmpty()) {
+						this.firstPass.reportError(
+								AgentError.RULE_VARIABLE_NOT_BOUND,
+								action.getSourceInfo(),
+								this.firstPass.prettyPrintSet(unbound));
+					}
 				}
 			}
 			for (DatabaseFormula formula : module.getBeliefs()) {
@@ -561,8 +561,8 @@ public class AgentValidatorSecondPass {
 				unbound.removeAll(localScope);
 				if (!unbound.isEmpty()) {
 					this.firstPass.reportError(
-							AgentError.BELIEF_UNINSTANTIATED_VARIABLE, unbound
-									.iterator().next().getSourceInfo(),
+							AgentError.BELIEF_UNINSTANTIATED_VARIABLE,
+							formula.getSourceInfo(),
 							this.firstPass.prettyPrintSet(unbound),
 							formula.toString());
 				}
@@ -572,8 +572,8 @@ public class AgentValidatorSecondPass {
 				unbound.removeAll(localScope);
 				if (!unbound.isEmpty()) {
 					this.firstPass.reportError(
-							AgentError.GOAL_UNINSTANTIATED_VARIABLE, unbound
-									.iterator().next().getSourceInfo(),
+							AgentError.GOAL_UNINSTANTIATED_VARIABLE,
+							formula.getSourceInfo(),
 							this.firstPass.prettyPrintSet(unbound),
 							formula.toString());
 				}

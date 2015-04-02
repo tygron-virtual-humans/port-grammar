@@ -1336,7 +1336,8 @@ GOALVisitor {
 		if (e.getCause() != null) {
 			msg += " because " + e.getCause().getMessage();
 		}
-		reportError(SyntaxError.EMBEDDED_LANGUAGE_ERROR, info, msg);
+		reportError(SyntaxError.EMBEDDED_LANGUAGE_ERROR, info,
+				this.kri.getName(), msg);
 	}
 
 	/**
@@ -1362,7 +1363,7 @@ GOALVisitor {
 						info.getStopIndex() + error.getStopIndex(),
 						error.getSource());
 				reportError(SyntaxError.EMBEDDED_LANGUAGE_ERROR, pos,
-						error.getMessage());
+						this.kri.getName(), error.getMessage());
 			}
 		}
 	}

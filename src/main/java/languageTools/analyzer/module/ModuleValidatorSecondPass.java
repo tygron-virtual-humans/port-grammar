@@ -496,10 +496,9 @@ public class ModuleValidatorSecondPass {
 			// condition
 			Set<Term> newscope = new HashSet<Term>(localScope);
 			newscope.addAll(rule.getCondition().getFreeVar());
-			Set<Var> unbound = new HashSet<>();
 			for (Action<?> action : rule.getAction().getActions()) {
+				Set<Var> unbound = new HashSet<>();
 				Set<Var> free = new HashSet<Var>();
-
 				if (action instanceof ModuleCallAction) {
 					checkVariablesBound(
 							((ModuleCallAction) action).getTarget(), newscope);
@@ -512,12 +511,13 @@ public class ModuleValidatorSecondPass {
 					free = action.getFreeVar();
 				}
 				unbound.addAll(free);
-				unbound.removeAll(newscope); // CHECK why is this here?
-			}
-			if (!unbound.isEmpty()) {
-				this.firstPass.reportError(AgentError.RULE_VARIABLE_NOT_BOUND,
-						unbound.iterator().next().getSourceInfo(),
-						this.firstPass.prettyPrintSet(unbound));
+				unbound.removeAll(newscope);
+				if (!unbound.isEmpty()) {
+					this.firstPass.reportError(
+							AgentError.RULE_VARIABLE_NOT_BOUND,
+							action.getSourceInfo(),
+							this.firstPass.prettyPrintSet(unbound));
+				}
 			}
 		}
 		for (DatabaseFormula formula : module.getBeliefs()) {
@@ -525,8 +525,8 @@ public class ModuleValidatorSecondPass {
 			unbound.removeAll(localScope);
 			if (!unbound.isEmpty()) {
 				this.firstPass.reportError(
-						AgentError.BELIEF_UNINSTANTIATED_VARIABLE, unbound
-								.iterator().next().getSourceInfo(),
+						AgentError.BELIEF_UNINSTANTIATED_VARIABLE,
+						formula.getSourceInfo(),
 						this.firstPass.prettyPrintSet(unbound),
 						formula.toString());
 			}
@@ -536,8 +536,8 @@ public class ModuleValidatorSecondPass {
 			unbound.removeAll(localScope);
 			if (!unbound.isEmpty()) {
 				this.firstPass.reportError(
-						AgentError.GOAL_UNINSTANTIATED_VARIABLE, unbound
-								.iterator().next().getSourceInfo(),
+						AgentError.GOAL_UNINSTANTIATED_VARIABLE,
+						formula.getSourceInfo(),
 						this.firstPass.prettyPrintSet(unbound),
 						formula.toString());
 			}
