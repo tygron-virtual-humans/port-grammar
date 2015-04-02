@@ -27,6 +27,10 @@ public enum AgentError implements ValidatorErrorType {
 	 */
 	ACTION_USED_NEVER_DEFINED,
 	/**
+	 * Beliefs in the belief section of a program should be closed.
+	 */
+	BELIEF_UNINSTANTIATED_VARIABLE,
+	/**
 	 * Goals in the goals section of a program should be closed.
 	 */
 	GOAL_UNINSTANTIATED_VARIABLE,

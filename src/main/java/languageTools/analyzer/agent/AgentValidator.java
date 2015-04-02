@@ -140,8 +140,8 @@ import org.antlr.v4.runtime.tree.TerminalNode;
  */
 @SuppressWarnings("rawtypes")
 public class AgentValidator extends
-Validator<MyGOALLexer, GOAL, AgentErrorStrategy, AgentProgram>
-implements GOALVisitor {
+		Validator<MyGOALLexer, GOAL, AgentErrorStrategy, AgentProgram>
+		implements GOALVisitor {
 
 	private GOAL parser;
 	private static AgentErrorStrategy strategy = null;
@@ -591,12 +591,6 @@ implements GOALVisitor {
 		// not remove them
 		List<Query> errors = new LinkedList<Query>();
 		for (Query dbf : dbfs) {
-			if (!dbf.isClosed()) {
-				reportError(AgentError.GOAL_UNINSTANTIATED_VARIABLE,
-						dbf.getSourceInfo(), dbf.getFreeVar().toString(),
-						dbf.toString());
-				errors.add(dbf);
-			}
 			if (!dbf.isUpdate()) {
 				reportError(AgentError.GOALSECTION_NOT_AN_UPDATE,
 						dbf.getSourceInfo(), dbf.toString());
@@ -1674,7 +1668,7 @@ implements GOALVisitor {
 		for (Module module : program.getModules()) {
 			if (call.getName().equals(module.getName())
 					&& call.getParameters().size() == module.getParameters()
-					.size()) {
+							.size()) {
 				return new ModuleCallAction(module, call.getParameters(),
 						call.getSourceInfo(), program.getKRInterface());
 			}
@@ -1683,13 +1677,13 @@ implements GOALVisitor {
 				UserSpecAction spec = specification.getAction();
 				if (call.getName().equals(spec.getName())
 						&& call.getParameters().size() == spec.getParameters()
-						.size()) {
+								.size()) {
 					return new UserSpecAction(call.getName(),
 							call.getParameters(), spec.getExernal(),
 							((MentalLiteral) spec.getPrecondition()
 									.getSubFormulas().get(0)).getFormula(),
-									spec.getPostcondition(), call.getSourceInfo(),
-									program.getKRInterface());
+							spec.getPostcondition(), call.getSourceInfo(),
+							program.getKRInterface());
 				}
 			}
 		}

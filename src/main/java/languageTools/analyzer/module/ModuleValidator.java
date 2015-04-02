@@ -135,8 +135,8 @@ import org.antlr.v4.runtime.tree.ParseTree;
  */
 @SuppressWarnings("rawtypes")
 public class ModuleValidator extends
-		Validator<MyGOALLexer, GOAL, AgentErrorStrategy, Module> implements
-		GOALVisitor {
+Validator<MyGOALLexer, GOAL, AgentErrorStrategy, Module> implements
+GOALVisitor {
 
 	private GOAL parser;
 	private static AgentErrorStrategy strategy = null;
@@ -534,12 +534,6 @@ public class ModuleValidator extends
 		// not remove them
 		List<Query> errors = new LinkedList<Query>();
 		for (Query dbf : dbfs) {
-			if (!dbf.isClosed()) {
-				reportError(AgentError.GOAL_UNINSTANTIATED_VARIABLE,
-						dbf.getSourceInfo(), dbf.getFreeVar().toString(),
-						dbf.toString());
-				errors.add(dbf);
-			}
 			if (!dbf.isUpdate()) {
 				reportError(AgentError.GOALSECTION_NOT_AN_UPDATE,
 						dbf.getSourceInfo(), dbf.toString());

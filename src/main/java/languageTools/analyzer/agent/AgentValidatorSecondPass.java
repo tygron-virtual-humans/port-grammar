@@ -18,30 +18,19 @@
 package languageTools.analyzer.agent;
 
 import java.io.File;
-import java.io.NotActiveException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
-import javax.naming.NamingException;
-
-import krTools.KRInterface;
 import krTools.errors.exceptions.ParserException;
 import krTools.language.DatabaseFormula;
-import krTools.language.Expression;
 import krTools.language.Query;
 import krTools.language.Substitution;
 import krTools.language.Term;
-import krTools.language.Update;
 import krTools.language.Var;
-import krTools.parser.SourceInfo;
 import languageTools.analyzer.module.ModuleValidator;
 import languageTools.errors.ParserError.SyntaxError;
 import languageTools.errors.agent.AgentError;
@@ -59,7 +48,6 @@ import languageTools.program.agent.actions.InsertAction;
 import languageTools.program.agent.actions.ModuleCallAction;
 import languageTools.program.agent.actions.SendAction;
 import languageTools.program.agent.actions.SendOnceAction;
-import languageTools.program.agent.actions.UserSpecAction;
 import languageTools.program.agent.actions.UserSpecOrModuleCall;
 import languageTools.program.agent.msc.BelLiteral;
 import languageTools.program.agent.msc.GoalLiteral;
@@ -72,7 +60,6 @@ import languageTools.program.agent.rules.Rule;
 import languageTools.symbolTable.Symbol;
 import languageTools.symbolTable.SymbolTable;
 import languageTools.symbolTable.agent.ActionSymbol;
-import languageTools.symbolTable.agent.MacroSymbol;
 import languageTools.symbolTable.agent.ModuleSymbol;
 
 /**
@@ -218,7 +205,7 @@ public class AgentValidatorSecondPass {
 		for (Module module : modules) {
 			visitModule(module);
 			this.processed.clear();
-			checkVariablesBoundinRules(module, new HashSet<Term>());
+			checkVariablesBound(module, new HashSet<Term>());
 		}
 
 		// Report unused action and module definitions
@@ -245,14 +232,17 @@ public class AgentValidatorSecondPass {
 		}
 
 		// Report unused macro definitions
-		/** make new set as Set#getNames() will be backed up by the original set and modifying it will
-		 * change the set of defined macros. */
-		Set<String> macrosDefined = new HashSet<String>( program.getMacros().getNames());
+		/**
+		 * make new set as Set#getNames() will be backed up by the original set
+		 * and modifying it will change the set of defined macros.
+		 */
+		Set<String> macrosDefined = new HashSet<String>(this.program
+				.getMacros().getNames());
 		// Remove labels that are used
 		macrosDefined.removeAll(this.macroLabelsUsed);
 		// Report unused
 		for (String df : macrosDefined) {
-			Symbol symbol = program.getMacros().resolve(df);
+			Symbol symbol = this.program.getMacros().resolve(df);
 			this.firstPass.reportWarning(AgentWarning.MACRO_NEVER_USED,
 					symbol.getSourceInfo(), df);
 		}
@@ -432,13 +422,14 @@ public class AgentValidatorSecondPass {
 						Module target = ((ModuleSymbol) symbol).getModule();
 						resolved.add(new ModuleCallAction(target, call
 								.getParameters(), action.getSourceInfo(),
-								program.getKRInterface()));
+								this.program.getKRInterface()));
 					} else { // must be ActionSymbol
 						ActionSpecification spec1 = ((ActionSymbol) symbol)
 								.getActionSpecification();
-						Substitution uniqueSub = program.makeTermVarsUnique(
-								getFreeVars(spec1.getAction().getParameters()),
-								call.getFreeVar());
+						Substitution uniqueSub = this.program
+								.makeTermVarsUnique(getFreeVars(spec1
+										.getAction().getParameters()), call
+										.getFreeVar());
 						ActionSpecification fixedSpec = spec1
 								.applySubst(uniqueSub);
 						// find the substi that matches the call to the spec.
@@ -465,8 +456,8 @@ public class AgentValidatorSecondPass {
 			} else if (action instanceof ModuleCallAction) {
 				// must be anonymous module
 				actionLabelsUsed
-						.addAll(resolveModuleActionRefs(((ModuleCallAction) action)
-								.getTarget()));
+				.addAll(resolveModuleActionRefs(((ModuleCallAction) action)
+						.getTarget()));
 				resolved.add(action);
 			} else {
 				resolved.add(action);
@@ -490,10 +481,12 @@ public class AgentValidatorSecondPass {
 		Set<String> macroLabels = new HashSet<>();
 		for (Rule rule : module.getRules()) {
 			try {
-				macroLabels.addAll(program.resolve(rule.getCondition()));
+				macroLabels.addAll(this.program.resolve(rule.getCondition()));
 			} catch (ParserException e) {
-				/* HACK how to get the correct source info here? We can't attach the 
-				original Macro to the exception. */
+				/*
+				 * HACK how to get the correct source info here? We can't attach
+				 * the original Macro to the exception.
+				 */
 				this.firstPass.reportError(AgentError.MACRO_NOT_DEFINED,
 						e.getSourceInfo(), e.getMessage());
 
@@ -505,24 +498,23 @@ public class AgentValidatorSecondPass {
 				if (((ModuleCallAction) rule.getAction().getActions().get(0))
 						.getTarget().getType() == TYPE.ANONYMOUS) {
 					macroLabels
-							.addAll(resolveModuleMacroRefs(((ModuleCallAction) rule
-									.getAction().getActions().get(0))
-									.getTarget()));
+					.addAll(resolveModuleMacroRefs(((ModuleCallAction) rule
+							.getAction().getActions().get(0))
+							.getTarget()));
 				}
 			}
 		}
 		return macroLabels;
 	}
 
-
 	/**
 	 * Reports error if variables in a rule have not been bound. FIXME Duplicate
 	 * code, #3434
-	 * 
+	 *
 	 * @param module
 	 *            Module with rules to be checked.
 	 */
-	private void checkVariablesBoundinRules(Module module, Set<Term> scope) {
+	private void checkVariablesBound(Module module, Set<Term> scope) {
 		Set<Term> localScope;
 		if (this.processed.add(module)) {
 			if (module.getType() != TYPE.ANONYMOUS) {
@@ -544,7 +536,7 @@ public class AgentValidatorSecondPass {
 					Set<Var> free = new HashSet<Var>();
 
 					if (action instanceof ModuleCallAction) {
-						checkVariablesBoundinRules(
+						checkVariablesBound(
 								((ModuleCallAction) action).getTarget(),
 								newscope);
 					} else if (action instanceof SendAction
@@ -556,14 +548,35 @@ public class AgentValidatorSecondPass {
 						free = action.getFreeVar();
 					}
 					unbound.addAll(free);
-					unbound.removeAll(newscope); // CHECK why is this in the
-													// loop?
+					unbound.removeAll(newscope); // CHECK why is this here?
 				}
 				if (!unbound.isEmpty()) {
 					this.firstPass.reportError(
 							AgentError.RULE_VARIABLE_NOT_BOUND, unbound
-									.iterator().next().getSourceInfo(),
+							.iterator().next().getSourceInfo(),
 							this.firstPass.prettyPrintSet(unbound));
+				}
+			}
+			for (DatabaseFormula formula : module.getBeliefs()) {
+				Set<Var> unbound = new HashSet<>(formula.getFreeVar());
+				unbound.removeAll(localScope);
+				if (!unbound.isEmpty()) {
+					this.firstPass.reportError(
+							AgentError.BELIEF_UNINSTANTIATED_VARIABLE, unbound
+							.iterator().next().getSourceInfo(),
+							this.firstPass.prettyPrintSet(unbound),
+							formula.toString());
+				}
+			}
+			for (Query formula : module.getGoals()) {
+				Set<Var> unbound = new HashSet<>(formula.getFreeVar());
+				unbound.removeAll(localScope);
+				if (!unbound.isEmpty()) {
+					this.firstPass.reportError(
+							AgentError.GOAL_UNINSTANTIATED_VARIABLE, unbound
+							.iterator().next().getSourceInfo(),
+							this.firstPass.prettyPrintSet(unbound),
+							formula.toString());
 				}
 			}
 		}
@@ -572,7 +585,7 @@ public class AgentValidatorSecondPass {
 	/**
 	 * Get the mood of the given action. Assumes action is {@link SendAction} or
 	 * {@link SendOnceAction}. Helper function to get around #3433
-	 * 
+	 *
 	 * @param action
 	 * @return mood of the given action.
 	 */
@@ -830,7 +843,7 @@ public class AgentValidatorSecondPass {
 
 	/**
 	 * get free vars of a list of terms.
-	 * 
+	 *
 	 * @param terms
 	 * @return
 	 */
@@ -841,8 +854,5 @@ public class AgentValidatorSecondPass {
 		}
 		return vars;
 	}
-
-
-
 
 }
