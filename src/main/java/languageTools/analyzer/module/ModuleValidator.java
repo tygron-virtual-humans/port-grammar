@@ -135,8 +135,8 @@ import org.antlr.v4.runtime.tree.ParseTree;
  */
 @SuppressWarnings("rawtypes")
 public class ModuleValidator extends
-Validator<MyGOALLexer, GOAL, AgentErrorStrategy, Module> implements
-GOALVisitor {
+		Validator<MyGOALLexer, GOAL, AgentErrorStrategy, Module> implements
+		GOALVisitor {
 
 	private GOAL parser;
 	private static AgentErrorStrategy strategy = null;
@@ -534,12 +534,12 @@ GOALVisitor {
 		// not remove them
 		List<Query> errors = new LinkedList<Query>();
 		for (Query dbf : dbfs) {
-			/*
-			 * if (!dbf.isClosed()) {
-			 * reportError(AgentError.GOAL_UNINSTANTIATED_VARIABLE,
-			 * dbf.getSourceInfo(), dbf.getFreeVar().toString(),
-			 * dbf.toString()); errors.add(dbf); }
-			 */
+			if (!dbf.isClosed()) {
+				reportError(AgentError.GOAL_UNINSTANTIATED_VARIABLE,
+						dbf.getSourceInfo(), dbf.getFreeVar().toString(),
+						dbf.toString());
+				errors.add(dbf);
+			}
 			if (!dbf.isUpdate()) {
 				reportError(AgentError.GOALSECTION_NOT_AN_UPDATE,
 						dbf.getSourceInfo(), dbf.toString());
@@ -868,25 +868,31 @@ GOALVisitor {
 				Update content = visit_KR_Update(argument, getSourceInfo(ctx));
 				if (content != null) {
 					if (op.equals(AgentProgram.getTokenName(GOAL.ADOPT))) {
+						checkEmpty(content, getSourceInfo(ctx), false);
 						return new AdoptAction(selector, content,
 								getSourceInfo(ctx), this.kri);
 					} else if (op.equals(AgentProgram.getTokenName(GOAL.DROP))) {
+						checkEmpty(content, getSourceInfo(ctx), false);
 						return new DropAction(selector, content,
 								getSourceInfo(ctx), this.kri);
 					} else if (op
 							.equals(AgentProgram.getTokenName(GOAL.INSERT))) {
+						checkEmpty(content, getSourceInfo(ctx), true);
 						return new InsertAction(selector, content,
 								getSourceInfo(ctx), this.kri);
 					} else if (op
 							.equals(AgentProgram.getTokenName(GOAL.DELETE))) {
+						checkEmpty(content, getSourceInfo(ctx), false);
 						return new DeleteAction(selector, content,
 								getSourceInfo(ctx), this.kri);
 					} else if (op.equals(AgentProgram.getTokenName(GOAL.SEND))) {
+						checkEmpty(content, getSourceInfo(ctx), true);
 						checkSendSelector(selector, ctx);
 						return new SendAction(selector, mood, content,
 								getSourceInfo(ctx), this.kri);
 					} else if (op.equals(AgentProgram
 							.getTokenName(GOAL.SENDONCE))) {
+						checkEmpty(content, getSourceInfo(ctx), true);
 						checkSendSelector(selector, ctx);
 						return new SendOnceAction(selector, mood, content,
 								getSourceInfo(ctx), this.kri);
@@ -904,6 +910,17 @@ GOALVisitor {
 		} else {
 			return new UserSpecOrModuleCall(ctx.op.getText(),
 					new ArrayList<Term>(0), getSourceInfo(ctx), this.kri);
+		}
+	}
+
+	private void checkEmpty(Update content, SourceInfo info,
+			boolean allowNegative) {
+		boolean addEmpty = content.getAddList().isEmpty();
+		boolean deleteEmpty = content.getDeleteList().isEmpty();
+		if (addEmpty && deleteEmpty) {
+			reportError(AgentError.UPDATE_EMPTY, info);
+		} else if (!allowNegative && !deleteEmpty) {
+			reportError(AgentError.UPDATE_NEGATIVE, info);
 		}
 	}
 
@@ -1013,14 +1030,14 @@ GOALVisitor {
 						ctx.declarationOrCallWithTerms(),
 						prettyPrintSet(actionParsNotUsed));
 			}
-			/*
-			 * Set<Var> postVarNotBound = postcondition.getFreeVar();
-			 * postVarNotBound.removeAll(action.getFreeVar());
-			 * postVarNotBound.removeAll(precondition.getFreeVar()); if
-			 * (!postVarNotBound.isEmpty()) {
-			 * reportError(AgentError.POSTCONDITION_UNBOUND_VARIABLE,
-			 * ctx.postcondition(), prettyPrintSet(postVarNotBound)); }
-			 */
+
+			Set<Var> postVarNotBound = postcondition.getFreeVar();
+			postVarNotBound.removeAll(action.getFreeVar());
+			postVarNotBound.removeAll(precondition.getFreeVar());
+			if (!postVarNotBound.isEmpty()) {
+				reportError(AgentError.POSTCONDITION_UNBOUND_VARIABLE,
+						ctx.postcondition(), prettyPrintSet(postVarNotBound));
+			}
 
 			// Create action specification
 			ActionSpecification spec = new ActionSpecification(action);
