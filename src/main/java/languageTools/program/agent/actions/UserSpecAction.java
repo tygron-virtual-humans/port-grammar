@@ -19,14 +19,12 @@ package languageTools.program.agent.actions;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 import krTools.KRInterface;
 import krTools.language.Query;
 import krTools.language.Substitution;
 import krTools.language.Term;
 import krTools.language.Update;
-import krTools.language.Var;
 import krTools.parser.SourceInfo;
 import languageTools.program.agent.msc.BelLiteral;
 import languageTools.program.agent.msc.MentalFormula;
@@ -98,7 +96,7 @@ public class UserSpecAction extends Action<Term> {
 	 * @return {@code true} if this is an external action, i.e., one that should
 	 *         be sent to environment.
 	 */
-	public boolean getExernal() {
+	public boolean isExternal() {
 		return this.external;
 	}
 
@@ -123,16 +121,6 @@ public class UserSpecAction extends Action<Term> {
 		return this.postcondition;
 	}
 
-	/**
-	 * Variables in the precondition of a user-specified action are bound.
-	 */
-	@Override
-	public Set<Var> getFreeVar() {
-		Set<Var> free = super.getFreeVar();
-		free.removeAll(getPrecondition().getFreeVar());
-		return free;
-	}
-
 	@Override
 	public UserSpecAction applySubst(Substitution substitution) {
 		ArrayList<Term> parameters = new ArrayList<Term>();
@@ -145,7 +133,8 @@ public class UserSpecAction extends Action<Term> {
 		Update postcondition = this.postcondition.applySubst(substitution);
 
 		UserSpecAction spec = new UserSpecAction(getName(), parameters,
-				this.external, precondition, postcondition, getSourceInfo(), getKRInterface());
+				this.external, precondition, postcondition, getSourceInfo(),
+				getKRInterface());
 		return spec;
 	}
 

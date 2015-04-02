@@ -456,8 +456,8 @@ public class AgentValidatorSecondPass {
 			} else if (action instanceof ModuleCallAction) {
 				// must be anonymous module
 				actionLabelsUsed
-				.addAll(resolveModuleActionRefs(((ModuleCallAction) action)
-						.getTarget()));
+						.addAll(resolveModuleActionRefs(((ModuleCallAction) action)
+								.getTarget()));
 				resolved.add(action);
 			} else {
 				resolved.add(action);
@@ -498,9 +498,9 @@ public class AgentValidatorSecondPass {
 				if (((ModuleCallAction) rule.getAction().getActions().get(0))
 						.getTarget().getType() == TYPE.ANONYMOUS) {
 					macroLabels
-					.addAll(resolveModuleMacroRefs(((ModuleCallAction) rule
-							.getAction().getActions().get(0))
-							.getTarget()));
+							.addAll(resolveModuleMacroRefs(((ModuleCallAction) rule
+									.getAction().getActions().get(0))
+									.getTarget()));
 				}
 			}
 		}
@@ -534,7 +534,6 @@ public class AgentValidatorSecondPass {
 				Set<Var> unbound = new HashSet<>();
 				for (Action<?> action : rule.getAction().getActions()) {
 					Set<Var> free = new HashSet<Var>();
-
 					if (action instanceof ModuleCallAction) {
 						checkVariablesBound(
 								((ModuleCallAction) action).getTarget(),
@@ -553,7 +552,7 @@ public class AgentValidatorSecondPass {
 				if (!unbound.isEmpty()) {
 					this.firstPass.reportError(
 							AgentError.RULE_VARIABLE_NOT_BOUND, unbound
-							.iterator().next().getSourceInfo(),
+									.iterator().next().getSourceInfo(),
 							this.firstPass.prettyPrintSet(unbound));
 				}
 			}
@@ -563,7 +562,7 @@ public class AgentValidatorSecondPass {
 				if (!unbound.isEmpty()) {
 					this.firstPass.reportError(
 							AgentError.BELIEF_UNINSTANTIATED_VARIABLE, unbound
-							.iterator().next().getSourceInfo(),
+									.iterator().next().getSourceInfo(),
 							this.firstPass.prettyPrintSet(unbound),
 							formula.toString());
 				}
@@ -574,7 +573,7 @@ public class AgentValidatorSecondPass {
 				if (!unbound.isEmpty()) {
 					this.firstPass.reportError(
 							AgentError.GOAL_UNINSTANTIATED_VARIABLE, unbound
-							.iterator().next().getSourceInfo(),
+									.iterator().next().getSourceInfo(),
 							this.firstPass.prettyPrintSet(unbound),
 							formula.toString());
 				}

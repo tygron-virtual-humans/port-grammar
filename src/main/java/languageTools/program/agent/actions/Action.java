@@ -89,9 +89,9 @@ Expression {
 	 *            parameters.
 	 */
 	public Action(String name, SourceInfo info, KRInterface kr) {
-		//if (kr == null) {
-		//	throw new NullPointerException("BUG kr=null");
-		//}
+		// if (kr == null) {
+		// throw new NullPointerException("BUG kr=null");
+		// }
 		this.name = name;
 		this.info = info;
 		this.kri = kr;
@@ -201,7 +201,6 @@ Expression {
 		for (Expression parameter : getParameters()) {
 			vars.addAll(parameter.getFreeVar());
 		}
-
 		return vars;
 	}
 

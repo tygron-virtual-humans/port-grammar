@@ -385,11 +385,11 @@ public class ModuleValidatorSecondPass {
 							}
 							resolved.add(new UserSpecAction(action.getName(),
 									instantiated,
-									spec.getAction().getExernal(), pre
-									.applySubst(unifier), post
-									.applySubst(unifier), action
-									.getSourceInfo(), this.program
-											.getKRInterface()));
+									spec.getAction().isExternal(), pre
+											.applySubst(unifier), post
+											.applySubst(unifier), action
+											.getSourceInfo(), this.program
+									.getKRInterface()));
 						} else {
 							this.firstPass.reportError(
 									AgentError.ACTION_DOES_NOT_MATCH,
@@ -405,8 +405,8 @@ public class ModuleValidatorSecondPass {
 			} else if (action instanceof ModuleCallAction) {
 				// must be anonymous module
 				actionLabelsUsed
-				.addAll(resolveModuleActionRefs(((ModuleCallAction) action)
-						.getTarget()));
+						.addAll(resolveModuleActionRefs(((ModuleCallAction) action)
+								.getTarget()));
 				resolved.add(action);
 			} else {
 				resolved.add(action);
@@ -462,9 +462,9 @@ public class ModuleValidatorSecondPass {
 				if (((ModuleCallAction) rule.getAction().getActions().get(0))
 						.getTarget().getType() == TYPE.ANONYMOUS) {
 					macroLabelsUsed
-					.addAll(resolveModuleMacroRefs(((ModuleCallAction) rule
-							.getAction().getActions().get(0))
-							.getTarget()));
+							.addAll(resolveModuleMacroRefs(((ModuleCallAction) rule
+									.getAction().getActions().get(0))
+									.getTarget()));
 				}
 			}
 		}
@@ -526,7 +526,7 @@ public class ModuleValidatorSecondPass {
 			if (!unbound.isEmpty()) {
 				this.firstPass.reportError(
 						AgentError.BELIEF_UNINSTANTIATED_VARIABLE, unbound
-						.iterator().next().getSourceInfo(),
+								.iterator().next().getSourceInfo(),
 						this.firstPass.prettyPrintSet(unbound),
 						formula.toString());
 			}
@@ -537,7 +537,7 @@ public class ModuleValidatorSecondPass {
 			if (!unbound.isEmpty()) {
 				this.firstPass.reportError(
 						AgentError.GOAL_UNINSTANTIATED_VARIABLE, unbound
-						.iterator().next().getSourceInfo(),
+								.iterator().next().getSourceInfo(),
 						this.firstPass.prettyPrintSet(unbound),
 						formula.toString());
 			}
