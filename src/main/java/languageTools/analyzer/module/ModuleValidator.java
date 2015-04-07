@@ -135,8 +135,8 @@ import org.antlr.v4.runtime.tree.ParseTree;
  */
 @SuppressWarnings("rawtypes")
 public class ModuleValidator extends
-Validator<MyGOALLexer, GOAL, AgentErrorStrategy, Module> implements
-GOALVisitor {
+		Validator<MyGOALLexer, GOAL, AgentErrorStrategy, Module> implements
+		GOALVisitor {
 
 	private GOAL parser;
 	private static AgentErrorStrategy strategy = null;
@@ -496,7 +496,7 @@ GOALVisitor {
 			try {
 				String content = new String(Files.readAllBytes(Paths.get(file
 						.getPath())));
-				imported = visit_KR_DBFs(content, new InputStreamPosition(0, 0,
+				imported = visit_KR_DBFs(content, new InputStreamPosition(1, 0,
 						0, 0, file));
 			} catch (Exception e) {
 				// Convert stack trace to string
