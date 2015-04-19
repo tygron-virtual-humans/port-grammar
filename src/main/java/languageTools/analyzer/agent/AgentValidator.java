@@ -140,8 +140,8 @@ import org.antlr.v4.runtime.tree.TerminalNode;
  */
 @SuppressWarnings("rawtypes")
 public class AgentValidator extends
-		Validator<MyGOALLexer, GOAL, AgentErrorStrategy, AgentProgram>
-		implements GOALVisitor {
+Validator<MyGOALLexer, GOAL, AgentErrorStrategy, AgentProgram>
+implements GOALVisitor {
 
 	private GOAL parser;
 	private static AgentErrorStrategy strategy = null;
@@ -733,7 +733,7 @@ public class AgentValidator extends
 			} catch (ParserException e) {
 				// Report problem, return null, and try to continue with parsing
 				// the rest of the source.
-				reportParsingException(e, getSourceInfo(ctx));
+				reportParsingException(e);
 			}
 		}
 
@@ -1396,13 +1396,13 @@ public class AgentValidator extends
 	 *            The context of the agent parser where the embedded language
 	 *            fragment is located.
 	 */
-	private void reportParsingException(ParserException e, SourceInfo info) {
+	private void reportParsingException(ParserException e) {
 		String msg = e.getMessage();
 		if (e.getCause() != null) {
 			msg += " because " + e.getCause().getMessage();
 		}
-		reportError(SyntaxError.EMBEDDED_LANGUAGE_ERROR, info,
-				this.kri.getName(), msg);
+		reportError(SyntaxError.EMBEDDED_LANGUAGE_ERROR, e, this.kri.getName(),
+				msg);
 	}
 
 	/**
@@ -1412,18 +1412,10 @@ public class AgentValidator extends
 	 * @param parser
 	 *            The parser that generated the errors.
 	 */
-	private void reportEmbeddedLanguageErrors(Parser parser, SourceInfo info) {
+	private void reportEmbeddedLanguageErrors(Parser parser) {
 		for (SourceInfo error : parser.getErrors()) {
-			// ignore null errors; we cannot make anything out of those...
-			if (error != null) {
-				InputStreamPosition pos = new InputStreamPosition(
-						error.getLineNumber(), error.getCharacterPosition(),
-						info.getStartIndex() + error.getStartIndex(),
-						info.getStopIndex() + error.getStopIndex(),
-						error.getSource());
-				reportError(SyntaxError.EMBEDDED_LANGUAGE_ERROR, pos,
-						this.kri.getName(), error.getMessage());
-			}
+			reportError(SyntaxError.EMBEDDED_LANGUAGE_ERROR, error,
+					this.kri.getName(), error.getMessage());
 		}
 	}
 
@@ -1454,11 +1446,11 @@ public class AgentValidator extends
 			formulas = parser.parseDBFs();
 
 			// Add errors from parser for embedded language to our own
-			reportEmbeddedLanguageErrors(parser, info);
+			reportEmbeddedLanguageErrors(parser);
 		} catch (ParserException e) {
 			// Report problem, and try to continue with parsing the rest of the
 			// source.
-			reportParsingException(e, info);
+			reportParsingException(e);
 		}
 
 		if (formulas == null) {
@@ -1489,11 +1481,11 @@ public class AgentValidator extends
 			update = parser.parseUpdate();
 
 			// Add errors from parser for embedded language to our own
-			reportEmbeddedLanguageErrors(parser, info);
+			reportEmbeddedLanguageErrors(parser);
 		} catch (ParserException e) {
 			// Report problem, and try to continue with parsing the rest of the
 			// source.
-			reportParsingException(e, info);
+			reportParsingException(e);
 		}
 
 		return update;
@@ -1524,11 +1516,11 @@ public class AgentValidator extends
 			queries = parser.parseQueries();
 
 			// Add errors from parser for embedded language to our own
-			reportEmbeddedLanguageErrors(parser, info);
+			reportEmbeddedLanguageErrors(parser);
 		} catch (ParserException e) {
 			// Report problem, return, and try to continue with parsing the rest
 			// of the source.
-			reportParsingException(e, info);
+			reportParsingException(e);
 		}
 
 		return queries;
@@ -1555,11 +1547,11 @@ public class AgentValidator extends
 			query = parser.parseQuery();
 
 			// Add errors from parser for embedded language to our own
-			reportEmbeddedLanguageErrors(parser, info);
+			reportEmbeddedLanguageErrors(parser);
 		} catch (ParserException e) {
 			// Report problem, return, and try to continue with parsing the rest
 			// of the source.
-			reportParsingException(e, info);
+			reportParsingException(e);
 		}
 
 		return query;
@@ -1587,11 +1579,11 @@ public class AgentValidator extends
 			term = parser.parseTerm();
 
 			// Add errors from parser for embedded language to our own
-			reportEmbeddedLanguageErrors(parser, info);
+			reportEmbeddedLanguageErrors(parser);
 		} catch (ParserException e) {
 			// Report problem, return, and try to continue with parsing the rest
 			// of the source.
-			reportParsingException(e, info);
+			reportParsingException(e);
 		}
 
 		return term;
@@ -1618,11 +1610,11 @@ public class AgentValidator extends
 			parameters = parser.parseTerms();
 
 			// Add errors from parser for embedded language to our own
-			reportEmbeddedLanguageErrors(parser, info);
+			reportEmbeddedLanguageErrors(parser);
 		} catch (ParserException e) {
 			// Report problem, return, and try to continue with parsing the rest
 			// of the source.
-			reportParsingException(e, info);
+			reportParsingException(e);
 		}
 
 		return parameters;
@@ -1648,7 +1640,7 @@ public class AgentValidator extends
 		Var var = parser.parseVar();
 
 		// Add errors from parser for embedded language to our own
-		reportEmbeddedLanguageErrors(parser, info);
+		reportEmbeddedLanguageErrors(parser);
 
 		return var;
 	}
@@ -1669,7 +1661,7 @@ public class AgentValidator extends
 		for (Module module : program.getModules()) {
 			if (call.getName().equals(module.getName())
 					&& call.getParameters().size() == module.getParameters()
-							.size()) {
+					.size()) {
 				return new ModuleCallAction(module, call.getParameters(),
 						call.getSourceInfo(), program.getKRInterface());
 			}
@@ -1678,13 +1670,13 @@ public class AgentValidator extends
 				UserSpecAction spec = specification.getAction();
 				if (call.getName().equals(spec.getName())
 						&& call.getParameters().size() == spec.getParameters()
-								.size()) {
+						.size()) {
 					return new UserSpecAction(call.getName(),
 							call.getParameters(), spec.isExternal(),
 							((MentalLiteral) spec.getPrecondition()
 									.getSubFormulas().get(0)).getFormula(),
-							spec.getPostcondition(), call.getSourceInfo(),
-							program.getKRInterface());
+									spec.getPostcondition(), call.getSourceInfo(),
+									program.getKRInterface());
 				}
 			}
 		}

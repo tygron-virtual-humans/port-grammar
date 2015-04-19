@@ -675,7 +675,7 @@ public class ModuleValidator extends
 			} catch (ParserException e) {
 				// Report problem, return null, and try to continue with parsing
 				// the rest of the source.
-				reportParsingException(e, getSourceInfo(ctx));
+				reportParsingException(e);
 			}
 		}
 
@@ -1331,13 +1331,13 @@ public class ModuleValidator extends
 	 *            The context of the agent parser where the embedded language
 	 *            fragment is located.
 	 */
-	private void reportParsingException(ParserException e, SourceInfo info) {
+	private void reportParsingException(ParserException e) {
 		String msg = e.getMessage();
 		if (e.getCause() != null) {
 			msg += " because " + e.getCause().getMessage();
 		}
-		reportError(SyntaxError.EMBEDDED_LANGUAGE_ERROR, info,
-				this.kri.getName(), msg);
+		reportError(SyntaxError.EMBEDDED_LANGUAGE_ERROR, e, this.kri.getName(),
+				msg);
 	}
 
 	/**
@@ -1353,18 +1353,10 @@ public class ModuleValidator extends
 	 *            Relative source code character position (start of the embedded
 	 *            fragment in source).
 	 */
-	private void reportEmbeddedLanguageErrors(Parser parser, SourceInfo info) {
+	private void reportEmbeddedLanguageErrors(Parser parser) {
 		for (SourceInfo error : parser.getErrors()) {
-			// ignore null errors; we cannot make anything out of those...
-			if (error != null) {
-				InputStreamPosition pos = new InputStreamPosition(
-						error.getLineNumber(), error.getCharacterPosition(),
-						info.getStartIndex() + error.getStartIndex(),
-						info.getStopIndex() + error.getStopIndex(),
-						error.getSource());
-				reportError(SyntaxError.EMBEDDED_LANGUAGE_ERROR, pos,
-						this.kri.getName(), error.getMessage());
-			}
+			reportError(SyntaxError.EMBEDDED_LANGUAGE_ERROR, error,
+					this.kri.getName(), error.getMessage());
 		}
 	}
 
@@ -1394,11 +1386,11 @@ public class ModuleValidator extends
 			formulas = parser.parseDBFs();
 
 			// Add errors from parser for embedded language to our own
-			reportEmbeddedLanguageErrors(parser, info);
+			reportEmbeddedLanguageErrors(parser);
 		} catch (ParserException e) {
 			// Report problem, and try to continue with parsing the rest of the
 			// source.
-			reportParsingException(e, info);
+			reportParsingException(e);
 		}
 
 		if (formulas == null) {
@@ -1428,11 +1420,11 @@ public class ModuleValidator extends
 			update = parser.parseUpdate();
 
 			// Add errors from parser for embedded language to our own
-			reportEmbeddedLanguageErrors(parser, info);
+			reportEmbeddedLanguageErrors(parser);
 		} catch (ParserException e) {
 			// Report problem, and try to continue with parsing the rest of the
 			// source.
-			reportParsingException(e, info);
+			reportParsingException(e);
 		}
 
 		return update;
@@ -1462,11 +1454,11 @@ public class ModuleValidator extends
 			queries = parser.parseQueries();
 
 			// Add errors from parser for embedded language to our own
-			reportEmbeddedLanguageErrors(parser, info);
+			reportEmbeddedLanguageErrors(parser);
 		} catch (ParserException e) {
 			// Report problem, return, and try to continue with parsing the rest
 			// of the source.
-			reportParsingException(e, info);
+			reportParsingException(e);
 		}
 
 		return queries;
@@ -1492,11 +1484,11 @@ public class ModuleValidator extends
 			query = parser.parseQuery();
 
 			// Add errors from parser for embedded language to our own
-			reportEmbeddedLanguageErrors(parser, info);
+			reportEmbeddedLanguageErrors(parser);
 		} catch (ParserException e) {
 			// Report problem, return, and try to continue with parsing the rest
 			// of the source.
-			reportParsingException(e, info);
+			reportParsingException(e);
 		}
 
 		return query;
@@ -1523,11 +1515,11 @@ public class ModuleValidator extends
 			term = parser.parseTerm();
 
 			// Add errors from parser for embedded language to our own
-			reportEmbeddedLanguageErrors(parser, info);
+			reportEmbeddedLanguageErrors(parser);
 		} catch (ParserException e) {
 			// Report problem, return, and try to continue with parsing the rest
 			// of the source.
-			reportParsingException(e, info);
+			reportParsingException(e);
 		}
 
 		return term;
@@ -1553,11 +1545,11 @@ public class ModuleValidator extends
 			parameters = parser.parseTerms();
 
 			// Add errors from parser for embedded language to our own
-			reportEmbeddedLanguageErrors(parser, info);
+			reportEmbeddedLanguageErrors(parser);
 		} catch (ParserException e) {
 			// Report problem, return, and try to continue with parsing the rest
 			// of the source.
-			reportParsingException(e, info);
+			reportParsingException(e);
 		}
 
 		return parameters;
@@ -1584,7 +1576,7 @@ public class ModuleValidator extends
 		Var var = parser.parseVar();
 
 		// Add errors from parser for embedded language to our own
-		reportEmbeddedLanguageErrors(parser, info);
+		reportEmbeddedLanguageErrors(parser);
 
 		return var;
 	}
