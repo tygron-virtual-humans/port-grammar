@@ -20,6 +20,7 @@ package languageTools.program.agent.actions;
 import java.util.ArrayList;
 import java.util.List;
 
+import krTools.KRInterface;
 import krTools.language.Expression;
 import krTools.language.Substitution;
 import krTools.language.Term;
@@ -55,10 +56,12 @@ public class UserSpecOrModuleCall extends Action<Term> {
 	 *            The name of the action.
 	 * @param parameters
 	 *            The parameters of the action.
+	 * @param kr
+	 *            the {@link KRInterface}
 	 */
 	public UserSpecOrModuleCall(String name, List<Term> parameters,
-			SourceInfo info) {
-		super(name, info);
+			SourceInfo info, KRInterface kr) {
+		super(name, info, kr);
 
 		for (Term parameter : parameters) {
 			addParameter(parameter);
@@ -74,7 +77,7 @@ public class UserSpecOrModuleCall extends Action<Term> {
 			parameters.add(parameter.applySubst(substitution));
 		}
 
-		return new UserSpecOrModuleCall(getName(), parameters, getSourceInfo());
+		return new UserSpecOrModuleCall(getName(), parameters, getSourceInfo(), getKRInterface());
 	}
 
 }

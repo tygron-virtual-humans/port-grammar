@@ -22,24 +22,22 @@ import static org.junit.Assert.assertTrue;
 import goalhub.krTools.KRFactory;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 
 import languageTools.errors.Message;
 import languageTools.errors.ParserError.SyntaxError;
 import languageTools.program.mas.MASProgram;
-import languageTools.symbolTable.SymbolTable;
-import languageTools.symbolTable.mas.MASSymbol;
 
 import org.junit.Test;
 
 public class MASSyntaxErrorTest {
-
-	List<Message> syntaxerrors;
-	List<Message> errors;
-	List<Message> warnings;
-	SymbolTable table;
-	MASProgram program;
+	private List<Message> syntaxerrors;
+	private List<Message> errors;
+	private List<Message> warnings;
+	private MASProgram program;
 
 	/**
 	 * Creates validator, calls validate, and initializes relevant fields.
@@ -51,11 +49,16 @@ public class MASSyntaxErrorTest {
 		MASValidator validator = new MASValidator(resource);
 		validator.validate();
 
-		this.syntaxerrors = validator.getSyntaxErrors();
-		this.errors = validator.getErrors();
-		this.warnings = validator.getWarnings();
-		this.table = validator.getSymbolTable();
+		this.syntaxerrors = new ArrayList<Message>(validator.getSyntaxErrors());
+		this.errors = new ArrayList<Message>(validator.getErrors());
+		this.warnings = new ArrayList<Message>(validator.getWarnings());
 		this.program = validator.getProgram();
+
+		List<Message> all = new LinkedList<>();
+		all.addAll(this.syntaxerrors);
+		all.addAll(this.errors);
+		all.addAll(this.warnings);
+		System.out.println(this.program.getSourceFile() + ": " + all);
 	}
 
 	@Test
@@ -103,7 +106,8 @@ public class MASSyntaxErrorTest {
 
 		File file = new File(
 				"src/test/resources/languageTools/analyzer/mas/template.goal");
-		assertEquals(file, ((MASSymbol) this.table.resolve("empty")).getFile());
+		// assertEquals(file, ((MASSymbol)
+		// this.table.resolve("empty")).getFile());
 		assertEquals(KRFactory.SWI_PROLOG, this.program.getKRInterface(file)
 				.getName());
 	}

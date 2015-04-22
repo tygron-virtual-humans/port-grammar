@@ -4,6 +4,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import goalhub.krTools.KRFactory;
 
+import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 import krTools.errors.exceptions.KRInitFailedException;
@@ -15,11 +17,10 @@ import languageTools.program.agent.AgentProgram;
 import org.junit.Test;
 
 public class AgentSyntaxErrorTest {
-
-	List<Message> syntaxerrors;
-	List<Message> errors;
-	List<Message> warnings;
-	AgentProgram program;
+	private List<Message> syntaxerrors;
+	private List<Message> errors;
+	private List<Message> warnings;
+	private AgentProgram program;
 
 	/**
 	 * Creates validator, calls validate, and initializes relevant fields.
@@ -33,10 +34,16 @@ public class AgentSyntaxErrorTest {
 		validator.setKRInterface(KRFactory.getDefaultInterface());
 		validator.validate();
 
-		this.syntaxerrors = validator.getSyntaxErrors();
-		this.errors = validator.getErrors();
-		this.warnings = validator.getWarnings();
+		this.syntaxerrors = new ArrayList<Message>(validator.getSyntaxErrors());
+		this.errors = new ArrayList<Message>(validator.getErrors());
+		this.warnings = new ArrayList<Message>(validator.getWarnings());
 		this.program = validator.getProgram();
+
+		List<Message> all = new LinkedList<>();
+		all.addAll(this.syntaxerrors);
+		all.addAll(this.errors);
+		all.addAll(this.warnings);
+		System.out.println(this.program.getSourceFile() + ": " + all);
 	}
 
 	@Test
@@ -69,10 +76,10 @@ public class AgentSyntaxErrorTest {
 		assertEquals(SyntaxError.MISSINGTOKEN, this.syntaxerrors.get(0)
 				.getType());
 
-		// Agent file should produce 1 error
+		// Agent file should produce no errors
 		assertTrue(this.errors.isEmpty());
 
-		// Agent file should produce no warnings
+		// Agent file should produce 1 warning
 		assertEquals(1, this.warnings.size());
 
 		assertEquals(AgentWarning.MODULE_NEVER_USED, this.warnings.get(0)
@@ -83,4 +90,13 @@ public class AgentSyntaxErrorTest {
 		assertEquals("<missing ID>", this.program.getModules().get(1).getName());
 	}
 
+	@Test
+	public void test_CORRECT() throws KRInitFailedException {
+		setup("src/test/resources/languageTools/analyzer/agent/test.goal");
+
+		// Agent file should not produce any errors or warnings
+		assertTrue(this.syntaxerrors.isEmpty());
+		assertTrue(this.errors.isEmpty());
+		assertTrue(this.warnings.isEmpty());
+	}
 }

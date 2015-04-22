@@ -153,6 +153,9 @@ public class Macro implements MentalFormula {
 		// used in the parameters.
 		for (Term t : this.parameters) {
 			freeVars.addAll(t.getFreeVar());
+			if (t.isVar() && !t.isClosed()) {
+				freeVars.add((Var) t);
+			}
 		}
 		return freeVars;
 	}
@@ -167,10 +170,10 @@ public class Macro implements MentalFormula {
 			return false;
 		}
 		Macro other = (Macro) o;
-		if (!other.getName().equals(this.getName())) {
+		if (!other.getName().equals(getName())) {
 			return false;
 		}
-		if (other.getParameters().size() != this.getParameters().size()) {
+		if (other.getParameters().size() != getParameters().size()) {
 			return false;
 		}
 		return true;
@@ -178,7 +181,7 @@ public class Macro implements MentalFormula {
 
 	@Override
 	public int hashCode() {
-		return 31 * this.getName().hashCode() + this.getParameters().size();
+		return 31 * getName().hashCode() + getParameters().size();
 	}
 
 	/**
@@ -231,7 +234,7 @@ public class Macro implements MentalFormula {
 	 */
 	public String getSignature() {
 		return this.name.concat("/").concat(
-				String.valueOf(this.getParameters().size()));
+				String.valueOf(getParameters().size()));
 	}
 
 }

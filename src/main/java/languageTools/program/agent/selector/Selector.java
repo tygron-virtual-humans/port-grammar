@@ -135,11 +135,9 @@ public class Selector {
 	 */
 	public Set<Var> getFreeVar() {
 		Set<Var> vars = new LinkedHashSet<Var>();
-
 		for (Term term : this.parameters) {
 			vars.addAll(term.getFreeVar());
 		}
-
 		return vars;
 	}
 

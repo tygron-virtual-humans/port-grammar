@@ -17,6 +17,7 @@
 
 package languageTools.program.agent.actions;
 
+import krTools.KRInterface;
 import krTools.language.Substitution;
 import krTools.language.Update;
 import krTools.parser.SourceInfo;
@@ -43,9 +44,10 @@ public class DropAction extends MentalAction {
 	 * @param source
 	 *            The source code location of this action, if available;
 	 *            {@code null} otherwise.
+	 *            @param kr the {@link KRInterface}
 	 */
-	public DropAction(Selector selector, Update goal, SourceInfo info) {
-		super(AgentProgram.getTokenName(GOAL.DROP), selector, info);
+	public DropAction(Selector selector, Update goal, SourceInfo info,KRInterface kr) {
+		super(AgentProgram.getTokenName(GOAL.DROP), selector, info,  kr);
 		addParameter(goal);
 	}
 
@@ -62,7 +64,7 @@ public class DropAction extends MentalAction {
 	@Override
 	public DropAction applySubst(Substitution substitution) {
 		return new DropAction(getSelector().applySubst(substitution),
-				getUpdate().applySubst(substitution), getSourceInfo());
+				getUpdate().applySubst(substitution), getSourceInfo(),getKRInterface());
 	}
 
 }

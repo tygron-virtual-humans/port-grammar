@@ -1,6 +1,6 @@
 package languageTools.program.test.testcondition;
 
-import languageTools.program.agent.msc.MentalStateCondition;
+import languageTools.program.test.TestMentalStateCondition;
 
 /**
  * Until operator. When the mental state condition evaluated by this operator
@@ -16,7 +16,7 @@ public class Until extends TestCondition {
 	 * @param query
 	 *            to evaluate
 	 */
-	public Until(MentalStateCondition query) {
+	public Until(TestMentalStateCondition query) {
 		super(query);
 	}
 

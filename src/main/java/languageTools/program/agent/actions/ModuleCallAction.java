@@ -20,6 +20,7 @@ package languageTools.program.agent.actions;
 import java.util.ArrayList;
 import java.util.List;
 
+import krTools.KRInterface;
 import krTools.language.Substitution;
 import krTools.language.Term;
 import krTools.parser.SourceInfo;
@@ -84,10 +85,11 @@ public class ModuleCallAction extends Action<Term> {
 	 * @param targetModule
 	 *            The name of the {@link Module} the agent that executes this
 	 *            action will focus on.
+	 *            @param kri the {@link KRInterface}
 	 */
 	public ModuleCallAction(Module targetModule, List<Term> parameters,
-			SourceInfo info) {
-		super(targetModule.getName(), info);
+			SourceInfo info, KRInterface kri) {
+		super(targetModule.getName(), info, kri);
 		this.targetModule = targetModule;
 		for (Term term : parameters) {
 			addParameter(term);
@@ -127,7 +129,7 @@ public class ModuleCallAction extends Action<Term> {
 			}
 		}
 		// Create new focus action with instantiated parameters.
-		return new ModuleCallAction(getTarget(), parameters, getSourceInfo());
+		return new ModuleCallAction(getTarget(), parameters, getSourceInfo(), getKRInterface());
 	}
 
 	/**

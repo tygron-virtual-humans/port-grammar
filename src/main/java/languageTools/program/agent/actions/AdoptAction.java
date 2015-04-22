@@ -20,6 +20,7 @@ package languageTools.program.agent.actions;
 import java.util.ArrayList;
 import java.util.List;
 
+import krTools.KRInterface;
 import krTools.language.Query;
 import krTools.language.Substitution;
 import krTools.language.Update;
@@ -55,9 +56,10 @@ public class AdoptAction extends MentalAction {
 	 *            The {@link Selector} of this action.
 	 * @param goal
 	 *            The goal, i.e. {@link Update}, to be adopted.
+	 *            @param kr the {@link KRInterface}
 	 */
-	public AdoptAction(Selector selector, Update goal, SourceInfo info) {
-		super(AgentProgram.getTokenName(GOAL.ADOPT), selector, info);
+	public AdoptAction(Selector selector, Update goal, SourceInfo info, KRInterface kr) {
+		super(AgentProgram.getTokenName(GOAL.ADOPT), selector, info,kr);
 		addParameter(goal);
 	}
 
@@ -102,7 +104,7 @@ public class AdoptAction extends MentalAction {
 	@Override
 	public AdoptAction applySubst(Substitution substitution) {
 		return new AdoptAction(getSelector().applySubst(substitution),
-				getUpdate().applySubst(substitution), getSourceInfo());
+				getUpdate().applySubst(substitution), getSourceInfo(), getKRInterface());
 	}
 
 }

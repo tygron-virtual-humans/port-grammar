@@ -27,6 +27,10 @@ public enum AgentError implements ValidatorErrorType {
 	 */
 	ACTION_USED_NEVER_DEFINED,
 	/**
+	 * Beliefs in the belief section of a program should be closed.
+	 */
+	BELIEF_UNINSTANTIATED_VARIABLE,
+	/**
 	 * Goals in the goals section of a program should be closed.
 	 */
 	GOAL_UNINSTANTIATED_VARIABLE,
@@ -124,7 +128,20 @@ public enum AgentError implements ValidatorErrorType {
 	/**
 	 * Send and sendonce actions should have a selector.
 	 */
-	SEND_INVALID_SELECTOR;
+	SEND_INVALID_SELECTOR,
+	/**
+	 * Action exists but it does not fit the call
+	 */
+	ACTION_DOES_NOT_MATCH,
+	/**
+	 * Provided an update with an empty content (e.g. insert() or drop())
+	 */
+	UPDATE_EMPTY,
+	/**
+	 * Provided negative literals in an update besides insert (e.g.
+	 * adopt(not(...)) or delete(not(...)))
+	 */
+	UPDATE_NEGATIVE;
 
 	private static final ResourceBundle BUNDLE = ResourceBundle
 			.getBundle("languageTools.messages.AgentErrorMessages");

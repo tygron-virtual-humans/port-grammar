@@ -20,6 +20,7 @@ package languageTools.program.agent.actions;
 import java.util.ArrayList;
 import java.util.List;
 
+import krTools.KRInterface;
 import krTools.language.Query;
 import krTools.language.Substitution;
 import krTools.language.Update;
@@ -65,10 +66,11 @@ public class AdoptOneAction extends MentalAction {
 	 * @param template
 	 *            TODO: template that may not occur in goal base if AdoptOne
 	 *            action is to be executed.
+	 *            @param kr the {@link KRInterface}
 	 */
 	public AdoptOneAction(Selector selector, Update goal, Query template,
-			SourceInfo info) {
-		super("adoptone", selector, info);
+			SourceInfo info, KRInterface kr) {
+		super("adoptone", selector, info, kr);
 		// TODO: not yet part of grammar
 		// super(AgentProgram.getTokenName(GOAL.ADOPTONE), selector);
 		addParameter(goal);
@@ -106,7 +108,7 @@ public class AdoptOneAction extends MentalAction {
 	public AdoptOneAction applySubst(Substitution substitution) {
 		return new AdoptOneAction(getSelector().applySubst(substitution),
 				getParameters().get(0).applySubst(substitution), this.template,
-				getSourceInfo());
+				getSourceInfo(), getKRInterface());
 	}
 
 	// TODO: CHECK equals and hashCode as we now ignore the template field. Also

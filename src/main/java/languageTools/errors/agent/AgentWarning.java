@@ -67,7 +67,11 @@ public enum AgentWarning implements ValidatorWarningType {
 	/**
 	 * Modules should be used.
 	 */
-	MODULE_NEVER_USED;
+	MODULE_NEVER_USED,
+	/**
+	 * Only one knowledge/goals/beliefs/program section is allowed
+	 */
+	MODULE_DUPLICATE_SECTION;
 
 	private static final ResourceBundle BUNDLE = ResourceBundle
 			.getBundle("languageTools.messages.AgentWarningMessages");

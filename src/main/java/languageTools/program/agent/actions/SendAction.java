@@ -17,6 +17,7 @@
 
 package languageTools.program.agent.actions;
 
+import krTools.KRInterface;
 import krTools.language.DatabaseFormula;
 import krTools.language.Substitution;
 import krTools.language.Update;
@@ -57,10 +58,12 @@ public class SendAction extends MentalAction {
 	 *            The {@link SentenceMood} of the message.
 	 * @param content
 	 *            The content of the message.
+	 * @param kr
+	 *            the {@link KRInterface}
 	 */
 	public SendAction(Selector selector, SentenceMood mood, Update content,
-			SourceInfo info) {
-		super(AgentProgram.getTokenName(GOAL.SEND), selector, info);
+			SourceInfo info, KRInterface kr) {
+		super(AgentProgram.getTokenName(GOAL.SEND), selector, info, kr);
 		addParameter(content);
 		this.mood = mood;
 	}
@@ -85,7 +88,7 @@ public class SendAction extends MentalAction {
 	public SendAction applySubst(Substitution substitution) {
 		return new SendAction(getSelector().applySubst(substitution),
 				this.mood, getParameters().get(0).applySubst(substitution),
-				getSourceInfo());
+				getSourceInfo(), getKRInterface());
 	}
 
 	@Override

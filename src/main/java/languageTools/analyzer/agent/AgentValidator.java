@@ -31,6 +31,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import krTools.KRInterface;
 import krTools.errors.exceptions.ParserException;
@@ -128,14 +129,19 @@ import org.antlr.v4.runtime.TokenStream;
 import org.antlr.v4.runtime.misc.NotNull;
 import org.antlr.v4.runtime.tree.ErrorNodeImpl;
 import org.antlr.v4.runtime.tree.ParseTree;
+import org.antlr.v4.runtime.tree.TerminalNode;
 
 /**
  * Validates an agent or module file and constructs an agent program or module.
+ * DOC explain what is validated. How to use. What happens if filename does not
+ * validate. How to validate just one term instead of a whole program.
+ * Apparently it does not validate everything as there also is
+ * {@link AgentValidatorSecondPass}.
  */
 @SuppressWarnings("rawtypes")
 public class AgentValidator extends
 Validator<MyGOALLexer, GOAL, AgentErrorStrategy, AgentProgram>
-		implements GOALVisitor {
+implements GOALVisitor {
 
 	private GOAL parser;
 	private static AgentErrorStrategy strategy = null;
@@ -155,16 +161,13 @@ Validator<MyGOALLexer, GOAL, AgentErrorStrategy, AgentProgram>
 	 */
 	private final SymbolTable actionSymbols = new SymbolTable();
 	private Scope varSymbols = new SymbolTable();
-	private final SymbolTable macroSymbols = new SymbolTable();
 
-	/**
-	 * Creates validator for file with file name.
-	 *
-	 * @param filename
-	 *            Name of a file.
-	 */
 	public AgentValidator(String filename) {
 		super(filename);
+	}
+
+	public AgentValidator(String filename, AgentProgram program) {
+		super(filename, program);
 	}
 
 	@Override
@@ -202,13 +205,6 @@ Validator<MyGOALLexer, GOAL, AgentErrorStrategy, AgentProgram>
 	 */
 	public Scope getVarSymbols() {
 		return this.varSymbols;
-	}
-
-	/**
-	 * @return Symbol table with macro symbols.
-	 */
-	public SymbolTable getMacroSymbols() {
-		return this.macroSymbols;
 	}
 
 	/**
@@ -314,53 +310,106 @@ Validator<MyGOALLexer, GOAL, AgentErrorStrategy, AgentProgram>
 		List<DatabaseFormula> knowledge = new LinkedList<>();
 		// Imported knowledge
 		if (ctx.krImport() != null) {
-			knowledge.addAll(visitKrImport(ctx.krImport()));
+			boolean hadImport = false;
+			for (KrImportContext kriCtx : ctx.krImport()) {
+				if (hadImport) {
+					reportWarning(AgentWarning.MODULE_DUPLICATE_SECTION, kriCtx);
+				} else {
+					knowledge.addAll(visitKrImport(kriCtx));
+					hadImport = true;
+				}
+			}
 		}
 		// Knowledge
 		if (ctx.knowledge() != null) {
-			knowledge.addAll(visitKnowledge(ctx.knowledge()));
+			boolean hadKnowledge = false;
+			for (KnowledgeContext knowCtx : ctx.knowledge()) {
+				if (hadKnowledge) {
+					reportWarning(AgentWarning.MODULE_DUPLICATE_SECTION,
+							knowCtx);
+				} else {
+					knowledge.addAll(visitKnowledge(knowCtx));
+					hadKnowledge = true;
+				}
+			}
 		}
 		module.setKnowledge(knowledge);
 
 		// Beliefs
 		if (ctx.beliefs() != null) {
-			module.setBeliefs(visitBeliefs(ctx.beliefs()));
+			boolean hadBeliefs = false;
+			for (BeliefsContext belCtx : ctx.beliefs()) {
+				if (hadBeliefs) {
+					reportWarning(AgentWarning.MODULE_DUPLICATE_SECTION, belCtx);
+				} else {
+					module.setBeliefs(visitBeliefs(belCtx));
+					hadBeliefs = true;
+				}
+			}
 		}
 
 		// Goals
 		if (ctx.goals() != null) {
-			module.setGoals(visitGoals(ctx.goals()));
+			boolean hadGoals = false;
+			for (GoalsContext goalCtx : ctx.goals()) {
+				if (hadGoals) {
+					reportWarning(AgentWarning.MODULE_DUPLICATE_SECTION,
+							goalCtx);
+				} else {
+					module.setGoals(visitGoals(goalCtx));
+					hadGoals = true;
+				}
+			}
 		}
 
 		// Program
+		boolean hadProgram = false;
 		if (ctx.program() != null) {
 			// Process rule evaluation order
-			RuleEvaluationOrder order = visitRuleEvaluationOrder(ctx.program()
-					.ruleEvaluationOrder());
-			if (order == null) {
-				order = getDefaultRuleEvaluationOrder(module.getType());
-			}
-			module.setRuleEvaluationOrder(order);
+			for (ProgramContext progCtx : ctx.program()) {
+				if (hadProgram) {
+					reportWarning(AgentWarning.MODULE_DUPLICATE_SECTION,
+							progCtx);
+				} else {
+					RuleEvaluationOrder order = visitRuleEvaluationOrder(progCtx
+							.ruleEvaluationOrder());
+					if (order == null) {
+						order = getDefaultRuleEvaluationOrder(module.getType());
+					}
+					module.setRuleEvaluationOrder(order);
 
-			// Process content of program section
-			Map.Entry<List<Macro>, List<Rule>> program = visitProgram(ctx
-					.program());
-			module.setMacros(program.getKey());
-			module.setRules(program.getValue());
+					// Process content of program section
+					Map.Entry<List<Macro>, List<Rule>> program = visitProgram(progCtx);
+					module.setMacros(program.getKey());
+					module.setRules(program.getValue());
 
-			// Check if program section is empty
-			if (module.getRules().isEmpty() && module.getType() != TYPE.INIT) {
-				reportWarning(AgentWarning.MODULE_EMPTY_PROGRAMSECTION,
-						ctx.program(), module.getNamePhrase());
+					// Check if program section is empty
+					if (module.getRules().isEmpty()) {
+						reportWarning(AgentWarning.MODULE_EMPTY_PROGRAMSECTION,
+								progCtx, module.getNamePhrase());
+					}
+
+					hadProgram = true;
+				}
 			}
-		} else if (module.getType() != TYPE.INIT) {
+		}
+		if (!hadProgram && module.getType() != TYPE.INIT) {
 			reportError(AgentError.MODULE_MISSING_PROGRAM_SECTION, ctx,
 					module.getNamePhrase());
 		}
 
 		// Action specifications
 		if (ctx.actionSpecs() != null) {
-			module.setActionSpecifications(visitActionSpecs(ctx.actionSpecs()));
+			boolean hadSpecs = false;
+			for (ActionSpecsContext specCtx : ctx.actionSpecs()) {
+				if (hadSpecs) {
+					reportWarning(AgentWarning.MODULE_DUPLICATE_SECTION,
+							specCtx);
+				} else {
+					module.setActionSpecifications(visitActionSpecs(specCtx));
+					hadSpecs = true;
+				}
+			}
 		}
 
 		// Add module to program
@@ -504,8 +553,8 @@ Validator<MyGOALLexer, GOAL, AgentErrorStrategy, AgentProgram>
 			try {
 				String content = new String(Files.readAllBytes(Paths.get(file
 						.getPath())));
-				imported = visit_KR_DBFs(removeLeadTrailCharacters(content),
-						new InputStreamPosition(0, 0, 0, 0, file));
+				imported = visit_KR_DBFs(content, new InputStreamPosition(1, 0,
+						0, 0, file));
 			} catch (Exception e) {
 				// Convert stack trace to string
 				StringWriter sw = new StringWriter();
@@ -523,31 +572,25 @@ Validator<MyGOALLexer, GOAL, AgentErrorStrategy, AgentProgram>
 	public List<DatabaseFormula> visitKnowledge(KnowledgeContext ctx) {
 		return visit_KR_DBFs(
 				removeLeadTrailCharacters(ctx.KR_BLOCK().getText()),
-				getSourceInfo(ctx));
+				getSourceInfo(ctx.KR_BLOCK()));
 	}
 
 	@Override
 	public List<DatabaseFormula> visitBeliefs(BeliefsContext ctx) {
 		return visit_KR_DBFs(
 				removeLeadTrailCharacters(ctx.KR_BLOCK().getText()),
-				getSourceInfo(ctx));
+				getSourceInfo(ctx.KR_BLOCK()));
 	}
 
 	@Override
 	public List<Query> visitGoals(GoalsContext ctx) {
 		List<Query> dbfs = visit_KR_Queries(removeLeadTrailCharacters(ctx
-				.KR_BLOCK().getText()), getSourceInfo(ctx));
+				.KR_BLOCK().getText()), getSourceInfo(ctx.KR_BLOCK()));
 
 		// Check that goals (queries) are closed and can be used as updates, if
 		// not remove them
-		List<Query> errors = new ArrayList<Query>();
+		List<Query> errors = new LinkedList<Query>();
 		for (Query dbf : dbfs) {
-			/*
-			 * if (!dbf.isClosed()) {
-			 * reportError(AgentError.GOAL_UNINSTANTIATED_VARIABLE,
-			 * dbf.getSourceInfo(), dbf.getFreeVar().toString(),
-			 * dbf.toString()); errors.add(dbf); }
-			 */
 			if (!dbf.isUpdate()) {
 				reportError(AgentError.GOALSECTION_NOT_AN_UPDATE,
 						dbf.getSourceInfo(), dbf.toString());
@@ -562,7 +605,7 @@ Validator<MyGOALLexer, GOAL, AgentErrorStrategy, AgentProgram>
 	@Override
 	public Map.Entry<List<Macro>, List<Rule>> visitProgram(ProgramContext ctx) {
 		// Process macro definitions
-		List<Macro> macros = new ArrayList<Macro>();
+		List<Macro> macros = new ArrayList<Macro>(ctx.macroDef().size());
 		for (MacroDefContext macrodf : ctx.macroDef()) {
 			Macro macro = visitMacroDef(macrodf);
 			if (macro != null) {
@@ -571,7 +614,7 @@ Validator<MyGOALLexer, GOAL, AgentErrorStrategy, AgentProgram>
 		}
 
 		// Process program rules
-		List<Rule> rules = new ArrayList<Rule>();
+		List<Rule> rules = new ArrayList<Rule>(ctx.programRule().size());
 		for (ProgramRuleContext programRule : ctx.programRule()) {
 			Rule rule = visitProgramRule(programRule);
 			if (rule != null) {
@@ -616,8 +659,9 @@ Validator<MyGOALLexer, GOAL, AgentErrorStrategy, AgentProgram>
 		}
 
 		// Add macro to symbol table
-		if (!this.macroSymbols.define(new MacroSymbol(macro.getSignature(),
-				macro, getSourceInfo(ctx)))) {
+		if (!getProgram().getMacros()
+				.define(new MacroSymbol(macro.getSignature(), macro,
+						getSourceInfo(ctx)))) {
 			// report duplicate use of macro symbol
 			reportError(AgentError.MACRO_DUPLICATE_NAME, ctx,
 					macro.getSignature());
@@ -654,7 +698,7 @@ Validator<MyGOALLexer, GOAL, AgentErrorStrategy, AgentProgram>
 
 			Module module = visitNestedRules(ctx.nestedRules());
 			ModuleCallAction action = new ModuleCallAction(module,
-					new ArrayList<Term>(0), getSourceInfo(ctx));
+					new ArrayList<Term>(0), getSourceInfo(ctx), this.kri);
 			actions = new ActionCombo();
 			actions.addAction(action);
 		}
@@ -689,7 +733,7 @@ Validator<MyGOALLexer, GOAL, AgentErrorStrategy, AgentProgram>
 			} catch (ParserException e) {
 				// Report problem, return null, and try to continue with parsing
 				// the rest of the source.
-				reportParsingException(e, getSourceInfo(ctx));
+				reportParsingException(e);
 			}
 		}
 
@@ -705,7 +749,7 @@ Validator<MyGOALLexer, GOAL, AgentErrorStrategy, AgentProgram>
 	@Override
 	public MentalStateCondition visitMentalStateCondition(
 			MentalStateConditionContext ctx) {
-		List<MentalFormula> formulas = new ArrayList<MentalFormula>();
+		List<MentalFormula> formulas = new LinkedList<MentalFormula>();
 
 		// Check if something bad happened, and if so, whether we still can
 		// report anything sensible
@@ -779,8 +823,7 @@ Validator<MyGOALLexer, GOAL, AgentErrorStrategy, AgentProgram>
 		String op = visitMentalOperator(ctx.mentalOperator());
 
 		// Get condition
-		String krFragment = ctx.PARLIST().getText();
-		krFragment = krFragment.substring(1, krFragment.length() - 1);
+		String krFragment = removeLeadTrailCharacters(ctx.PARLIST().getText());
 		Query query = visit_KR_Query(krFragment, getSourceInfo(ctx));
 
 		// If no query was returned, we cannot return a literal that we can use
@@ -852,53 +895,64 @@ Validator<MyGOALLexer, GOAL, AgentErrorStrategy, AgentProgram>
 			if (op == null) {
 				// Can't figure out which action but don't return null.
 				return new UserSpecOrModuleCall("<missing name>",
-						new ArrayList<Term>(), getSourceInfo(ctx));
+						new ArrayList<Term>(0), getSourceInfo(ctx), this.kri);
 			}
 
-			String argument = removeLeadTrailCharacters(ctx.PARLIST().getText());
+			TerminalNode parlistctx = ctx.PARLIST();
+			String argument = removeLeadTrailCharacters(parlistctx.getText());
 
 			// Handle cases
 			if (op.equals(AgentProgram.getTokenName(GOAL.PRINT))) {
-				Term parameter = visit_KR_Term(argument, getSourceInfo(ctx));
-				return new PrintAction(parameter, getSourceInfo(ctx));
+				Term parameter = visit_KR_Term(argument,
+						getSourceInfo(parlistctx));
+				return new PrintAction(parameter, getSourceInfo(parlistctx),
+						this.kri);
 			} else if (op.equals(AgentProgram.getTokenName(GOAL.LOG))) {
-				return new LogAction(ctx.PARLIST().getText()
-						.substring(1, ctx.PARLIST().getText().length() - 1),
-						getSourceInfo(ctx));
+				return new LogAction(
+						removeLeadTrailCharacters(parlistctx.getText()),
+						getSourceInfo(parlistctx), this.kri);
 			} else {
 				// send actions may have initial mood operator; check
 				SentenceMood mood = getMood(argument);
 				if (mood == null) { // set default mood
 					mood = SentenceMood.INDICATIVE;
 				} else { // remove mood operator from content
-					argument = argument.substring(1);
+					argument = argument.replaceFirst(// keep indexes
+							Pattern.quote(mood.toString()), " ");
 				}
 				// Parse content using KR parser
-				Update content = visit_KR_Update(argument, getSourceInfo(ctx));
+				Update content = visit_KR_Update(argument,
+						getSourceInfo(parlistctx));
 				if (content != null) {
 					if (op.equals(AgentProgram.getTokenName(GOAL.ADOPT))) {
+						checkEmpty(content, getSourceInfo(parlistctx), false);
 						return new AdoptAction(selector, content,
-								getSourceInfo(ctx));
+								getSourceInfo(parlistctx), this.kri);
 					} else if (op.equals(AgentProgram.getTokenName(GOAL.DROP))) {
+						checkEmpty(content, getSourceInfo(parlistctx), false);
 						return new DropAction(selector, content,
-								getSourceInfo(ctx));
+								getSourceInfo(parlistctx), this.kri);
 					} else if (op
 							.equals(AgentProgram.getTokenName(GOAL.INSERT))) {
+						checkEmpty(content, getSourceInfo(parlistctx), true);
 						return new InsertAction(selector, content,
-								getSourceInfo(ctx));
+								getSourceInfo(parlistctx), this.kri);
 					} else if (op
 							.equals(AgentProgram.getTokenName(GOAL.DELETE))) {
+						checkEmpty(content, getSourceInfo(parlistctx), false);
 						return new DeleteAction(selector, content,
-								getSourceInfo(ctx));
+								getSourceInfo(parlistctx), this.kri);
 					} else if (op.equals(AgentProgram.getTokenName(GOAL.SEND))) {
+						checkEmpty(content, getSourceInfo(parlistctx), true);
 						checkSendSelector(selector, ctx);
 						return new SendAction(selector, mood, content,
-								getSourceInfo(ctx));
+								getSourceInfo(parlistctx), this.kri);
 					} else if (op.equals(AgentProgram
 							.getTokenName(GOAL.SENDONCE))) {
+						checkEmpty(content, getSourceInfo(parlistctx), true);
 						checkSendSelector(selector, ctx);
 						return new SendOnceAction(selector, mood, content,
-								getSourceInfo(ctx));
+								getSourceInfo(parlistctx), this.kri);
 					}
 				}
 				return null;
@@ -907,12 +961,23 @@ Validator<MyGOALLexer, GOAL, AgentErrorStrategy, AgentProgram>
 			Map.Entry<String, List<Term>> action = visitDeclarationOrCallWithTerms(ctx
 					.declarationOrCallWithTerms());
 			return new UserSpecOrModuleCall(action.getKey(), action.getValue(),
-					getSourceInfo(ctx));
+					getSourceInfo(ctx), this.kri);
 		} else if (ctx.op.getType() == GOAL.EXITMODULE) {
-			return new ExitModuleAction(getSourceInfo(ctx));
+			return new ExitModuleAction(getSourceInfo(ctx), this.kri);
 		} else {
 			return new UserSpecOrModuleCall(ctx.op.getText(),
-					new ArrayList<Term>(), getSourceInfo(ctx));
+					new ArrayList<Term>(0), getSourceInfo(ctx), this.kri);
+		}
+	}
+
+	private void checkEmpty(Update content, SourceInfo info,
+			boolean allowNegative) {
+		boolean addEmpty = content.getAddList().isEmpty();
+		boolean deleteEmpty = content.getDeleteList().isEmpty();
+		if (addEmpty && deleteEmpty) {
+			reportError(AgentError.UPDATE_EMPTY, info);
+		} else if (!allowNegative && !deleteEmpty) {
+			reportError(AgentError.UPDATE_NEGATIVE, info);
 		}
 	}
 
@@ -941,7 +1006,7 @@ Validator<MyGOALLexer, GOAL, AgentErrorStrategy, AgentProgram>
 
 	@Override
 	public Module visitNestedRules(NestedRulesContext ctx) {
-		List<Rule> rules = new ArrayList<Rule>();
+		List<Rule> rules = new ArrayList<Rule>(ctx.programRule().size());
 		for (ProgramRuleContext programRule : ctx.programRule()) {
 			Rule rule = visitProgramRule(programRule);
 			if (rule != null) {
@@ -950,7 +1015,9 @@ Validator<MyGOALLexer, GOAL, AgentErrorStrategy, AgentProgram>
 		}
 		Module module = new Module("", TYPE.ANONYMOUS, this.kri,
 				getSourceInfo(ctx));
-		module.setParameters(new ArrayList<Term>());
+		module.setParameters(new ArrayList<Term>(0));
+		module.setRuleEvaluationOrder(getDefaultRuleEvaluationOrder(module
+				.getType()));
 		module.setRules(rules);
 
 		// Remove variable scope for this module again.
@@ -961,7 +1028,8 @@ Validator<MyGOALLexer, GOAL, AgentErrorStrategy, AgentProgram>
 
 	@Override
 	public List<ActionSpecification> visitActionSpecs(ActionSpecsContext ctx) {
-		List<ActionSpecification> specs = new ArrayList<ActionSpecification>();
+		List<ActionSpecification> specs = new ArrayList<ActionSpecification>(
+				ctx.actionSpec().size());
 		for (ActionSpecContext context : ctx.actionSpec()) {
 			ActionSpecification spec = visitActionSpec(context);
 			if (spec != null) { // ignore if not OK
@@ -1006,12 +1074,12 @@ Validator<MyGOALLexer, GOAL, AgentErrorStrategy, AgentProgram>
 		}
 		problem |= (postcondition == null);
 
-		// Create action
-		UserSpecAction action = new UserSpecAction(declaration.getKey(),
-				declaration.getValue(), external, precondition, postcondition,
-				getSourceInfo(ctx));
-
 		if (!problem) {
+			// Create action
+			UserSpecAction action = new UserSpecAction(declaration.getKey(),
+					declaration.getValue(), external, precondition,
+					postcondition, getSourceInfo(ctx), this.kri);
+
 			// Check use of action parameters and variables in postcondition
 			Set<Var> actionParsNotUsed = action.getFreeVar();
 			actionParsNotUsed.removeAll(postcondition.getFreeVar());
@@ -1021,48 +1089,44 @@ Validator<MyGOALLexer, GOAL, AgentErrorStrategy, AgentProgram>
 						ctx.declarationOrCallWithTerms(),
 						prettyPrintSet(actionParsNotUsed));
 			}
-			/*
-			 * Set<Var> postVarNotBound = postcondition.getFreeVar();
-			 * postVarNotBound.removeAll(action.getFreeVar());
-			 * postVarNotBound.removeAll(precondition.getFreeVar()); if
-			 * (!postVarNotBound.isEmpty()) {
-			 * reportError(AgentError.POSTCONDITION_UNBOUND_VARIABLE,
-			 * ctx.postcondition(), prettyPrintSet(postVarNotBound)); }
-			 */
-		}
 
-		// Create action specification
-		ActionSpecification spec = new ActionSpecification(action);
-
-		// Define symbol
-		if (!this.actionSymbols.define(new ActionSymbol(action.getSignature(),
-				spec, getSourceInfo(ctx)))) {
-			// Report duplicate action label
-			Symbol symbol = this.actionSymbols.resolve(action.getSignature());
-			String specifiedAs = null;
-			if (symbol instanceof ActionSymbol) {
-				specifiedAs = "action";
-			} else if (symbol instanceof ModuleSymbol) {
-				specifiedAs = "module";
+			Set<Var> postVarNotBound = postcondition.getFreeVar();
+			postVarNotBound.removeAll(action.getFreeVar());
+			postVarNotBound.removeAll(precondition.getFreeVar());
+			if (!postVarNotBound.isEmpty()) {
+				reportError(AgentError.POSTCONDITION_UNBOUND_VARIABLE,
+						ctx.postcondition(), prettyPrintSet(postVarNotBound));
 			}
-			if (specifiedAs != null) {
-				reportError(AgentError.ACTION_LABEL_ALREADY_DEFINED, ctx,
-						"Action " + action.getSignature(), specifiedAs);
-			}
-		}
 
-		// Don't pass on null values as part of action spec
-		if (problem) {
-			return null;
-		} else {
+			// Create action specification
+			ActionSpecification spec = new ActionSpecification(action);
+
+			// Define symbol
+			if (!this.actionSymbols.define(new ActionSymbol(action
+					.getSignature(), spec, getSourceInfo(ctx)))) {
+				// Report duplicate action label
+				Symbol symbol = this.actionSymbols.resolve(action
+						.getSignature());
+				String specifiedAs = null;
+				if (symbol instanceof ActionSymbol) {
+					specifiedAs = "action";
+				} else if (symbol instanceof ModuleSymbol) {
+					specifiedAs = "module";
+				}
+				if (specifiedAs != null) {
+					reportError(AgentError.ACTION_LABEL_ALREADY_DEFINED, ctx,
+							"Action " + action.getSignature(), specifiedAs);
+				}
+			}
 			return spec;
+		} else {
+			return null;
 		}
 	}
 
 	@Override
 	public Query visitPrecondition(PreconditionContext ctx) {
-		String krFragment = removeLeadTrailCharacters(ctx.KR_BLOCK().getText())
-				.trim();
+		String krFragment = removeLeadTrailCharacters(ctx.KR_BLOCK().getText());
 		if (krFragment.isEmpty()) {
 			reportWarning(AgentWarning.ACTIONSPEC_MISSING_PRE, ctx);
 		}
@@ -1071,8 +1135,7 @@ Validator<MyGOALLexer, GOAL, AgentErrorStrategy, AgentProgram>
 
 	@Override
 	public Update visitPostcondition(PostconditionContext ctx) {
-		String krFragment = removeLeadTrailCharacters(ctx.KR_BLOCK().getText())
-				.trim();
+		String krFragment = removeLeadTrailCharacters(ctx.KR_BLOCK().getText());
 		if (krFragment.isEmpty()) {
 			reportWarning(AgentWarning.ACTIONSPEC_MISSING_POST, ctx);
 		}
@@ -1094,7 +1157,7 @@ Validator<MyGOALLexer, GOAL, AgentErrorStrategy, AgentProgram>
 		if (ctx.PARLIST() != null) {
 			parameters = visitVARLIST(ctx.PARLIST().getText(), ctx);
 		} else {
-			parameters = new ArrayList<Term>();
+			parameters = new ArrayList<Term>(0);
 		}
 
 		return new AbstractMap.SimpleEntry<String, List<Term>>(name, parameters);
@@ -1104,7 +1167,7 @@ Validator<MyGOALLexer, GOAL, AgentErrorStrategy, AgentProgram>
 	public Map.Entry<String, List<Term>> visitDeclarationOrCallWithTerms(
 			DeclarationOrCallWithTermsContext ctx) {
 		String name = null;
-		List<Term> parameters = new ArrayList<Term>();
+		List<Term> parameters = new ArrayList<Term>(0);
 
 		// Get functor name
 		if (ctx.ID() != null) {
@@ -1152,15 +1215,13 @@ Validator<MyGOALLexer, GOAL, AgentErrorStrategy, AgentProgram>
 	 * @return List of terms.
 	 */
 	public List<Term> visitPARLIST(String pars, ParserRuleContext ctx) {
-		// Strip brackets
-		pars = removeLeadTrailCharacters(pars);
-
-		List<Term> parameters = visit_KR_Terms(pars, getSourceInfo(ctx));
+		List<Term> parameters = visit_KR_Terms(removeLeadTrailCharacters(pars),
+				getSourceInfo(ctx));
 
 		// If no parameters were returned, return the empty list to avoid a
 		// cascade of errors.
 		if (parameters == null) {
-			parameters = new ArrayList<Term>();
+			parameters = new ArrayList<Term>(0);
 		}
 
 		/*
@@ -1208,7 +1269,7 @@ Validator<MyGOALLexer, GOAL, AgentErrorStrategy, AgentProgram>
 	 *            Type of module.
 	 * @return The default exit condition associated with the module type.
 	 */
-	private ExitCondition getDefaultExitCondition(TYPE type) {
+	public ExitCondition getDefaultExitCondition(TYPE type) {
 		if (type == TYPE.MAIN) {
 			return ExitCondition.NEVER;
 		} else {
@@ -1222,8 +1283,8 @@ Validator<MyGOALLexer, GOAL, AgentErrorStrategy, AgentProgram>
 	 * @return The default rule evaluation order associated with the module
 	 *         type.
 	 */
-	private RuleEvaluationOrder getDefaultRuleEvaluationOrder(TYPE type) {
-		if(type == TYPE.ANONYMOUS || type == TYPE.EVENT || type == TYPE.INIT){
+	public RuleEvaluationOrder getDefaultRuleEvaluationOrder(TYPE type) {
+		if (type == TYPE.ANONYMOUS || type == TYPE.EVENT || type == TYPE.INIT) {
 			return RuleEvaluationOrder.LINEARALL;
 		} else {
 			return RuleEvaluationOrder.LINEAR;
@@ -1238,15 +1299,17 @@ Validator<MyGOALLexer, GOAL, AgentErrorStrategy, AgentProgram>
 	 * @return Mood operator, if message starts with operator, {@code null}
 	 *         otherwise.
 	 */
-	private SentenceMood getMood(String msg) {
-		if (msg.startsWith("!")) {
+	public SentenceMood getMood(String msg) {
+		String trimmed = msg.trim();
+		if (trimmed.startsWith("!")) {
 			return SentenceMood.IMPERATIVE;
-		} else if (msg.startsWith("?")) {
+		} else if (trimmed.startsWith("?")) {
 			return SentenceMood.INTERROGATIVE;
-		} else if (msg.startsWith(":")) {
+		} else if (trimmed.startsWith(":")) {
 			return SentenceMood.INDICATIVE;
+		} else {
+			return null;
 		}
-		return null;
 	}
 
 	/**
@@ -1333,12 +1396,13 @@ Validator<MyGOALLexer, GOAL, AgentErrorStrategy, AgentProgram>
 	 *            The context of the agent parser where the embedded language
 	 *            fragment is located.
 	 */
-	private void reportParsingException(ParserException e, SourceInfo info) {
+	private void reportParsingException(ParserException e) {
 		String msg = e.getMessage();
 		if (e.getCause() != null) {
 			msg += " because " + e.getCause().getMessage();
 		}
-		reportError(SyntaxError.EMBEDDED_LANGUAGE_ERROR, info, msg);
+		reportError(SyntaxError.EMBEDDED_LANGUAGE_ERROR, e, this.kri.getName(),
+				msg);
 	}
 
 	/**
@@ -1347,32 +1411,11 @@ Validator<MyGOALLexer, GOAL, AgentErrorStrategy, AgentProgram>
 	 *
 	 * @param parser
 	 *            The parser that generated the errors.
-	 * @param relativeLineNr
-	 *            Relative source code line position (start of the embedded
-	 *            fragment in source).
-	 * @param relativeCharPos
-	 *            Relative source code character position (start of the embedded
-	 *            fragment in source).
 	 */
-	private void reportEmbeddedLanguageErrors(Parser parser, SourceInfo info) {
+	private void reportEmbeddedLanguageErrors(Parser parser) {
 		for (SourceInfo error : parser.getErrors()) {
-			// ignore null errors; we cannot make anything out of those...
-			if (error != null) {
-				int line = info.getLineNumber() + error.getLineNumber() - 1;
-				int charpos;
-				// Assumes KR parser starts line counting from 1
-				if (error.getLineNumber() > 1) {
-					charpos = error.getCharacterPosition();
-				} else {
-					charpos = info.getCharacterPosition()
-							+ error.getCharacterPosition();
-				}
-
-				InputStreamPosition pos = new InputStreamPosition(line,
-						charpos, 0, 0, info.getSource());
-				reportError(SyntaxError.EMBEDDED_LANGUAGE_ERROR, pos,
-						error.getMessage());
-			}
+			reportError(SyntaxError.EMBEDDED_LANGUAGE_ERROR, error,
+					this.kri.getName(), error.getMessage());
 		}
 	}
 
@@ -1388,28 +1431,30 @@ Validator<MyGOALLexer, GOAL, AgentErrorStrategy, AgentProgram>
 	 * @param krFragments
 	 *            List of KR fragments.
 	 * @param info
-	 *            Source info about embedded language fragment.
+	 *            the source info where in the source is the first char of this
+	 *            text fragment
 	 * @return List of {@link DatabaseFormula}s.
 	 */
-	private List<DatabaseFormula> visit_KR_DBFs(String krFragment,
+	public List<DatabaseFormula> visit_KR_DBFs(String krFragment,
 			SourceInfo info) {
-		List<DatabaseFormula> formulas = new ArrayList<DatabaseFormula>();
+		List<DatabaseFormula> formulas = new ArrayList<DatabaseFormula>(0);
 
 		// Get the formulas
 		try {
-			Parser parser = this.kri.getParser(new StringReader(krFragment));
-			formulas = parser.parseDBFs(info);
+			Parser parser = this.kri.getParser(new StringReader(krFragment),
+					info);
+			formulas = parser.parseDBFs();
 
 			// Add errors from parser for embedded language to our own
-			reportEmbeddedLanguageErrors(parser, info);
+			reportEmbeddedLanguageErrors(parser);
 		} catch (ParserException e) {
 			// Report problem, and try to continue with parsing the rest of the
 			// source.
-			reportParsingException(e, info);
+			reportParsingException(e);
 		}
 
 		if (formulas == null) {
-			return new ArrayList<DatabaseFormula>();
+			return new ArrayList<DatabaseFormula>(0);
 		}
 
 		return formulas;
@@ -1422,23 +1467,25 @@ Validator<MyGOALLexer, GOAL, AgentErrorStrategy, AgentProgram>
 	 * @param krFragment
 	 *            String with KR fragment.
 	 * @param info
-	 *            Source info about embedded language fragment.
+	 *            the source info where in the source is the first char of this
+	 *            text fragment
 	 * @return {@link Update}.
 	 */
-	private Update visit_KR_Update(String krFragment, SourceInfo info) {
+	public Update visit_KR_Update(String krFragment, SourceInfo info) {
 		Update update = null;
 
 		// Get the update
 		try {
-			Parser parser = this.kri.getParser(new StringReader(krFragment));
-			update = parser.parseUpdate(info);
+			Parser parser = this.kri.getParser(new StringReader(krFragment),
+					info);
+			update = parser.parseUpdate();
 
 			// Add errors from parser for embedded language to our own
-			reportEmbeddedLanguageErrors(parser, info);
+			reportEmbeddedLanguageErrors(parser);
 		} catch (ParserException e) {
 			// Report problem, and try to continue with parsing the rest of the
 			// source.
-			reportParsingException(e, info);
+			reportParsingException(e);
 		}
 
 		return update;
@@ -1451,11 +1498,12 @@ Validator<MyGOALLexer, GOAL, AgentErrorStrategy, AgentProgram>
 	 * @param krFragments
 	 *            List of KR fragments.
 	 * @param info
-	 *            Source info about embedded language fragment.
+	 *            the source info where in the source is the first char of this
+	 *            text fragment
 	 * @return A {@link List<Query>}.
 	 */
-	private List<Query> visit_KR_Queries(String krFragment, SourceInfo info) {
-		List<Query> queries = new ArrayList<Query>();
+	public List<Query> visit_KR_Queries(String krFragment, SourceInfo info) {
+		List<Query> queries = new ArrayList<Query>(0);
 
 		if (krFragment.isEmpty()) {
 			return queries;
@@ -1463,15 +1511,16 @@ Validator<MyGOALLexer, GOAL, AgentErrorStrategy, AgentProgram>
 
 		// Get the queries
 		try {
-			Parser parser = this.kri.getParser(new StringReader(krFragment));
-			queries = parser.parseQueries(info);
+			Parser parser = this.kri.getParser(new StringReader(krFragment),
+					info);
+			queries = parser.parseQueries();
 
 			// Add errors from parser for embedded language to our own
-			reportEmbeddedLanguageErrors(parser, info);
+			reportEmbeddedLanguageErrors(parser);
 		} catch (ParserException e) {
 			// Report problem, return, and try to continue with parsing the rest
 			// of the source.
-			reportParsingException(e, info);
+			reportParsingException(e);
 		}
 
 		return queries;
@@ -1484,24 +1533,25 @@ Validator<MyGOALLexer, GOAL, AgentErrorStrategy, AgentProgram>
 	 * @param krFragments
 	 *            List of KR fragments.
 	 * @param info
-	 *            Source info about embedded language fragment.
+	 *            the source info where in the source is the first char of this
+	 *            text fragment
 	 * @return A {@link Query}.
 	 */
-	private Query visit_KR_Query(String krFragment, SourceInfo info) {
+	public Query visit_KR_Query(String krFragment, SourceInfo info) {
 		Query query = null;
 
 		// Get the query
 		Parser parser;
 		try {
-			parser = this.kri.getParser(new StringReader(krFragment));
-			query = parser.parseQuery(info);
+			parser = this.kri.getParser(new StringReader(krFragment), info);
+			query = parser.parseQuery();
 
 			// Add errors from parser for embedded language to our own
-			reportEmbeddedLanguageErrors(parser, info);
+			reportEmbeddedLanguageErrors(parser);
 		} catch (ParserException e) {
 			// Report problem, return, and try to continue with parsing the rest
 			// of the source.
-			reportParsingException(e, info);
+			reportParsingException(e);
 		}
 
 		return query;
@@ -1515,23 +1565,25 @@ Validator<MyGOALLexer, GOAL, AgentErrorStrategy, AgentProgram>
 	 * @param krFragment
 	 *            KR fragment string.
 	 * @param info
-	 *            Source info about embedded language fragment.
+	 *            the source info where in the source is the first char of this
+	 *            text fragment
 	 * @return A {@link Term}.
 	 */
-	private Term visit_KR_Term(String krFragment, SourceInfo info) {
+	public Term visit_KR_Term(String krFragment, SourceInfo info) {
 		Term term = null;
 
 		// Get the term
 		try {
-			Parser parser = this.kri.getParser(new StringReader(krFragment));
-			term = parser.parseTerm(info);
+			Parser parser = this.kri.getParser(new StringReader(krFragment),
+					info);
+			term = parser.parseTerm();
 
 			// Add errors from parser for embedded language to our own
-			reportEmbeddedLanguageErrors(parser, info);
+			reportEmbeddedLanguageErrors(parser);
 		} catch (ParserException e) {
 			// Report problem, return, and try to continue with parsing the rest
 			// of the source.
-			reportParsingException(e, info);
+			reportParsingException(e);
 		}
 
 		return term;
@@ -1545,22 +1597,24 @@ Validator<MyGOALLexer, GOAL, AgentErrorStrategy, AgentProgram>
 	 * @param krFragment
 	 *            KR fragment string.
 	 * @param info
-	 *            Source info about embedded language fragment.
+	 *            the source info where in the source is the first char of this
+	 *            text fragment
 	 * @return A {@link Term}.
 	 */
-	private List<Term> visit_KR_Terms(String krFragment, SourceInfo info) {
+	public List<Term> visit_KR_Terms(String krFragment, SourceInfo info) {
 		List<Term> parameters = null;
 
 		try {
-			Parser parser = this.kri.getParser(new StringReader(krFragment));
-			parameters = parser.parseTerms(info);
+			Parser parser = this.kri.getParser(new StringReader(krFragment),
+					info);
+			parameters = parser.parseTerms();
 
 			// Add errors from parser for embedded language to our own
-			reportEmbeddedLanguageErrors(parser, info);
+			reportEmbeddedLanguageErrors(parser);
 		} catch (ParserException e) {
 			// Report problem, return, and try to continue with parsing the rest
 			// of the source.
-			reportParsingException(e, info);
+			reportParsingException(e);
 		}
 
 		return parameters;
@@ -1571,23 +1625,22 @@ Validator<MyGOALLexer, GOAL, AgentErrorStrategy, AgentProgram>
 	 * In other words, assumes that the text associated with the node represents
 	 * a {@link Var}.
 	 *
-	 * @param node
-	 *            The node that contains the text that is parsed.
-	 * @param startLine
-	 *            The line number where the node can be found in the source.
-	 * @param startPos
-	 *            The position on the line where the node starts in the source.
+	 * @param name
+	 *            the variable text to be parsed.
+	 * @param info
+	 *            the source info where in the source is the first char of this
+	 *            text fragment
 	 * @return The variable we got from parsing the node.
 	 * @throws ParserException
 	 *             See {@link ParserException}.
 	 */
-	private Var visit_KR_Var(String name, SourceInfo info)
+	public Var visit_KR_Var(String name, SourceInfo info)
 			throws ParserException {
-		Parser parser = this.kri.getParser(new StringReader(name));
-		Var var = parser.parseVar(info);
+		Parser parser = this.kri.getParser(new StringReader(name), info);
+		Var var = parser.parseVar();
 
 		// Add errors from parser for embedded language to our own
-		reportEmbeddedLanguageErrors(parser, info);
+		reportEmbeddedLanguageErrors(parser);
 
 		return var;
 	}
@@ -1602,12 +1655,15 @@ Validator<MyGOALLexer, GOAL, AgentErrorStrategy, AgentProgram>
 	// user is able to refer to the right scope.
 	public static Action<?> resolve(UserSpecOrModuleCall call,
 			AgentProgram program) {
+		if (call == null || program == null) {
+			return null;
+		}
 		for (Module module : program.getModules()) {
 			if (call.getName().equals(module.getName())
 					&& call.getParameters().size() == module.getParameters()
-							.size()) {
+					.size()) {
 				return new ModuleCallAction(module, call.getParameters(),
-						call.getSourceInfo());
+						call.getSourceInfo(), program.getKRInterface());
 			}
 			for (ActionSpecification specification : module
 					.getActionSpecifications()) {
@@ -1616,10 +1672,11 @@ Validator<MyGOALLexer, GOAL, AgentErrorStrategy, AgentProgram>
 						&& call.getParameters().size() == spec.getParameters()
 						.size()) {
 					return new UserSpecAction(call.getName(),
-							call.getParameters(), spec.getExernal(),
+							call.getParameters(), spec.isExternal(),
 							((MentalLiteral) spec.getPrecondition()
-									.getSubFormulas().get(1)).getFormula(),
-									spec.getPostcondition(), call.getSourceInfo());
+									.getSubFormulas().get(0)).getFormula(),
+									spec.getPostcondition(), call.getSourceInfo(),
+									program.getKRInterface());
 				}
 			}
 		}

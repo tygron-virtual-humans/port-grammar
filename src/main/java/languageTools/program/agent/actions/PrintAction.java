@@ -17,6 +17,7 @@
 
 package languageTools.program.agent.actions;
 
+import krTools.KRInterface;
 import krTools.language.Substitution;
 import krTools.language.Term;
 import krTools.parser.SourceInfo;
@@ -33,16 +34,17 @@ public class PrintAction extends Action<Term> {
 	 *
 	 * @param parameter
 	 *            The parameter that determines what needs to be printed.
+	 *            @param kr the {@link KRInterface}
 	 */
-	public PrintAction(Term parameter, SourceInfo info) {
-		super(AgentProgram.getTokenName(GOAL.PRINT), info);
+	public PrintAction(Term parameter, SourceInfo info, KRInterface kr) {
+		super(AgentProgram.getTokenName(GOAL.PRINT), info, kr);
 		addParameter(parameter);
 	}
 
 	@Override
 	public PrintAction applySubst(Substitution substitution) {
 		return new PrintAction(getParameters().get(0).applySubst(substitution),
-				getSourceInfo());
+				getSourceInfo(),getKRInterface());
 	}
 
 }

@@ -76,17 +76,19 @@ Comparable<InputStreamPosition> {
 	public InputStreamPosition(Token token, int index, File source) {
 		this(token.getLine(), token.getCharPositionInLine(), index, token
 				.getText() == null ? index : index + token.getText().length(),
-				source);
+						source);
 	}
 
 	/**
-	 * TODO
+	 * constructor.
 	 *
 	 * @param lineNumber
+	 *            the line number. 1 is first line.
 	 * @param characterPosition
 	 * @param startIndex
 	 * @param stopIndex
 	 * @param source
+	 *            the source {@link File}
 	 */
 	public InputStreamPosition(int lineNumber, int characterPosition,
 			int startIndex, int stopIndex, File source) {
@@ -124,6 +126,7 @@ Comparable<InputStreamPosition> {
 	/**
 	 * @return The (token) startindex of the character that this marker marks.
 	 */
+	@Override
 	public int getStartIndex() {
 		return this.startIndex;
 	}
@@ -131,6 +134,7 @@ Comparable<InputStreamPosition> {
 	/**
 	 * @return The (token) stopindex of the character that this marker marks.
 	 */
+	@Override
 	public int getStopIndex() {
 		return this.stopIndex;
 	}
@@ -154,13 +158,13 @@ Comparable<InputStreamPosition> {
 
 	/**
 	 * Determines if this {@link InputStreamPosition} is located after the given
-	 * location. WARNING: the line number is 0-based, while the line number in
-	 * this {@link InputStreamPosition} is 1-based.
+	 * location. Given line number and {@link InputStreamPosition} have 1 as
+	 * first line number.
 	 *
 	 * @param source
 	 *            The referenced file.
 	 * @param lineNumber
-	 *            The referenced line number.
+	 *            The referenced line number. 1 is first line
 	 * @return {@code true} iff this {@link InputStreamPosition} is located in
 	 *         the given file, after or at the start of the given line.
 	 */
@@ -168,7 +172,7 @@ Comparable<InputStreamPosition> {
 		if (!this.source.equals(source)) {
 			return false;
 		}
-		return this.lineNumber >= (lineNumber + 1);
+		return this.lineNumber >= lineNumber;
 	}
 
 	public InputStreamPosition end(InputStreamPosition end) {
@@ -209,44 +213,40 @@ Comparable<InputStreamPosition> {
 			return false;
 		}
 		InputStreamPosition that = (InputStreamPosition) other;
-
 		if (this.lineNumber != that.lineNumber) {
 			return false;
 		} else if (this.characterPosition != that.characterPosition) {
 			return false;
 		}
-
 		if (this.source == null) {
-			return this.source == null;
+			return that.source == null;
 		} else {
 			return this.source.getAbsoluteFile().equals(
-					this.source.getAbsoluteFile());
+					that.source.getAbsoluteFile());
 		}
 	}
 
 	@Override
 	public int compareTo(InputStreamPosition o) {
 		// ASSUMES the two ISPs being compared are in the same file.
-
 		// first order by line number
 		if (this.lineNumber < o.lineNumber) {
 			return -1;
 		} else if (this.lineNumber > o.lineNumber) {
 			return 1;
 		} else
-		// then by character position
-		if (this.characterPosition < o.characterPosition) {
-			return -1;
-		} else if (this.characterPosition > o.characterPosition) {
-			return 1;
-		} else {
-			return 0;
-		}
+			// then by character position
+			if (this.characterPosition < o.characterPosition) {
+				return -1;
+			} else if (this.characterPosition > o.characterPosition) {
+				return 1;
+			} else {
+				return 0;
+			}
 	}
 
 	@Override
 	public String getMessage() {
 		return new String();
 	}
-
 }

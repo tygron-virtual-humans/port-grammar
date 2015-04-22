@@ -5,17 +5,20 @@ main module {
 		clear(X) :- not(on(_, X)).
 	}
 	program{
-		if (_Agent).bel(above(B,Y); B=Y) then mod(a).
+		if self.bel(above(B,Y); B=Y) then mod(a).
 	}
 	actionspec{
 		move(X,Y) {
-			pre { clear(X), clear(Y), on(X,Z) } post { }
+			pre { clear(X), clear(Y), on(X,Z) } 
+			post { true }
 		}
 	}
 }
 
 module mod(X) {
 	program{
-		if (X).bel(on(a,b)), (Y).bel(on(a,b)) then move(X,table).
+		if (X).bel(on(a,b)) then move(X,table).
+		if true then allother.sendonce(?test).
+		if bel(received(Agent,imp(test))) then allother.sendonce( !test ).
 	}
 }

@@ -152,21 +152,39 @@ implements MAS2GVisitor {
 
 	@Override
 	public Void visitMas(MasContext ctx) {
-
-		// Check if there is an environment section; if not, there is nothing to
-		// do.
 		if (ctx.environment() != null) {
-			visitEnvironment(ctx.environment());
+			boolean hadEnv = false;
+			for (EnvironmentContext envCtx : ctx.environment()) {
+				if (hadEnv) {
+					reportWarning(MASWarning.SECTION_DUPLICATE, envCtx);
+				} else {
+					visitEnvironment(envCtx);
+					hadEnv = true;
+				}
+			}
 		}
-
 		if (ctx.agentFiles() != null) {
-			visitAgentFiles(ctx.agentFiles());
+			boolean hadFiles = false;
+			for (AgentFilesContext filesCtx : ctx.agentFiles()) {
+				if (hadFiles) {
+					reportWarning(MASWarning.SECTION_DUPLICATE, filesCtx);
+				} else {
+					visitAgentFiles(filesCtx);
+					hadFiles = true;
+				}
+			}
 		}
-
 		if (ctx.launchPolicy() != null) {
-			visitLaunchPolicy(ctx.launchPolicy());
+			boolean hadLaunch = false;
+			for (LaunchPolicyContext launchCtx : ctx.launchPolicy()) {
+				if (hadLaunch) {
+					reportWarning(MASWarning.SECTION_DUPLICATE, launchCtx);
+				} else {
+					visitLaunchPolicy(launchCtx);
+					hadLaunch = true;
+				}
+			}
 		}
-
 		return null; // Java says must return something even when Void
 	}
 
@@ -186,17 +204,18 @@ implements MAS2GVisitor {
 			filename = visitString(ctx.string());
 		}
 		if (filename.isEmpty()) {
-			reportWarning(MASWarning.ENVIRONMENT_NO_REFERENCE,
-					getSourceInfo(ctx));
+			reportWarning(MASWarning.ENVIRONMENT_NO_REFERENCE, ctx);
 		}
-		// file must be located relative to path specified for MAS file
-		String path = getPathRelativeToSourceFile(filename);
-		File environmentfile = new File(path);
+		File environmentfile = new File(filename);
+		if (!environmentfile.isAbsolute()) {
+			// relative to path specified for MAS file
+			environmentfile = new File(getPathRelativeToSourceFile(filename));
+		}
 
 		// If extension is "jar", the file must exist;
 		// otherwise it can be a reference to an existing environment.
 		String ext = FilenameUtils.getExtension(filename);
-		if (ext.equals("jar") && !environmentfile.exists()) {
+		if (ext.equals("jar") && !environmentfile.isFile()) {
 			reportError(MASError.ENVIRONMENT_COULDNOT_FIND, ctx,
 					environmentfile.getPath());
 		} else {
@@ -280,16 +299,7 @@ implements MAS2GVisitor {
 			return Integer.parseInt(ctx.INT().getText());
 		}
 		if (ctx.string() != null) {
-			// TODO: what is the logic here?
-			String text = ctx.string().getText();
-			String[] parts = text.split("(?<!\\\\)\"", 0);
-			return parts[1].replace("\\\"", "\"");
-		}
-		if (ctx.SingleQuotedStringLiteral() != null) {
-			// TODO: what is the logic here?
-			String text = ctx.SingleQuotedStringLiteral().getText();
-			String[] parts = text.split("(?<!\\\\)'", 0);
-			return parts[1].replace("\\'", "'");
+			return visitString(ctx.string());
 		}
 
 		// We did not recognize a valid initialization parameter.
@@ -360,20 +370,20 @@ implements MAS2GVisitor {
 
 		// Get agent file name
 		String path = visitString(ctx.string());
-		String filename = FilenameUtils.getName(path);
-		// File must be located relative to path specified for MAS file
-		File file = new File(getPathRelativeToSourceFile(path));
+		File file = new File(path);
+		if (!file.isAbsolute()) {
+			// relative to path specified for MAS file
+			file = new File(getPathRelativeToSourceFile(path));
+		}
 
 		// Check file extension
 		String ext = FilenameUtils.getExtension(path);
 		if (Extension.getFileExtension(file) != Extension.GOAL) {
 			problem = reportError(MASError.AGENTFILE_OTHER_EXTENSION,
 					ctx.string(), ext);
-		} else {
-			if (!file.exists()) {
-				problem = reportError(MASError.AGENTFILE_COULDNOT_FIND,
-						ctx.string(), file.getPath());
-			}
+		} else if (!file.isFile()) {
+			problem = reportError(MASError.AGENTFILE_COULDNOT_FIND,
+					ctx.string(), file.getPath());
 		}
 
 		// Get (optional) parameters
@@ -394,7 +404,7 @@ implements MAS2GVisitor {
 		if (parameters.containsKey("name")) {
 			agentName = parameters.get("name");
 		} else {
-			agentName = FilenameUtils.getBaseName(filename);
+			agentName = FilenameUtils.getBaseName(FilenameUtils.getName(path));
 		}
 
 		// Add agent symbol to symbol table for later reference (if key does not
@@ -660,9 +670,21 @@ implements MAS2GVisitor {
 	@Override
 	public String visitString(StringContext ctx) {
 		String str = "";
-
-		for (TerminalNode node : ctx.StringLiteral()) {
-			str += removeLeadTrailCharacters(node.getText());
+		if (ctx.StringLiteral() != null) {
+			for (TerminalNode literal : ctx.StringLiteral()) {
+				String[] parts = literal.getText().split("(?<!\\\\)\"", 0);
+				if (parts.length > 1) {
+					str += parts[1].replace("\\\"", "\"");
+				}
+			}
+		}
+		if (ctx.SingleQuotedStringLiteral() != null) {
+			for (TerminalNode literal : ctx.SingleQuotedStringLiteral()) {
+				String[] parts = literal.getText().split("(?<!\\\\)'", 0);
+				if (parts.length > 1) {
+					str += parts[1].replace("\\'", "'");
+				}
+			}
 		}
 		return str;
 	}

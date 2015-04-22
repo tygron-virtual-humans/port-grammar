@@ -28,9 +28,7 @@ tokens{ HIDDEN }
 
 
 mas
-	: environment?
-	  agentFiles
-	  launchPolicy
+	: (environment | agentFiles | launchPolicy)*
       EOF
 	;
 
@@ -57,7 +55,6 @@ constant
 	: ID 
 	| INT
 	| FLOAT
-	| SingleQuotedStringLiteral
 	| string
 	;
 
@@ -121,7 +118,8 @@ entityConstraint
 	;
 	
 string
-	: StringLiteral ('+' StringLiteral)*
+	: (StringLiteral ('+' StringLiteral)*)
+	| (SingleQuotedStringLiteral ('+' SingleQuotedStringLiteral)*)
 	;
 
 // LEXER
@@ -147,22 +145,19 @@ INT
 
 fragment DIGIT: [0-9];
 
+fragment EscapedQuote: '\\"';
 StringLiteral
-	: '"' ('\\"' | ~[\r\n"])* '"'
+	: '"' (EscapedQuote | ~[\r\n"])* '"'
 	;
-UnterminatedStringLiteral
-	: '"' ('\\"' | ~[\r\n"])*
-	;
-	
+
+fragment EscapedSingleQuote: '\\\'';
 SingleQuotedStringLiteral
-	: '\'' ('\\"' | ~[\r\n\'])* '\''
-	;
-UnterminatedSingelQuotedStringLiteral
-	: '\'' ('\\"' | ~[\r\n\'])*
+	: '\'' (EscapedSingleQuote | ~[\r\n\'])* '\''
 	;
 
 AGENTFILENAME
-	: '"' ~[ \t\f\r\n?%*:|"<>]+ '.goal"'
+	: ('"' ~[ \t\f\r\n?%*:|"<>]+ '.goal"')
+	| ('\'' ~[ \t\f\r\n?%*:|\'<>]+ '.goal\'')
 	;
 
 // White space and comments.

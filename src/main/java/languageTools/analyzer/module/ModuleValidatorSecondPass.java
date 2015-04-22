@@ -43,6 +43,8 @@ import languageTools.program.agent.actions.AdoptAction;
 import languageTools.program.agent.actions.DeleteAction;
 import languageTools.program.agent.actions.InsertAction;
 import languageTools.program.agent.actions.ModuleCallAction;
+import languageTools.program.agent.actions.SendAction;
+import languageTools.program.agent.actions.SendOnceAction;
 import languageTools.program.agent.actions.UserSpecAction;
 import languageTools.program.agent.actions.UserSpecOrModuleCall;
 import languageTools.program.agent.msc.BelLiteral;
@@ -51,6 +53,7 @@ import languageTools.program.agent.msc.Macro;
 import languageTools.program.agent.msc.MentalFormula;
 import languageTools.program.agent.msc.MentalLiteral;
 import languageTools.program.agent.msc.MentalStateCondition;
+import languageTools.program.agent.msg.SentenceMood;
 import languageTools.program.agent.rules.Rule;
 import languageTools.symbolTable.Symbol;
 import languageTools.symbolTable.SymbolTable;
@@ -151,7 +154,7 @@ public class ModuleValidatorSecondPass {
 
 		// Collect all info needed for validation
 		visitModule(this.program);
-		checkVariablesBoundinRules(this.program, new HashSet<Term>());
+		checkVariablesBound(this.program, new HashSet<Term>());
 
 		// Report unused action and module definitions
 		Set<String> actionsDefined = this.actionSymbols.getNames();
@@ -362,7 +365,8 @@ public class ModuleValidatorSecondPass {
 					if (symbol instanceof ModuleSymbol) {
 						Module target = ((ModuleSymbol) symbol).getModule();
 						resolved.add(new ModuleCallAction(target, call
-								.getParameters(), action.getSourceInfo()));
+								.getParameters(), action.getSourceInfo(),
+								this.program.getKRInterface()));
 					} else { // must be ActionSymbol
 						ActionSpecification spec = ((ActionSymbol) symbol)
 								.getActionSpecification();
@@ -381,13 +385,14 @@ public class ModuleValidatorSecondPass {
 							}
 							resolved.add(new UserSpecAction(action.getName(),
 									instantiated,
-									spec.getAction().getExernal(), pre
-									.applySubst(unifier), post
-									.applySubst(unifier), action
-									.getSourceInfo()));
+									spec.getAction().isExternal(), pre
+											.applySubst(unifier), post
+											.applySubst(unifier), action
+											.getSourceInfo(), this.program
+									.getKRInterface()));
 						} else {
 							this.firstPass.reportError(
-									AgentError.ACTION_USED_NEVER_DEFINED,
+									AgentError.ACTION_DOES_NOT_MATCH,
 									action.getSourceInfo(),
 									action.getSignature());
 						}
@@ -400,8 +405,8 @@ public class ModuleValidatorSecondPass {
 			} else if (action instanceof ModuleCallAction) {
 				// must be anonymous module
 				actionLabelsUsed
-				.addAll(resolveModuleActionRefs(((ModuleCallAction) action)
-						.getTarget()));
+						.addAll(resolveModuleActionRefs(((ModuleCallAction) action)
+								.getTarget()));
 				resolved.add(action);
 			} else {
 				resolved.add(action);
@@ -457,9 +462,9 @@ public class ModuleValidatorSecondPass {
 				if (((ModuleCallAction) rule.getAction().getActions().get(0))
 						.getTarget().getType() == TYPE.ANONYMOUS) {
 					macroLabelsUsed
-					.addAll(resolveModuleMacroRefs(((ModuleCallAction) rule
-							.getAction().getActions().get(0))
-							.getTarget()));
+							.addAll(resolveModuleMacroRefs(((ModuleCallAction) rule
+									.getAction().getActions().get(0))
+									.getTarget()));
 				}
 			}
 		}
@@ -468,12 +473,13 @@ public class ModuleValidatorSecondPass {
 	}
 
 	/**
-	 * Reports error if variables in a rule have not been bound.
+	 * Reports error if variables in a rule have not been bound. FIXME Duplicate
+	 * code, #3434
 	 *
 	 * @param module
 	 *            Module with rules to be checked.
 	 */
-	private void checkVariablesBoundinRules(Module module, Set<Term> scope) {
+	private void checkVariablesBound(Module module, Set<Term> scope) {
 		Set<Term> localScope;
 		if (module.getType() != TYPE.ANONYMOUS) {
 			// reset scope
@@ -490,24 +496,66 @@ public class ModuleValidatorSecondPass {
 			// condition
 			Set<Term> newscope = new HashSet<Term>(localScope);
 			newscope.addAll(rule.getCondition().getFreeVar());
-
-			Set<Var> unbound = new HashSet<>();
 			for (Action<?> action : rule.getAction().getActions()) {
+				Set<Var> unbound = new HashSet<>();
+				Set<Var> free = new HashSet<Var>();
 				if (action instanceof ModuleCallAction) {
-					checkVariablesBoundinRules(
+					checkVariablesBound(
 							((ModuleCallAction) action).getTarget(), newscope);
+				} else if (action instanceof SendAction
+						|| action instanceof SendOnceAction) {
+					if (getSendMood(action) != SentenceMood.INTERROGATIVE) {
+						free = action.getFreeVar();
+					}
 				} else {
-					unbound.addAll(action.getFreeVar());
-					unbound.removeAll(newscope);
+					free = action.getFreeVar();
+				}
+				unbound.addAll(free);
+				unbound.removeAll(newscope);
+				if (!unbound.isEmpty()) {
+					this.firstPass.reportError(
+							AgentError.RULE_VARIABLE_NOT_BOUND,
+							action.getSourceInfo(),
+							this.firstPass.prettyPrintSet(unbound));
 				}
 			}
-
+		}
+		for (DatabaseFormula formula : module.getBeliefs()) {
+			Set<Var> unbound = new HashSet<>(formula.getFreeVar());
+			unbound.removeAll(localScope);
 			if (!unbound.isEmpty()) {
-				this.firstPass.reportError(AgentError.RULE_VARIABLE_NOT_BOUND,
-						unbound.iterator().next().getSourceInfo(),
-						this.firstPass.prettyPrintSet(unbound));
+				this.firstPass.reportError(
+						AgentError.BELIEF_UNINSTANTIATED_VARIABLE,
+						formula.getSourceInfo(),
+						this.firstPass.prettyPrintSet(unbound),
+						formula.toString());
 			}
 		}
+		for (Query formula : module.getGoals()) {
+			Set<Var> unbound = new HashSet<>(formula.getFreeVar());
+			unbound.removeAll(localScope);
+			if (!unbound.isEmpty()) {
+				this.firstPass.reportError(
+						AgentError.GOAL_UNINSTANTIATED_VARIABLE,
+						formula.getSourceInfo(),
+						this.firstPass.prettyPrintSet(unbound),
+						formula.toString());
+			}
+		}
+	}
+
+	/**
+	 * Get the mood of the given action. Assumes action is {@link SendAction} or
+	 * {@link SendOnceAction}. Helper function to get around #3433
+	 *
+	 * @param action
+	 * @return mood of the given action.
+	 */
+	private SentenceMood getSendMood(Action<?> action) {
+		if (action instanceof SendAction) {
+			return ((SendAction) action).getMood();
+		}
+		return ((SendOnceAction) action).getMood();
 	}
 
 	/**

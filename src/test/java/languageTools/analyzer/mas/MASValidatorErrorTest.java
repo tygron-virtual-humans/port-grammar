@@ -20,7 +20,9 @@ package languageTools.analyzer.mas;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 
 import languageTools.errors.Message;
@@ -32,11 +34,10 @@ import languageTools.program.mas.MASProgram;
 import org.junit.Test;
 
 public class MASValidatorErrorTest {
-
-	List<Message> syntaxerrors;
-	List<Message> errors;
-	List<Message> warnings;
-	MASProgram program;
+	private List<Message> syntaxerrors;
+	private List<Message> errors;
+	private List<Message> warnings;
+	private MASProgram program;
 
 	/**
 	 * Creates validator, calls validate, and initializes relevant fields.
@@ -48,10 +49,16 @@ public class MASValidatorErrorTest {
 		MASValidator validator = new MASValidator(resource);
 		validator.validate();
 
-		this.syntaxerrors = validator.getSyntaxErrors();
-		this.errors = validator.getErrors();
-		this.warnings = validator.getWarnings();
+		this.syntaxerrors = new ArrayList<Message>(validator.getSyntaxErrors());
+		this.errors = new ArrayList<Message>(validator.getErrors());
+		this.warnings = new ArrayList<Message>(validator.getWarnings());
 		this.program = validator.getProgram();
+
+		List<Message> all = new LinkedList<>();
+		all.addAll(this.syntaxerrors);
+		all.addAll(this.errors);
+		all.addAll(this.warnings);
+		System.out.println(this.program.getSourceFile() + ": " + all);
 	}
 
 	@Test

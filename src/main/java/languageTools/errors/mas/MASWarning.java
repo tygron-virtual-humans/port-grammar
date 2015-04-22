@@ -54,7 +54,11 @@ public enum MASWarning implements ValidatorWarningType {
 	 * Any type of entity constraint should be specified only once in a launch
 	 * rule.
 	 */
-	CONSTRAINT_DUPLICATE;
+	CONSTRAINT_DUPLICATE,
+	/**
+	 * Only one environment/agentfiles/launchpolicy section is allowed
+	 */
+	SECTION_DUPLICATE;
 
 	private static final ResourceBundle BUNDLE = ResourceBundle
 			.getBundle("languageTools.messages.MASWarningMessages");
