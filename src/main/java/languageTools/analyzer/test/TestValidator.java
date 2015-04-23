@@ -108,6 +108,7 @@ import languageTools.program.test.testcondition.Eventually;
 import languageTools.program.test.testcondition.Never;
 import languageTools.program.test.testcondition.TestCondition;
 import languageTools.program.test.testcondition.Until;
+import languageTools.program.test.testcondition.Watch;
 import languageTools.program.test.testcondition.While;
 import languageTools.program.test.testsection.AssertTest;
 import languageTools.program.test.testsection.DoActionSection;
@@ -122,6 +123,7 @@ import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.TokenStream;
 import org.antlr.v4.runtime.misc.NotNull;
 import org.antlr.v4.runtime.tree.ParseTree;
+import org.antlr.v4.runtime.tree.TerminalNode;
 
 /**
  * Validates a test file and constructs a test program.
@@ -130,8 +132,8 @@ import org.antlr.v4.runtime.tree.ParseTree;
  */
 @SuppressWarnings("rawtypes")
 public class TestValidator extends
-		Validator<MyGOALLexer, Test, TestErrorStrategy, UnitTest> implements
-		TestVisitor {
+Validator<MyGOALLexer, Test, TestErrorStrategy, UnitTest> implements
+TestVisitor {
 	private Test parser;
 	private MASProgram masProgram;
 	private AgentProgram agentProgram;
@@ -315,91 +317,86 @@ public class TestValidator extends
 	public List<AgentTests> visitAgentTests(AgentTestsContext ctx) {
 		List<AgentTests> tests = new ArrayList<>(ctx.agentTest().size());
 		for (AgentTestContext testCtx : ctx.agentTest()) {
-			AgentTests agentTests = visitAgentTest(testCtx);
-			if (agentTests == null) {
-				return null;
-			}
-			for (AgentTests t : tests) {
-				// Check duplicates
-				if (agentTests.getName().equals(t.getName())) {
-					reportError(TestError.TEST_DUPLICATE, testCtx,
-							agentTests.getName(), t.getName());
-					return null;
+			List<AgentTests> agentTests = visitAgentTest(testCtx);
+			for (AgentTests agentTest : agentTests) {
+				for (AgentTests t : tests) {
+					// Check duplicates
+					if (agentTest.getName().equals(t.getName())) {
+						reportError(TestError.TEST_DUPLICATE, testCtx,
+								agentTest.getName(), t.getName());
+						return null;
+					}
+					// Check size matches other tests
+					if (agentTest.size() != t.size()) {
+						reportError(TestError.TEST_INVALID_SIZE, testCtx,
+								agentTest.getName(),
+								Integer.toString(agentTest.size()),
+								t.getName(), Integer.toString(t.size()));
+						return null;
+					}
 				}
-				// Check size matches other tests
-				if (agentTests.size() != t.size()) {
-					reportError(TestError.TEST_INVALID_SIZE, testCtx,
-							agentTests.getName(),
-							Integer.toString(agentTests.size()), t.getName(),
-							Integer.toString(t.size()));
-					return null;
-				}
+				tests.add(agentTest);
 			}
-			tests.add(agentTests);
 		}
 		return tests;
 	}
 
 	@Override
-	public AgentTests visitAgentTest(AgentTestContext ctx) {
-		if (ctx.ID() == null) {
+	public List<AgentTests> visitAgentTest(AgentTestContext ctx) {
+		List<AgentTests> tests = new LinkedList<>();
+		if (ctx.ID() == null || ctx.ID().isEmpty()) {
 			reportError(TestError.TEST_MISSING_AGENT, ctx);
-			return null;
+			return tests;
 		}
 
-		String agentName = null;
-		File agentFile = null;
-		for (LaunchRule launchrule : this.masProgram.getLaunchRules()) {
-			for (Launch launch : launchrule.getInstructions()) {
-				agentName = launch.getGivenName("", 0);
-				if (ctx.ID().getText().equals(agentName)) {
-					agentFile = launch.getAgentFile();
+		for (final TerminalNode ID : ctx.ID()) {
+			String agentName = null;
+			File agentFile = null;
+			for (LaunchRule launchrule : this.masProgram.getLaunchRules()) {
+				for (Launch launch : launchrule.getInstructions()) {
+					agentName = launch.getGivenName("", 0);
+					if (ID.getText().equals(agentName)) {
+						agentFile = launch.getAgentFile();
+						break;
+					}
+				}
+				if (agentFile != null) {
 					break;
 				}
 			}
-			if (agentFile != null) {
-				break;
+			if (agentFile == null) {
+				reportError(TestError.TEST_MISSING_AGENT, ctx);
+				continue;
 			}
-		}
-		if (agentFile == null) {
-			reportError(TestError.TEST_MISSING_AGENT, ctx);
-			return null;
-		}
-
-		this.agentProgram = getProgram().getAgent(agentFile);
-		if (this.agentProgram == null) {
-			reportError(TestError.AGENT_INVALID, ctx, agentFile.getPath(),
-					"not found");
-			return null;
-		}
-
-		if (ctx.test() == null) {
-			return new AgentTests(agentName);
-		} else if (ctx.test().isEmpty()) {
-			return new AgentTests(agentName);
-		}
-
-		List<TestCollection> tests = new ArrayList<>(ctx.test().size());
-		for (TestContext programCtx : ctx.test()) {
-			TestCollection test = visitTest(programCtx);
-			if (test == null) {
-				return null;
+			this.agentProgram = getProgram().getAgent(agentFile);
+			if (this.agentProgram == null) {
+				reportError(TestError.AGENT_INVALID, ctx, agentFile.getPath(),
+						"not found");
+			} else if (ctx.test() == null || ctx.test().isEmpty()) {
+				tests.add(new AgentTests(agentName));
 			} else {
-				tests.add(test);
+				List<TestCollection> mytests = new ArrayList<>(ctx.test()
+						.size());
+				for (TestContext programCtx : ctx.test()) {
+					TestCollection test = visitTest(programCtx);
+					if (test != null) {
+						mytests.add(test);
+					}
+				}
+				if (mytests.isEmpty()) {
+					reportError(TestError.TEST_MISSING, ctx, agentName);
+				} else {
+					List<AgentTest> agentTests = new ArrayList<>(mytests.size());
+					for (TestCollection test : mytests) {
+						AgentTest agentTest = new AgentTest(agentName, test);
+						agentTests.add(agentTest);
+					}
+					tests.add(new AgentTests(agentName, agentTests));
+				}
 			}
 		}
 
-		if (tests.isEmpty()) {
-			reportError(TestError.TEST_MISSING, ctx, agentName);
-			return null;
-		}
-
-		List<AgentTest> agentTests = new ArrayList<>(tests.size());
-		for (TestCollection test : tests) {
-			AgentTest agentTest = new AgentTest(agentName, test);
-			agentTests.add(agentTest);
-		}
-		return new AgentTests(agentName, agentTests);
+		return tests;
 	}
 
 	@Override
@@ -627,6 +624,8 @@ public class TestValidator extends
 			return new Never(condition);
 		} else if (ctx.EVENTUALLY() != null) {
 			return new Eventually(condition);
+		} else if (ctx.WATCH() != null) {
+			return new Watch(condition);
 		} else {
 			reportError(TestError.TEST_MISSING_OPERATOR, ctx);
 			return null;

@@ -54,7 +54,7 @@ agentTests
 
 // ID must be name of agent in MAS file launch rule.
 agentTest
-	: ID '{' test* '}'
+	: ID (',' ID)* '{' test* '}'
 	;
 
 // ID is name of a test that is executed for an agent.
@@ -90,7 +90,7 @@ testCondition
 	: testConditionPart ('->' testConditionPart)* '.'
 	;
 testConditionPart
-	: (ALWAYS | NEVER | EVENTUALLY | ATEND) testMentalStateCondition
+	: (ALWAYS | NEVER | EVENTUALLY | ATEND | WATCH) testMentalStateCondition
 	;
 testBoundary
     : (UNTIL | WHILE) testMentalStateCondition
