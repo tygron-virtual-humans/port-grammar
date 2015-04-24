@@ -18,18 +18,17 @@
 package languageTools.analyzer.module;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import krTools.errors.exceptions.ParserException;
 import krTools.language.DatabaseFormula;
 import krTools.language.Query;
 import krTools.language.Substitution;
 import krTools.language.Term;
-import krTools.language.Update;
 import krTools.language.Var;
+import languageTools.analyzer.agent.AgentValidatorSecondPass;
 import languageTools.errors.agent.AgentError;
 import languageTools.errors.agent.AgentWarning;
 import languageTools.parser.GOAL;
@@ -47,18 +46,12 @@ import languageTools.program.agent.actions.SendAction;
 import languageTools.program.agent.actions.SendOnceAction;
 import languageTools.program.agent.actions.UserSpecAction;
 import languageTools.program.agent.actions.UserSpecOrModuleCall;
-import languageTools.program.agent.msc.BelLiteral;
-import languageTools.program.agent.msc.GoalLiteral;
-import languageTools.program.agent.msc.Macro;
-import languageTools.program.agent.msc.MentalFormula;
 import languageTools.program.agent.msc.MentalLiteral;
-import languageTools.program.agent.msc.MentalStateCondition;
 import languageTools.program.agent.msg.SentenceMood;
 import languageTools.program.agent.rules.Rule;
 import languageTools.symbolTable.Symbol;
 import languageTools.symbolTable.SymbolTable;
 import languageTools.symbolTable.agent.ActionSymbol;
-import languageTools.symbolTable.agent.MacroSymbol;
 import languageTools.symbolTable.agent.ModuleSymbol;
 
 public class ModuleValidatorSecondPass {
@@ -335,11 +328,9 @@ public class ModuleValidatorSecondPass {
 	 */
 	private Set<String> resolveModuleActionRefs(Module module) {
 		Set<String> actionLabelsUsed = new HashSet<>();
-
 		for (Rule rule : module.getRules()) {
 			actionLabelsUsed.addAll(resolveActionReferences(rule.getAction()));
 		}
-
 		return actionLabelsUsed;
 	}
 
@@ -353,7 +344,6 @@ public class ModuleValidatorSecondPass {
 	private Set<String> resolveActionReferences(ActionCombo actions) {
 		Set<String> actionLabelsUsed = new HashSet<>();
 		List<Action<?>> resolved = new ArrayList<>();
-
 		for (Action<?> action : actions.getActions()) {
 			if (action instanceof UserSpecOrModuleCall) {
 				UserSpecOrModuleCall call = (UserSpecOrModuleCall) action;
@@ -370,26 +360,31 @@ public class ModuleValidatorSecondPass {
 					} else { // must be ActionSymbol
 						ActionSpecification spec = ((ActionSymbol) symbol)
 								.getActionSpecification();
-						Substitution unifier = getUnifier(spec.getAction()
-								.getParameters(),
-								((UserSpecOrModuleCall) action).getParameters());
-						Query pre = ((MentalLiteral) spec.getPreCondition()
-								.getSubFormulas().get(0)).getFormula();
-						Update post = spec.getPostCondition();
-						if (unifier != null && pre != null && post != null) {
-							// TODO: standardize apart vars in pre- and
-							// post-condition
-							List<Term> instantiated = new ArrayList<>();
-							for (Term term : spec.getAction().getParameters()) {
-								instantiated.add(term.applySubst(unifier));
-							}
-							resolved.add(new UserSpecAction(action.getName(),
-									instantiated,
-									spec.getAction().isExternal(), pre
-											.applySubst(unifier), post
-											.applySubst(unifier), action
-											.getSourceInfo(), this.program
-									.getKRInterface()));
+						Substitution uniqueSub = AgentValidatorSecondPass
+								.makeTermVarsUnique(AgentValidatorSecondPass
+										.getFreeVars(spec.getAction()
+												.getParameters()), call
+												.getFreeVar(), this.program
+												.getKRInterface());
+						spec = spec.applySubst(uniqueSub);
+						// find the substi that matches the call to the spec.
+						// This substi is now used to bring the spec into the
+						// form fitting the call.
+						Substitution unifier = spec.getAction().mgu(action);
+						if (unifier != null) {
+							UserSpecAction specAction = spec
+									.applySubst(unifier).getAction();
+							UserSpecAction fixed = new UserSpecAction(
+									specAction.getName(),
+									specAction.getParameters(),
+									specAction.isExternal(),
+									((MentalLiteral) specAction
+											.getPrecondition().getSubFormulas()
+											.get(0)).getFormula(),
+											specAction.getPostcondition(),
+											call.getSourceInfo(),
+											specAction.getKRInterface());
+							resolved.add(fixed);
 						} else {
 							this.firstPass.reportError(
 									AgentError.ACTION_DOES_NOT_MATCH,
@@ -405,8 +400,8 @@ public class ModuleValidatorSecondPass {
 			} else if (action instanceof ModuleCallAction) {
 				// must be anonymous module
 				actionLabelsUsed
-						.addAll(resolveModuleActionRefs(((ModuleCallAction) action)
-								.getTarget()));
+				.addAll(resolveModuleActionRefs(((ModuleCallAction) action)
+						.getTarget()));
 				resolved.add(action);
 			} else {
 				resolved.add(action);
@@ -427,49 +422,33 @@ public class ModuleValidatorSecondPass {
 	 * @return Set of macro signatures that are used in module.
 	 */
 	private Set<String> resolveModuleMacroRefs(Module module) {
-		Set<String> macroLabelsUsed = new HashSet<>();
-
+		Set<String> macroLabels = new HashSet<>();
 		for (Rule rule : module.getRules()) {
-			// Resolve references to macros
-			for (MentalFormula formula : rule.getCondition().getSubFormulas()) {
-				if (formula instanceof Macro) {
-					String signature = ((Macro) formula).getSignature();
-					macroLabelsUsed.add(signature);
-					MacroSymbol symbol = (MacroSymbol) this.macroSymbols
-							.resolve(signature);
-					if (symbol == null) {
-						this.firstPass.reportError(
-								AgentError.MACRO_NOT_DEFINED,
-								formula.getSourceInfo(), signature);
-					} else {
-						List<Term> macroFormalPars = symbol.getMacro()
-								.getParameters();
-						List<Term> macroParsUsed = ((Macro) formula)
-								.getParameters();
-						// Assumes that formal parameters are all variables
-						// TODO: standardize variables in definition apart from
-						// other variables that occur in rule condition
-						Substitution substitution = getUnifier(macroFormalPars,
-								macroParsUsed);
-						MentalStateCondition instantiatedDf = symbol.getMacro()
-								.getDefinition().applySubst(substitution);
-						((Macro) formula).setDefinition(instantiatedDf);
-					}
-				}
+			try {
+				macroLabels.addAll(module.resolve(rule.getCondition()));
+			} catch (ParserException e) {
+				/*
+				 * HACK how to get the correct source info here? We can't attach
+				 * the original Macro to the exception.
+				 */
+				this.firstPass.reportError(AgentError.MACRO_NOT_DEFINED,
+						e.getSourceInfo(), e.getMessage());
+
 			}
+
+			// Resolve references to macros
 			if (!rule.getAction().getActions().isEmpty()
 					&& rule.getAction().getActions().get(0) instanceof ModuleCallAction) {
 				if (((ModuleCallAction) rule.getAction().getActions().get(0))
 						.getTarget().getType() == TYPE.ANONYMOUS) {
-					macroLabelsUsed
-							.addAll(resolveModuleMacroRefs(((ModuleCallAction) rule
-									.getAction().getActions().get(0))
-									.getTarget()));
+					macroLabels
+					.addAll(resolveModuleMacroRefs(((ModuleCallAction) rule
+							.getAction().getActions().get(0))
+							.getTarget()));
 				}
 			}
 		}
-
-		return macroLabelsUsed;
+		return macroLabels;
 	}
 
 	/**
@@ -490,7 +469,6 @@ public class ModuleValidatorSecondPass {
 		} else {
 			localScope = new HashSet<Term>(scope);
 		}
-
 		for (Rule rule : module.getRules()) {
 			// Set up new scope that also includes variables bound by rule
 			// condition
@@ -504,7 +482,7 @@ public class ModuleValidatorSecondPass {
 							((ModuleCallAction) action).getTarget(), newscope);
 				} else if (action instanceof SendAction
 						|| action instanceof SendOnceAction) {
-					if (getSendMood(action) != SentenceMood.INTERROGATIVE) {
+					if (AgentValidatorSecondPass.getSendMood(action) != SentenceMood.INTERROGATIVE) {
 						free = action.getFreeVar();
 					}
 				} else {
@@ -545,20 +523,6 @@ public class ModuleValidatorSecondPass {
 	}
 
 	/**
-	 * Get the mood of the given action. Assumes action is {@link SendAction} or
-	 * {@link SendOnceAction}. Helper function to get around #3433
-	 *
-	 * @param action
-	 * @return mood of the given action.
-	 */
-	private SentenceMood getSendMood(Action<?> action) {
-		if (action instanceof SendAction) {
-			return ((SendAction) action).getMood();
-		}
-		return ((SendOnceAction) action).getMood();
-	}
-
-	/**
 	 * Extracts beliefs that are dynamically inserted into the belief base from
 	 * the module. Collects these from insert and delete actions and from
 	 * post-conditions.
@@ -569,7 +533,6 @@ public class ModuleValidatorSecondPass {
 	 */
 	private Set<DatabaseFormula> getInsertedBeliefs(Module module) {
 		Set<DatabaseFormula> dbfs = new HashSet<>();
-
 		// Add beliefs inserted by inserts and deletes
 		for (Rule rule : module.getRules()) {
 			for (Action<?> action : rule.getAction().getActions()) {
@@ -587,12 +550,10 @@ public class ModuleValidatorSecondPass {
 				}
 			}
 		}
-
 		// Add beliefs inserted by post-conditions
 		for (ActionSpecification spec : module.getActionSpecifications()) {
 			dbfs.addAll(spec.getPostCondition().getAddList());
 		}
-
 		return dbfs;
 	}
 
@@ -606,12 +567,12 @@ public class ModuleValidatorSecondPass {
 	 */
 	private Set<Query> getBeliefQueries(Module module) {
 		Set<Query> queries = new HashSet<>();
-
 		// Add queries used in rule conditions
 		// First collect all literals as well as queries from submodules
 		Set<MentalLiteral> literals = new HashSet<MentalLiteral>();
 		for (Rule rule : module.getRules()) {
-			literals.addAll(getBeliefLiterals(rule.getCondition()));
+			literals.addAll(AgentValidatorSecondPass.getBeliefLiterals(rule
+					.getCondition()));
 			for (Action<?> action : rule.getAction().getActions()) {
 				if (action instanceof ModuleCallAction) {
 					queries.addAll(getBeliefQueries(((ModuleCallAction) action)
@@ -622,40 +583,14 @@ public class ModuleValidatorSecondPass {
 		for (MentalLiteral literal : literals) {
 			queries.add(literal.getFormula());
 		}
-
 		// Add pre-conditions
 		for (ActionSpecification spec : module.getActionSpecifications()) {
-			for (MentalLiteral literal : getBeliefLiterals(spec
-					.getPreCondition())) {
+			for (MentalLiteral literal : AgentValidatorSecondPass
+					.getBeliefLiterals(spec.getPreCondition())) {
 				queries.add(literal.getFormula());
 			}
 		}
-
 		return queries;
-	}
-
-	/**
-	 * Retrieve all literals that query the belief base, including belief,
-	 * a-goal, and goal-a literals. Also extracts relevant literals from macros.
-	 *
-	 * @param msc
-	 *            Mental state condition from which literals are extracted.
-	 * @return Literals extracted from condition.
-	 */
-	private Set<MentalLiteral> getBeliefLiterals(MentalStateCondition msc) {
-		Set<MentalLiteral> literals = new HashSet<>();
-		if (msc != null) {
-			for (MentalFormula formula : msc.getSubFormulas()) {
-				if (formula instanceof Macro) {
-					literals.addAll(getBeliefLiterals(((Macro) formula)
-							.getDefinition()));
-				} else if (!(formula instanceof GoalLiteral)) {
-					literals.add((MentalLiteral) formula);
-				}
-			}
-		}
-
-		return literals;
 	}
 
 	/**
@@ -667,7 +602,6 @@ public class ModuleValidatorSecondPass {
 	 */
 	private Set<Query> getAdoptedGoals(Module module) {
 		Set<Query> queries = new HashSet<Query>();
-
 		// Add updates in adopts
 		for (Rule rule : module.getRules()) {
 			for (Action<?> action : rule.getAction().getActions()) {
@@ -683,7 +617,6 @@ public class ModuleValidatorSecondPass {
 				}
 			}
 		}
-
 		return queries;
 	}
 
@@ -694,12 +627,10 @@ public class ModuleValidatorSecondPass {
 	 */
 	private Set<DatabaseFormula> getGoalDfs(Module module) {
 		Set<DatabaseFormula> dbfs = new HashSet<>();
-
 		// Add goals in goal section
 		for (Query query : module.getGoals()) {
 			dbfs.addAll(query.toUpdate().getAddList());
 		}
-
 		// Add updates in adopts
 		for (Rule rule : module.getRules()) {
 			for (Action<?> action : rule.getAction().getActions()) {
@@ -712,7 +643,6 @@ public class ModuleValidatorSecondPass {
 				}
 			}
 		}
-
 		return dbfs;
 	}
 
@@ -725,12 +655,12 @@ public class ModuleValidatorSecondPass {
 	 */
 	private Set<Query> getGoalQueries(Module module) {
 		Set<Query> queries = new HashSet<>();
-
 		// Add queries used in rule conditions
 		// First collect all literals as well as queries from submodules
 		Set<MentalLiteral> literals = new HashSet<>();
 		for (Rule rule : module.getRules()) {
-			literals.addAll(getGoalLiterals(rule.getCondition()));
+			literals.addAll(AgentValidatorSecondPass.getGoalLiterals(rule
+					.getCondition()));
 			for (Action<?> action : rule.getAction().getActions()) {
 				if (action instanceof ModuleCallAction) {
 					queries.addAll(getGoalQueries(((ModuleCallAction) action)
@@ -741,60 +671,6 @@ public class ModuleValidatorSecondPass {
 		for (MentalLiteral literal : literals) {
 			queries.add(literal.getFormula());
 		}
-
 		return queries;
 	}
-
-	/**
-	 * Extracts goal literals from mental state condition.
-	 *
-	 * @param msc
-	 *            Mental state condition from which literals are extracted.
-	 * @return Literals extracted from condition.
-	 */
-	private Set<MentalLiteral> getGoalLiterals(MentalStateCondition msc) {
-		Set<MentalLiteral> literals = new HashSet<>();
-		if (msc != null) {
-			for (MentalFormula formula : msc.getSubFormulas()) {
-				if (formula instanceof Macro) {
-					literals.addAll(getGoalLiterals(((Macro) formula)
-							.getDefinition()));
-				} else if (!(formula instanceof BelLiteral)) {
-					literals.add((MentalLiteral) formula);
-				}
-			}
-		}
-
-		return literals;
-	}
-
-	/**
-	 * Computes a unifier for the two lists of parameters. Assumes that both
-	 * lists have equal length.
-	 *
-	 * @param formalParameters
-	 *            List of terms.
-	 * @param instantiatedParameters
-	 *            List of terms.
-	 * @return Most general unifier, i.e., a {@link Substitution}, that unifies
-	 *         parameters in both lists, or {@code null} if no unifier exists.
-	 */
-	private Substitution getUnifier(List<Term> formalParameters,
-			List<Term> instantiatedParameters) {
-		Iterator<Term> formal = formalParameters.iterator();
-		Iterator<Term> instantiated = instantiatedParameters.iterator();
-		Substitution substitution = this.program.getKRInterface()
-				.getSubstitution(new HashMap<Var, Term>());
-
-		if (formal.hasNext()) {
-			substitution = formal.next().mgu(instantiated.next());
-			while (formal.hasNext() && substitution != null) {
-				substitution = substitution.combine(formal.next().mgu(
-						instantiated.next()));
-			}
-		}
-
-		return substitution;
-	}
-
 }

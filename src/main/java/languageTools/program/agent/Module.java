@@ -19,21 +19,29 @@ package languageTools.program.agent;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import krTools.KRInterface;
+import krTools.errors.exceptions.ParserException;
 import krTools.language.DatabaseFormula;
 import krTools.language.Query;
 import krTools.language.Substitution;
 import krTools.language.Term;
 import krTools.parser.SourceInfo;
 import languageTools.analyzer.agent.AgentValidator;
+import languageTools.analyzer.agent.AgentValidatorSecondPass;
 import languageTools.program.Program;
 import languageTools.program.agent.msc.AGoalLiteral;
 import languageTools.program.agent.msc.GoalLiteral;
 import languageTools.program.agent.msc.Macro;
+import languageTools.program.agent.msc.MentalFormula;
+import languageTools.program.agent.msc.MentalStateCondition;
 import languageTools.program.agent.rules.Rule;
+import languageTools.symbolTable.SymbolTable;
+import languageTools.symbolTable.agent.MacroSymbol;
 
 /**
  * A module consist of:
@@ -117,6 +125,10 @@ public class Module extends Program {
 	 * The goals specified in the goals section of the module.
 	 */
 	private List<Query> goals = new ArrayList<Query>();
+	/**
+	 * This info is filled in by the validator and may stay empty
+	 */
+	private final SymbolTable macroSymbols = new SymbolTable();
 
 	// -------------------------------------------------------------
 	// Program section
@@ -387,6 +399,66 @@ public class Module extends Program {
 	 */
 	public KRInterface getKRInterface() {
 		return this.kri;
+	}
+
+	/**
+	 * the reference to the definition of the macro.
+	 *
+	 * @param {@link Macro}.
+	 * @return signature of the macro
+	 * @throws ParserException
+	 *             if the given macro can not be resolved (it's undefined) The
+	 *             message then will contain the signature of the undefined
+	 *             macro, and the sourceinfo will be set properly.
+	 */
+	public String resolve(Macro formula) throws ParserException {
+		String signature = formula.getSignature();
+		MacroSymbol symbol = (MacroSymbol) this.macroSymbols.resolve(signature);
+		if (symbol == null) {
+			throw new ParserException(signature, formula.getSourceInfo());
+		} else {
+			// Assumes that formal parameters are all variables
+			// TODO: standardize variables in definition apart from
+			// other variables that occur in rule condition
+			// TODO #3430. This is quick fix.
+			MacroExpression spec = new MacroExpression(symbol.getMacro(),
+					this.kri);
+			MacroExpression call = new MacroExpression((formula), this.kri);
+
+			Substitution uniqueSub = AgentValidatorSecondPass
+					.makeTermVarsUnique(spec.getFreeVar(), call.getFreeVar(),
+							this.kri);
+			MacroExpression fixedSpec = (MacroExpression) spec
+					.applySubst(uniqueSub);
+
+			Substitution substitution = fixedSpec.mgu(call);
+			MacroExpression fixedMacroExp = (MacroExpression) fixedSpec
+					.applySubst(substitution);
+			MentalStateCondition instantiatedDf = fixedMacroExp.getMacro()
+					.getDefinition();
+			formula.setDefinition(instantiatedDf);
+
+			return signature;
+		}
+	}
+
+	/**
+	 * get the macros {@link SymbolTable}.
+	 *
+	 * @return the macros {@link SymbolTable}
+	 */
+	public SymbolTable getResolvedMacros() {
+		return this.macroSymbols;
+	}
+
+	public Set<String> resolve(MentalStateCondition msc) throws ParserException {
+		Set<String> macroLabels = new HashSet<>();
+		for (MentalFormula formula : msc.getSubFormulas()) {
+			if (formula instanceof Macro) {
+				macroLabels.add(resolve((Macro) formula));
+			}
+		}
+		return macroLabels;
 	}
 
 	/**
