@@ -1,5 +1,8 @@
 package languageTools.program.test.testsection;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import languageTools.program.agent.msc.MentalStateCondition;
 
 /**
@@ -48,6 +51,13 @@ public class AssertTest implements TestSection {
 	 */
 	public MentalStateCondition getMentalStateTest() {
 		return this.condition;
+	}
+
+	@Override
+	public List<MentalStateCondition> getQueries() {
+		List<MentalStateCondition> condition = new ArrayList<>(1);
+		condition.add(this.condition);
+		return condition;
 	}
 
 	@Override

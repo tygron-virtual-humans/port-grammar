@@ -132,8 +132,8 @@ import org.antlr.v4.runtime.tree.TerminalNode;
  */
 @SuppressWarnings("rawtypes")
 public class TestValidator extends
-Validator<MyGOALLexer, Test, TestErrorStrategy, UnitTest> implements
-TestVisitor {
+		Validator<MyGOALLexer, Test, TestErrorStrategy, UnitTest> implements
+		TestVisitor {
 	private Test parser;
 	private MASProgram masProgram;
 	private AgentProgram agentProgram;
@@ -184,7 +184,8 @@ TestVisitor {
 
 	@Override
 	protected void secondPass(ParseTree tree) {
-		// TODO Auto-generated method stub
+		TestValidatorSecondPass pass = new TestValidatorSecondPass(this);
+		pass.validate();
 	}
 
 	/**
@@ -449,6 +450,7 @@ TestVisitor {
 		languageTools.parser.GOAL.ActionsContext comboContext = parser
 				.actions();
 
+		// FIXME: SourceInfo of resulting objects is incorrect
 		AgentValidator sub = new AgentValidator("inline-action");
 		sub.setKRInterface(this.agentProgram.getKRInterface());
 		ActionCombo subcombo = sub.visitActions(comboContext);
@@ -508,6 +510,7 @@ TestVisitor {
 		languageTools.parser.GOAL.MentalStateConditionContext conditionContext = parser
 				.mentalStateCondition();
 
+		// FIXME: SourceInfo of resulting objects is incorrect
 		AgentValidator sub = new AgentValidator("inline-condition");
 		sub.setKRInterface(this.agentProgram.getKRInterface());
 		MentalStateCondition condition = sub

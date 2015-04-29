@@ -1,10 +1,13 @@
 package languageTools.program.test.testsection;
 
 import java.nio.channels.Channel;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 
 import languageTools.program.agent.AgentProgram;
 import languageTools.program.agent.actions.ModuleCallAction;
+import languageTools.program.agent.msc.MentalStateCondition;
 import languageTools.program.test.testcondition.TestCondition;
 
 /**
@@ -62,7 +65,7 @@ public class EvaluateIn implements TestSection {
 	 *
 	 * @return the test conditions evaluated in this section.
 	 */
-	public Set<TestCondition> getQueries() {
+	public Set<TestCondition> getConditions() {
 		return this.conditions;
 	}
 
@@ -85,10 +88,33 @@ public class EvaluateIn implements TestSection {
 	}
 
 	@Override
+	public List<MentalStateCondition> getQueries() {
+		List<MentalStateCondition> conditions = new LinkedList<>();
+		if (this.boundary != null && this.boundary.getQuery() != null) {
+			conditions.add(this.boundary.getQuery().getCondition());
+		}
+		for (final TestCondition test : this.conditions) {
+			conditions.addAll(getQueries(test));
+		}
+		return conditions;
+	}
+
+	private List<MentalStateCondition> getQueries(TestCondition condition) {
+		List<MentalStateCondition> conditions = new LinkedList<>();
+		if (condition.getQuery() != null) {
+			conditions.add(condition.getQuery().getCondition());
+		}
+		if (condition.getNestedCondition() != null) {
+			conditions.addAll(getQueries(condition.getNestedCondition()));
+		}
+		return conditions;
+	}
+
+	@Override
 	public String toString() {
 		StringBuilder str = new StringBuilder();
 		str.append("evaluate {\n");
-		for (TestCondition query : getQueries()) {
+		for (TestCondition query : this.conditions) {
 			str.append(query.toString() + "\n");
 		}
 		str.append("} in ").append(this.module.toString());

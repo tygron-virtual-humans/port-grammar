@@ -1,5 +1,8 @@
 package languageTools.program.test.testsection;
 
+import java.util.List;
+
+import languageTools.program.agent.msc.MentalStateCondition;
 import languageTools.program.test.TestCollection;
 
 /**
@@ -14,5 +17,5 @@ import languageTools.program.test.TestCollection;
  * @author mpkorstanje
  */
 public interface TestSection {
-
+	public List<MentalStateCondition> getQueries();
 }
