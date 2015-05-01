@@ -53,6 +53,11 @@
 			<id>VH3-mvn-repo</id>
 			<url>https://raw.github.com/VH3/mvn-repo/master</url>
 		</repository>
+
+        <repository>
+            <id>goalhub-mvn-repo</id>
+            <url>https://raw.github.com/goalhub/mvn-repo/master</url>
+        </repository>
 	</repositories>
 
 	<dependencies>		
