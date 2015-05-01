@@ -6,3 +6,6 @@
 /target/
 /bin/
 /pom.xml.versionsBackup
+.DS_Store
+*.iml
+.idea
