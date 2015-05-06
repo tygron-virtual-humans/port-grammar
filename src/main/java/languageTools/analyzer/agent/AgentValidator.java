@@ -380,6 +380,16 @@ implements GOALVisitor {
 
 					// Process content of program section
 					Map.Entry<List<Macro>, List<Rule>> program = visitProgram(progCtx);
+					// Add macro to symbol table
+					for (final Macro macro : program.getKey()) {
+						if (!module.getResolvedMacros().define(
+								new MacroSymbol(macro.getSignature(), macro,
+										macro.getSourceInfo()))) {
+							// report duplicate use of macro symbol
+							reportError(AgentError.MACRO_DUPLICATE_NAME, ctx,
+									macro.getSignature());
+						}
+					}
 					module.setMacros(program.getKey());
 					module.setRules(program.getValue());
 
@@ -656,15 +666,6 @@ implements GOALVisitor {
 			reportError(AgentError.MACRO_PARAMETERS_NOT_IN_DEFINITION,
 					macro.getSourceInfo(), prettyPrintSet(new HashSet<>(
 							declaration.getValue())), msc.toString());
-		}
-
-		// Add macro to symbol table
-		if (!getProgram().getMacros()
-				.define(new MacroSymbol(macro.getSignature(), macro,
-						getSourceInfo(ctx)))) {
-			// report duplicate use of macro symbol
-			reportError(AgentError.MACRO_DUPLICATE_NAME, ctx,
-					macro.getSignature());
 		}
 
 		return macro;

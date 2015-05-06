@@ -116,6 +116,7 @@ ATEND			: 'atend';
 EVENTUALLY		: 'eventually';
 UNTIL		    : 'until';
 WHILE			: 'while';
+WATCH			: 'watch';
 REACTTO			: 'reactTo'		{ stayInDefault = true; }; 
 
 StringLiteral
