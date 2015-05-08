@@ -85,6 +85,7 @@ DROP			: 'drop'		{ stayInDefault = false; };
 INSERT			: 'insert'		{ stayInDefault = false; };
 DELETE			: 'delete'		{ stayInDefault = false; };
 LOG				: 'log'			{ stayInDefault = false; };
+CALCULATE		: 'calculate'	{ stayInDefault = false; };
 PRINT			: 'print'		{ stayInDefault = false; };
 SENDONCE		: 'sendonce'	{ stayInDefault = false; };
 SEND			: 'send'		{ stayInDefault = false; };

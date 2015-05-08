@@ -141,6 +141,7 @@ actionOperator
 	| op = 'sendonce'
 	| op = 'print'
 	| op = 'log'
+	| op = 'calculate'
 	;
 
 selector
