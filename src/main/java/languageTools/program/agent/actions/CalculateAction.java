@@ -3,26 +3,28 @@ package languageTools.program.agent.actions;
 import krTools.KRInterface;
 import krTools.language.Expression;
 import krTools.language.Substitution;
+import krTools.language.Term;
 import krTools.language.Update;
 import krTools.parser.SourceInfo;
+import languageTools.parser.GOAL;
 import languageTools.program.agent.AgentProgram;
+
+import java.util.List;
 
 /**
  * Created by svenpopping on 29/04/15.
  */
-public class CalculateAction extends Action<Update> {
-
-    /**
-     * The argument that determines what will be logged.
-     */
-    private final String argument;
+public class CalculateAction extends Action<Term> {
 
     /**
      *
      */
-    public CalculateAction(String argument, SourceInfo info, KRInterface kri) {
-        super(AgentProgram.getTokenName(GOAL.LOG), info, kri);
-        this.argument = argument;
+    public CalculateAction(List<Term> parameters, SourceInfo info, KRInterface kri) {
+        super(AgentProgram.getTokenName(GOAL.CALCULATE), info, kri);
+
+        for(Term parameter : parameters){
+            addParameter(parameter);
+        }
     }
 
     /**
@@ -31,8 +33,8 @@ public class CalculateAction extends Action<Update> {
      * @return
      */
     @Override
-    public Expression applySubst(Substitution substitution) {
-        return null;
+    public CalculateAction applySubst(Substitution substitution) {
+        return this;
     }
 
     /**
@@ -41,9 +43,7 @@ public class CalculateAction extends Action<Update> {
      */
     @Override
     public String toString() {
-        return "CalculateAction{" +
-                "argument='" + argument + '\'' +
-                '}';
+        return "CalculateAction";
     }
 
     /**
@@ -59,8 +59,6 @@ public class CalculateAction extends Action<Update> {
 
         CalculateAction that = (CalculateAction) o;
 
-        if (argument != null ? !argument.equals(that.argument) : that.argument != null) return false;
-
         return true;
     }
 
@@ -71,7 +69,7 @@ public class CalculateAction extends Action<Update> {
     @Override
     public int hashCode() {
         int result = super.hashCode();
-        result = 31 * result + (argument != null ? argument.hashCode() : 0);
+        result = 31 * result;
         return result;
     }
 }

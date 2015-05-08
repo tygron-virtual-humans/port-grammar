@@ -86,20 +86,7 @@ import languageTools.program.agent.Module.ExitCondition;
 import languageTools.program.agent.Module.FocusMethod;
 import languageTools.program.agent.Module.RuleEvaluationOrder;
 import languageTools.program.agent.Module.TYPE;
-import languageTools.program.agent.actions.Action;
-import languageTools.program.agent.actions.ActionCombo;
-import languageTools.program.agent.actions.AdoptAction;
-import languageTools.program.agent.actions.DeleteAction;
-import languageTools.program.agent.actions.DropAction;
-import languageTools.program.agent.actions.ExitModuleAction;
-import languageTools.program.agent.actions.InsertAction;
-import languageTools.program.agent.actions.LogAction;
-import languageTools.program.agent.actions.ModuleCallAction;
-import languageTools.program.agent.actions.PrintAction;
-import languageTools.program.agent.actions.SendAction;
-import languageTools.program.agent.actions.SendOnceAction;
-import languageTools.program.agent.actions.UserSpecAction;
-import languageTools.program.agent.actions.UserSpecOrModuleCall;
+import languageTools.program.agent.actions.*;
 import languageTools.program.agent.msc.AGoalLiteral;
 import languageTools.program.agent.msc.BelLiteral;
 import languageTools.program.agent.msc.GoalALiteral;
@@ -959,8 +946,15 @@ implements GOALVisitor {
 				return null;
 			}
 		} else if (ctx.declarationOrCallWithTerms() != null) {
-			Map.Entry<String, List<Term>> action = visitDeclarationOrCallWithTerms(ctx
+            Map.Entry<String, List<Term>> action = visitDeclarationOrCallWithTerms(ctx
 					.declarationOrCallWithTerms());
+
+
+            //If the type is calculate, create a calculate action.
+            if (ctx.op.equals(AgentProgram.getTokenName(GOAL.CALCULATE))) {
+                return new CalculateAction(action.getValue(), getSourceInfo(ctx), this.kri);
+            }
+
 			return new UserSpecOrModuleCall(action.getKey(), action.getValue(),
 					getSourceInfo(ctx), this.kri);
 		} else if (ctx.op.getType() == GOAL.EXITMODULE) {
