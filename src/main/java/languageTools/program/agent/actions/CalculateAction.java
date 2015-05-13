@@ -9,6 +9,7 @@ import krTools.parser.SourceInfo;
 import languageTools.parser.GOAL;
 import languageTools.program.agent.AgentProgram;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -34,7 +35,15 @@ public class CalculateAction extends Action<Term> {
      */
     @Override
     public CalculateAction applySubst(Substitution substitution) {
-        return this;
+        ArrayList<Term> parameters = new ArrayList<Term>();
+
+        // Apply substitution to action parameters, pre- and post-condition.
+        for (Term parameter : getParameters()) {
+            parameters.add(parameter.applySubst(substitution));
+        }
+
+        CalculateAction calcAction = new CalculateAction(parameters,getSourceInfo(),getKRInterface());
+        return calcAction;
     }
 
     /**
