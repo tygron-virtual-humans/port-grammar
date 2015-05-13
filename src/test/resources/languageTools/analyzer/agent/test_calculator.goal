@@ -5,6 +5,6 @@ init module{
 
 main module{
 	program{
-		if bel(true) then calculate('1',"plus",2,3).
+		if bel(true) then calculate(1,"plus",2,3).
 	}
 }
