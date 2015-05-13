@@ -125,7 +125,7 @@ actions
 action
 	: (selector '.')? actionOperator PARLIST									
 	| op = 'exit-module'
-	| op = 'log'										
+	| op = 'log'
 	| op = 'init'												
 	| op = 'main'												
 	| op = 'event'

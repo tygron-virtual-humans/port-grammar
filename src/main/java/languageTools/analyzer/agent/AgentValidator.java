@@ -899,7 +899,10 @@ implements GOALVisitor {
 				return new LogAction(
 						removeLeadTrailCharacters(parlistctx.getText()),
 						getSourceInfo(parlistctx), this.kri);
-			} else {
+			} else if (op.equals(AgentProgram.getTokenName(GOAL.CALCULATE))) {
+                List<Term> params = visit_KR_Terms(argument,getSourceInfo(parlistctx));
+                return new CalculateAction(params,getSourceInfo(parlistctx),this.kri);
+            } else {
 				// send actions may have initial mood operator; check
 				SentenceMood mood = getMood(argument);
 				if (mood == null) { // set default mood
@@ -948,12 +951,6 @@ implements GOALVisitor {
 		} else if (ctx.declarationOrCallWithTerms() != null) {
             Map.Entry<String, List<Term>> action = visitDeclarationOrCallWithTerms(ctx
 					.declarationOrCallWithTerms());
-
-
-            //If the type is calculate, create a calculate action.
-            if (ctx.op.equals(AgentProgram.getTokenName(GOAL.CALCULATE))) {
-                return new CalculateAction(action.getValue(), getSourceInfo(ctx), this.kri);
-            }
 
 			return new UserSpecOrModuleCall(action.getKey(), action.getValue(),
 					getSourceInfo(ctx), this.kri);
