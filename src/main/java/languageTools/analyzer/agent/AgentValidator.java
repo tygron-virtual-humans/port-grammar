@@ -21,6 +21,7 @@ import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.AbstractMap;
@@ -87,6 +88,7 @@ import languageTools.program.agent.Module.FocusMethod;
 import languageTools.program.agent.Module.RuleEvaluationOrder;
 import languageTools.program.agent.Module.TYPE;
 import languageTools.program.agent.actions.*;
+import languageTools.program.agent.actions.parameter.ActionToken;
 import languageTools.program.agent.msc.AGoalLiteral;
 import languageTools.program.agent.msc.BelLiteral;
 import languageTools.program.agent.msc.GoalALiteral;
@@ -117,6 +119,7 @@ import org.antlr.v4.runtime.misc.NotNull;
 import org.antlr.v4.runtime.tree.ErrorNodeImpl;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
+import org.reflections.Reflections;
 
 /**
  * Validates an agent or module file and constructs an agent program or module.
@@ -149,12 +152,16 @@ implements GOALVisitor {
 	private final SymbolTable actionSymbols = new SymbolTable();
 	private Scope varSymbols = new SymbolTable();
 
+    private HashMap<Integer,Class<? extends ParameterAction>> parameterActions;
+
 	public AgentValidator(String filename) {
 		super(filename);
+        parseParameterActions();
 	}
 
 	public AgentValidator(String filename, AgentProgram program) {
-		super(filename, program);
+	    super(filename, program);
+        parseParameterActions();
 	}
 
 	@Override
@@ -169,6 +176,16 @@ implements GOALVisitor {
 		}
 		return strategy;
 	}
+
+    private void parseParameterActions() {
+        parameterActions = new HashMap<>();
+        Reflections reflections = new Reflections("languageTools.program.agent.actions.parameter");
+        Set<Class<? extends ParameterAction>> paramActions = reflections.getSubTypesOf(ParameterAction.class);
+        for(Class<? extends ParameterAction> paramAction : paramActions){
+            ActionToken actionToken = paramAction.getAnnotation(ActionToken.class);
+            parameterActions.put(actionToken.value(),paramAction);
+        }
+    }
 
 	/**
 	 * Sets the KR interface that should be used for parsing KR fragments.
@@ -899,10 +916,27 @@ implements GOALVisitor {
 				return new LogAction(
 						removeLeadTrailCharacters(parlistctx.getText()),
 						getSourceInfo(parlistctx), this.kri);
-			} else if (op.equals(AgentProgram.getTokenName(GOAL.CALCULATE))) {
-                List<Term> params = visit_KR_Terms(argument,getSourceInfo(parlistctx));
-                return new CalculateAction(params,getSourceInfo(parlistctx),this.kri);
             } else {
+                for(int token : parameterActions.keySet()){
+                    if(op.equals(AgentProgram.getTokenName((token)))){
+                        List<Term> params = visit_KR_Terms(argument, getSourceInfo(parlistctx));
+                        Class<? extends ParameterAction> actionClass = parameterActions.get(token);
+                        try {
+                            return actionClass.getDeclaredConstructor(List.class,SourceInfo.class,KRInterface.class).newInstance(
+                                    params,getSourceInfo(parlistctx), this.kri);
+                        } catch (InstantiationException e) {
+                            System.out.println("Error: The constructor of " + actionClass.getName() + " is not correctly specified.");
+                            e.printStackTrace();
+                        } catch (IllegalAccessException e) {
+                            e.printStackTrace();
+                        } catch (InvocationTargetException e) {
+                            e.printStackTrace();
+                        } catch (NoSuchMethodException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+
 				// send actions may have initial mood operator; check
 				SentenceMood mood = getMood(argument);
 				if (mood == null) { // set default mood

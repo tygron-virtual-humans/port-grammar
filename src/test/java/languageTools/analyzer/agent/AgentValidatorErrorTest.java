@@ -443,12 +443,12 @@ public class AgentValidatorErrorTest {
 		assertTrue(this.warnings.isEmpty());
 	}
 
-    /*@Test
+    @Test
     public void test_calculator() throws KRInitFailedException {
         setup("src/test/resources/languageTools/analyzer/agent/test_calculator.goal");
         assertTrue(this.syntaxerrors.isEmpty());
         assertEquals(0, this.errors.size());
         assertTrue(this.warnings.isEmpty());
-    }*/
+    }
 
 }

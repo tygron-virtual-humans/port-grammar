@@ -141,6 +141,7 @@ actionOperator
 	| op = 'sendonce'
 	| op = 'print'
 	| op = 'log'
+	//Add parameterized actions here as above
 	| op = 'calculate'
 	;
 
