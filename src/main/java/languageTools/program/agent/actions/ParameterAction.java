@@ -9,6 +9,7 @@ import krTools.parser.SourceInfo;
 import languageTools.parser.GOAL;
 import languageTools.program.agent.AgentProgram;
 import languageTools.program.agent.actions.parameter.ActionToken;
+import sun.security.krb5.KrbApRep;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -51,7 +52,8 @@ public abstract class ParameterAction extends Action<Term> {
     public ParameterAction applySubst(Substitution substitution) {
         List<Term> newParameters = applySubstToParams(substitution);
         try {
-            return this.getClass().getDeclaredConstructor(Class.class).newInstance(newParameters,getSourceInfo(),getKRInterface());
+            return this.getClass().getDeclaredConstructor(List.class,SourceInfo.class, KRInterface.class).newInstance(
+                    newParameters,getSourceInfo(),getKRInterface());
         } catch (InstantiationException e) {
             e.printStackTrace();
         } catch (IllegalAccessException e) {
