@@ -4,7 +4,7 @@
 
 	<groupId>com.github.goalhub.grammar</groupId>
 	<artifactId>languageTools</artifactId>
-	<version>1.1.6-calc</version>
+	<version>1.1.6p</version>
 	<packaging>jar</packaging>
 
 	<name>GOAL Grammar Tools</name>
