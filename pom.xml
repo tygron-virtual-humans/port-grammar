@@ -4,7 +4,7 @@
 
 	<groupId>com.github.goalhub.grammar</groupId>
 	<artifactId>languageTools</artifactId>
-	<version>1.1.6</version>
+	<version>1.1.6p</version>
 	<packaging>jar</packaging>
 
 	<name>GOAL Grammar Tools</name>
@@ -60,7 +60,13 @@
         </repository>
 	</repositories>
 
-	<dependencies>		
+	<dependencies>
+        <dependency>
+            <groupId>org.reflections</groupId>
+            <artifactId>reflections</artifactId>
+            <version>0.9.10</version>
+        </dependency>
+
 		<dependency>
 			<groupId>org.antlr</groupId>
 			<artifactId>antlr4-runtime</artifactId>
