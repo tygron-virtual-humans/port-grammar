@@ -87,6 +87,11 @@ DELETE			: 'delete'		{ stayInDefault = false; };
 LOG				: 'log'			{ stayInDefault = false; };
 //add parameterized actions here as above
 CALCULATE       : 'calculate'   { stayInDefault = false; };
+GA_REGISTER     : 'ga-register' { stayInDefault = false; };
+GA_APPRAISE     : 'ga-appraise' { stayInDefault = false; };
+GA_DECAY        : 'ga-decay'    { stayInDefault = false; };
+GA_ADOPT        : 'ga-adopt'    { stayInDefault = false; };
+GA_DROP         : 'ga-drop'     { stayInDefault = false; };
 PRINT			: 'print'		{ stayInDefault = false; };
 SENDONCE		: 'sendonce'	{ stayInDefault = false; };
 SEND			: 'send'		{ stayInDefault = false; };

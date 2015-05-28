@@ -143,6 +143,11 @@ actionOperator
 	| op = 'log'
 	//Add parameterized actions here as above
 	| op = 'calculate'
+	| op = 'ga-register'
+	| op = 'ga-appraise'
+	| op = 'ga-decay'
+	| op = 'ga-adopt'
+	| op = 'ga-drop'
 	;
 
 selector
